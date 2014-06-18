@@ -1,0 +1,58 @@
+//NAVIGATION BAR - AR
+
+.topics-display {
+	//visibility:hidden;
+	border-top:2px solid @offWhite;
+	position:relative;
+	//#font > .sans-serif;
+	font-size:13px;
+	height:auto;
+	overflow:hidden;
+	background-color:@grayLighter;
+	padding-bottom:0.3rem;
+	border-bottom:1px solid lighten(@gray,50%);
+	#gradient > .vertical (@offWhite,@grayLighter);
+
+	ul {
+		margin:0 0.2rem 0;
+		position:static;
+		padding:0 0.2rem;
+
+		li {
+			display:inline-block;
+			background-color: white;
+			border-radius: 6px;
+			padding:0 0.2rem;
+			margin-top:0.3rem;
+      .box-shadow(0 -1px 1px lighten(@grayLight, 20%));
+
+			&:hover {
+				background-color:@grayLighter;
+				.box-shadow(1px 0 1px lighten(@grayLight, 20%));
+			}
+			a {
+				color:@grayDark;
+
+				&:hover {
+					color:@primaryAccent;
+				}
+			}
+		}
+		&:before {
+			text-transform:uppercase;
+			font-size:1rem;
+			content:"\0000a0filed under";
+			.smallCaps(9px);
+		}
+	}
+	.show-hide-toggle {
+		right:0.8rem;
+	}
+
+	&.show-all {
+		.showAll();
+		z-index:10;
+		position:absolute;
+	}
+
+}

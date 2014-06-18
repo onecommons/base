@@ -1,0 +1,33 @@
+{% extends 'layouts/layout-profile.html' %}
+
+{% block profilecontent %}
+
+<h2><a name="history">Transaction History</a></h2>
+
+<table class="table table-striped">
+	<thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Donated Amount</th>
+          <th>Funding Source</th>
+          <th>Receipt</th>
+        </tr>
+  	</thead>
+  	<tbody>
+      	{% for transaction in transactions %}
+        <tr>
+          <td>{{ transaction.id }}</td>
+          <td>{{ transaction.date }}</td>
+          <td>${{ transaction.amount }}</td>
+          <td>{{ transaction.source }}</td>
+          <td>Receipt Link</td>
+        </tr>
+		{% endfor %}
+    </tbody>
+
+
+</table>
+
+
+{% endblock %}

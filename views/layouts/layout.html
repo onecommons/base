@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="/ico/favicon.ico">
+
+    <title>OneCommons: Harnessing the power of collective action</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.{% if !debug %}min.{% endif %}css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/css/app.css" rel="stylesheet">
+
+    <!-- Style from Font-Awesome for icons -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.{% if !debug %}min.{% endif %}css" rel="stylesheet">
+
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    {% block head %} {% endblock %}
+  </head>
+
+  <body>
+
+    <div class="navbar" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="/"><img height=75 src='/images/logo.png'></a>
+          <!--<h4 class='tagline'>Harnessing the power of collective action</h4>-->
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+                {% if req.isAuthenticated() == false %}
+                <li><a href="{{routes.signup}}"><span class="glyphicon glyphicon-user"></span>Sign Up</a></li>
+                <li><a href="{{routes.login}}"><span class="glyphicon glyphicon-user"></span>Login</a></li>
+                {% else %}
+                <li class="dropdown"><a href="{{routes.profile}}" class="dropdown-toggle disabled" data-toggle="dropdown" data-hover="dropdown" data-close-others="true"><span class="glyphicon glyphicon-user"></span>Profile</a>
+                <ul class="dropdown-menu">
+                  <li><a href="{{routes.userTransactions}}">Transaction History</a></li>
+                  <li><a href="{{routes.setupPaymentPlan}}">Payment Plan</a></li>
+                  <li><a href="{{routes.logout}}">Logout</a></li>
+                  </ul>
+                </li>
+                {% endif %}
+          </ul>
+        </div><!--/.navbar-collapse -->
+      </div> <!-- container -->
+{% block navbar_extra %}{% endblock %}
+    </div> <!-- navbar div in header -->
+
+      <div class="container">
+        <div class="row">
+          {% block content %}{% endblock %}
+        <div class="row">
+      </div>
+
+      <hr>
+      <footer>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-4">
+            Mission statement blurb
+            </div>
+            <div class="col-md-4">
+              <ul>
+                <header>Some Footer Links</header>
+                <li><a href="#" class="">About</a></li>
+                <li><a href="#" class=""></a></li>
+                <li><a href="#" class=""></a></li>
+                <li><a href="#" class=""></a></li>
+              </ul>
+            </div>
+            <div class="col-md-4">
+              <p>&copy; OneCommons 2014</p>
+              <p>3019 Mission Street</p>
+              <p>San Francisco, CA 94103</p>
+            </div>
+        </div>
+      </footer>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-1.10.2.{% if !debug %}min.{% endif %}js"></script>
+    <script src="/js/bootstrap.{% if !debug %}min.{% endif %}js"></script>
+    <script src="/js/bootstrap-hover-dropdown.min.js"></script>
+{% block jsfooter %}{% endblock %}
+{%clientrender%}
+{% include "../partials/debug_footer.html" %}
+  </body>
+</html>

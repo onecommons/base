@@ -1,0 +1,78 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+
+<style>
+  #sidebar.affix-top {
+    position: static;
+  	margin-top:30px;
+  	width:228px;
+  }
+
+  #sidebar.affix {
+    position: fixed;
+    top:10px;
+    width:228px;
+  }
+</style>
+
+
+<div class="container">
+	<h2>Navigating Projects</h2>
+</div>
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-9">
+			<div class="row">
+				{% for item in directoryItems %}
+			  	<div class="col-md-6">
+			    	<div class="thumbnail">
+			      		<a href="{{ routes.directoryItem }}"><img data-src="holder.js/253x168/lava" alt="..."></a>
+			     		<div class="caption">
+			        		<h3><a href="{{ routes.directoryItem }}">{{ item.name }}</a></h3>
+			        		<p>{{ item.description }}</p>
+			        		<p>
+			        			<a href="{{ routes.directoryItem }}" class="btn btn-primary" role="button">Endorse</a>
+			        			<a href="{{ routes.directoryItem }}" class="btn btn-default" role="button">Discuss</a>
+			        			<a href="{{ routes.directoryItem }}" class="btn btn-default" role="button">Learn </a>
+		        			</p>
+			      		</div>
+			    	</div>
+			  	</div>
+			  	{% endfor %}
+
+			</div>
+		</div>
+
+
+		<div class="col-md-3" id="rightCol">
+			<div class="list-group" id="sidebar">
+					<h4>Causes</h4>
+					{% for category in categories %}
+		      			<a href="directory/{{ category.url }}" class="list-group-item">{{ category.name }}</a>
+	      			{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block jsfooter %}
+<!-- dev only. (place)holder.js does "images" -->
+<script src="/js/holder.js"></script>    
+
+<script>
+$('#sidebar').affix({
+      offset: {
+        top: 170
+      }
+});
+
+var $body   = $(document.body);
+$body.scrollspy({
+	target: '#rightCol'
+});
+</script>
+{% endblock %}

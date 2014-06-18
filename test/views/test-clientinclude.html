@@ -1,0 +1,21 @@
+<html>
+<div id='dom1'>
+{% clientmodel include "./partials/clientinclude.html" with foo only "dom1" %}
+</div>
+
+<div id='dom2'>
+{% clientmodel "./partials/clientinclude.html" with bar only "dom2" %}
+</div>
+
+<div id='dom3'>
+{% clienttemplate "./partials/clientinclude.html" "dom3" %}
+</div>
+
+<div id='dom4'>
+{% clienttemplate include "./partials/clientinclude.html" "dom4" %}
+</div>
+
+
+{% clientrender %}
+
+</html>

@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <!-- PROFILE LINKS -->
+    <div class="col-sm-3">
+
+		<div class="thumbnail chat-img">
+	        <img src="/images/user03-big.jpg" alt="User Avatar" class="img-circle">
+		</div>
+		<div class="thumbnail text-center">
+			{{user.displayName}}
+		</div>
+
+		<div class="row">
+		    <ul>
+		        <li><a href="{{routes.userTransactions}}">Transaction History</a></li>
+		        <li><a href="{{routes.setupPaymentPlan}}">Setup Payment Plan</a></li>
+		        <li><a href="{{routes.editPaymentPlan}}">Edit Payment Plan</a></li>
+		        <li><a href="{{routes.logout}}">Logout</a></li>
+		    </ul>
+		</div>
+    </div>
+
+    <!-- PROFILE CONTENT -->
+    <div class="col-sm-9">
+		{% block profilecontent %}{% endblock %}
+	</div>
+
+{% endblock %}

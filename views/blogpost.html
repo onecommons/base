@@ -1,0 +1,69 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+	<div class="container page-content list-view">
+	<div class="row">
+	<div class="col-md-3">
+	</div>
+   <section class="section-list col-md-9 items-only"><!-- item -->
+      <header class="section-header">
+          <i class="icon-info" title="Section info"></i>
+          <a href="#" title="View full item">Viewed Item</a>
+      </header>
+      <div class="section-body">
+        <div class="item" >
+           {{ post.content }}
+          <div class="interaction">
+              <i class="icon-up" title="Vote up"></i>
+              <i class="icon-favorite" title="Follow item"></i>
+              <i class="icon-down" title="Vote down"></i>
+              <i class="icon-edit" title="Edit item"></i>
+          </div>
+        </div>
+         <div class="topics-display">
+           <i class="show-hide-toggle"></i>
+            <ul>
+              {% for tag in post.tags %}
+                <li><a href="#">{{tag}}</a></li>
+              {% endfor %}
+            </ul>
+        </div>
+        <div class="item-info">
+          <i class="icon-comments item-comments" title="{{post.comments.length}} Comments">{{comments.comments.length}}</i>
+          <span class="profile-thumb">
+            <a href="#" title="View profile of user">
+              <i class="icon-profile"></i><!--replace with profile img-->
+              <span class="item-creator">{{post.creator.displayName}}</span>
+             </a>
+          </span>
+          <span class="item-stats">last edit <span class="item-date">{{post_last_edit}}</span></span>
+        </div>
+      </div><!-- end item section-body -->
+
+      <div class="section-body comment-entry">
+          <div class="header">Add comment</div>
+          <form id="create-comment">
+            <input type="hidden" name="creator" value="{{user._id}}" />
+            <input type="hidden" name="parent" value="{{post._id}}" />
+            <input type="hidden" name= "__t" value= "Comment" /></input>
+           <textarea class="comment-entry-field" name= "content" id="new-comment-text"></textarea>
+          </form>
+           <a class="link disabled" id= "add-comment" title="Add Comment">
+              <i class="icon-plus" title="Add Comment"></i>
+              Add Comment
+          </a>
+      </div>
+      <div id="comment-section" class="section-body">
+{%clientmodel include "./partials/comments.html" with post.comments only "comment-section" %}
+      </div>
+    </section>
+    </div><!-- end row -->
+  </div> <!-- container -->
+{% endblock %}
+
+{% block jsfooter %}
+<!-- <script type="text/javascript" src="/js/frontend.js"></script> -->
+<script type="text/javascript" src="/js/data.js"></script>
+<script type="text/javascript" src="/js/comments-ui.js"></script>
+<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.min.js"></script> -->
+
+{% endblock %}

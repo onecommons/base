@@ -1,0 +1,151 @@
+@contentHeight:     17rem;
+@sectionBackground: @grayLighter;
+@sectionBorder:     1px solid darken(@sectionBackground,10%);
+
+.section-body {          //default 
+  font-size:0.8rem;
+  line-height:1.1rem;
+  padding:2px 0 6px;
+  height:@contentHeight;
+  overflow: hidden;
+  position:relative;
+  border:@sectionBorder;
+  background-color:@sectionBackground;
+
+  .interaction  {
+    position:absolute;
+    left:1px;
+    top:1.7rem;
+    width:30px;
+    height:@contentHeight;
+
+    i  {
+      height:24px;
+    } 
+  }  
+  .item {
+      background-color: @white;
+      padding:2px @itemPadding 9px;
+      margin:6px 3px 4px 32px;
+      font-size:0.8rem;
+      line-height:20px;
+      height:@itemHeight;
+      overflow:hidden;
+      width:@itemWidth;
+  }
+}
+.page-content .topics-display {
+  width:(@gridColumnWidth * 4) + (@itemPadding * 2.5);
+  position:absolute;
+  right:8px;
+  margin-top:-1px;
+  padding-bottom:4px;
+  border-top:1px solid @sectionBackground;
+
+  .show-hide-toggle {
+    margin-top:-2px;
+    .opacity(20);
+
+    &:hover {
+      margin-top:-2px;
+    }
+  }
+  ul {
+    padding:0 0 0 0.3rem;
+    line-height:1.2rem;
+
+    li {
+      .box-shadow(0 0px 1px @sectionBackground);
+
+      &:hover {
+        background-color:@sectionBackground;
+        box-shadow:none;
+        border:none;
+      }
+
+      font-size:0.6rem;
+      height:1.1rem;
+      padding:0 0.2rem;
+      margin:0;
+      line-height:1.1rem;
+    }
+
+    &:before {
+      margin:0 0.2rem 0 -0.2rem;
+    }   
+  }
+  .show-hide-toggle {
+
+    &.hover {
+      .opacity(20);
+    }
+  }
+}
+.item-comments {
+  float: left;
+  font-size:11px;
+  line-height:21px;
+  margin:0 2px 0 0;
+  color:@white;
+  text-align:center;
+
+  &:hover {
+    color:@grayDarker;
+  }
+}   
+.item-info {
+  position: relative;
+
+  .profile-thumb {
+    float:left;
+    font-size:12px;
+    margin-top:3px;
+
+    .icon-profile {
+      margin:-5px 5px 0 0px;
+    }
+  } 
+  .item-stats {
+    float:left;
+    text-align:center;
+    margin:3px 0.4rem;
+    text-transform:uppercase;
+    font-size:10px;
+    color:@grayLight2;
+    word-spacing:-0.05rem;
+    
+    .item-date {
+      padding-left:0.1rem;
+      word-spacing:0rem;
+      color:@gray;
+    }
+  }
+}
+.link {
+  cursor:pointer;
+  font-size:0.8rem;
+  float:left;
+  margin-left:-0.3rem;
+  margin-top:2px;
+  text-transform:lowercase;
+
+  i {
+    cursor:pointer;
+    margin:-0.4rem -0.1rem 0 0;
+  }
+
+  &:hover {
+    .icon-plus {
+      .opacity(@iconOpacityHover);
+      background-position: -570px 0px; //show hover sprite
+    }
+    .icon-favorite {
+      .opacity(@iconOpacityHover);
+      background-position: -690px 0px; //show hover sprite
+    }
+  }
+
+  &.favorite {
+    float:right;
+  }       
+}

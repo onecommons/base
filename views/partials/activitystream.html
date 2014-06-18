@@ -1,0 +1,16 @@
+              {% if activity.length %}
+              <table class="table table-striped">
+              {% for item in activity %}
+                <tr><td>
+                  <div class="media">
+                    <a class="pull-left" href="#">
+                      <img class="media-object" src="{{item.avatar}}" alt="...">
+                    </a>
+                    <div class="media-body">{{item.contents|safe}}</div>
+                  </div>
+              </td></tr>
+              {% endfor %}
+              </table>
+              {% else %}
+                <em>No activity</em>
+              {% endif %}

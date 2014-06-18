@@ -1,0 +1,300 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+	<div class="container page-content list-view">
+	<div class="row">
+	<div class="col-md-3">
+	</div>
+   <section class="section-list col-md-9 items-only"><!-- item -->
+      <header class="section-header">
+          <i class="icon-info" title="Section info"></i>
+          <a href="#" title="View full item">Viewed Item</a>
+      </header>
+      <div class="section-body">
+        <div class="item">
+          ing et, sodales ac, feugiat non, lacus. Ut dictum velit nec est. Quisque posuere, purus sit amet malesuada blandit, sapien sapien auctor arcu, sed pulvinar felis mi sollicitudin tortor. Maecenas volutpat, nisl et dignissim pharetra, urna lectus ultrices est, vel pretium pede turpis id velit. Aliquam sagittis magna in felis egestas rutrum. Proin wisi libero, vestibulum eget, pulvinar nec, suscipit ut, mi. Ininar felis mi sollicitudin tortor. Aliquam sagittis magna in felis egestas rutrum. Proin wisi libero, vestibulum eget, pulvinar nedc, suscipit ut, mi. Ininar felis mi sollicitudin tortor.
+          ing et, sodales ac, feugiat non, lacus. Utortor. Aliquam sagittis magna in felis egestas rutrum. Proi
+          <div class="interaction">
+              <i class="icon-up" title="Vote up"></i>
+              <i class="icon-favorite" title="Follow item"></i>
+              <i class="icon-down" title="Vote down"></i>
+              <i class="icon-edit" title="Edit item"></i>
+          </div>
+        </div>
+         <div class="topics-display">
+           <i class="show-hide-toggle"></i>
+            <ul>
+                <li><a href="#">Celiac Disease</a></li>
+                <li><a href="#">Tips and Tricks</a></li>
+                <li><a href="#">Personal Anecdotes</a></li>
+                <li><a href="#">East Coast</a></li>
+                <li><a href="#">NYC</a></li>
+            </ul>
+        </div>
+        <div class="item-info">
+          <i class="icon-comments item-comments" title="19 Comments">19</i>
+          <span class="profile-thumb">
+            <a href="#" title="View profile of user">
+              <i class="icon-profile"></i><!--replace with profile img-->username
+            </a>
+          </span>
+          <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+        </div>
+      </div><!-- end item section-body -->
+
+      <div class="section-body comment-entry">
+          <div class="header">Add comment</div>
+          <div class="comment-entry-field"></div>
+          <a class="link" title="Add Comment">
+              <i class="icon-plus" title="Add Comment"></i>
+              Add Comment
+          </a>
+      </div>
+
+      <div class="section-body comments">
+        <i class="show-hide-toggle"></i>
+        <span class="comments-header" title="View all 19 comments">
+          19
+          comments
+        </span>
+        <nav class="comments-nav">
+            <ul>
+              <li class="active">Most Recent</li>
+              <li>Oldest First</li>
+              <li>Most Trusted</li>
+            </ul>
+        </nav>
+
+        <div class="comment">
+          <div class="item-info">
+            <span class="profile-thumb">
+              <a href="#" title="View profile of user">
+                <i class="icon-profile"></i><!--replace with profile img-->username
+              </a>
+            </span>
+            <span class="item-time">32 minutes ago</span>
+            <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+          </div>
+          <div class="interaction">
+              <i class="icon-up" title="Vote up"></i>
+              <i class="icon-favorite" title="Follow item"></i>
+              <i class="icon-down" title="Vote down"></i>
+              <i class="icon-edit" title="Edit item"></i>
+          </div>
+          <div class="item">
+            text of the comment
+            <a class="link flag-btn" title="Flag">flag</a>
+            <a class="link reply-btn" title="Reply">
+                <i class="icon-plus" title="Reply"></i>
+                Reply
+            </a>
+          </div><!-- end item -->
+
+          <div class="replies">
+            <i class="show-hide-toggle"></i>
+            <span class="comments-header" title="View all 3 replies">
+              3
+              replies
+            </span>
+
+            <div class="comment reply">
+              <div class="item-info">
+                <span class="profile-thumb">
+                  <a href="#" title="View profile of user">
+                    <i class="icon-profile"></i><!--replace with profile img-->username
+                  </a>
+                </span>
+                <span class="item-time">32 minutes ago</span>
+                <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+              </div>
+              <div class="interaction">
+                  <i class="icon-up" title="Vote up"></i>
+                  <i class="icon-favorite" title="Follow item"></i>
+                  <i class="icon-down" title="Vote down"></i>
+                  <i class="icon-edit" title="Edit item"></i>
+              </div>
+              <div class="item">
+                reply
+                <a class="link flag-btn" title="Flag">flag</a>
+                <a class="link reply-btn" title="Reply">
+                    <i class="icon-plus" title="Reply"></i>
+                    Reply
+                </a>
+              </div><!-- end item -->
+
+              <div class="comment reply">
+                <div class="item-info">
+                  <span class="profile-thumb">
+                    <a href="#" title="View profile of user">
+                      <i class="icon-profile"></i><!--replace with profile img-->username
+                    </a>
+                  </span>
+                  <span class="item-time">32 minutes ago</span>
+                  <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+                </div>
+                <div class="interaction">
+                    <i class="icon-up" title="Vote up"></i>
+                    <i class="icon-favorite" title="Follow item"></i>
+                    <i class="icon-down" title="Vote down"></i>
+                    <i class="icon-edit" title="Edit item"></i>
+                </div>
+                <div class="item">
+                  nested reply
+                  <a class="link flag-btn" title="Flag">flag</a>
+                  <a class="link reply-btn" title="Reply">
+                      <i class="icon-plus" title="Reply"></i>
+                      Reply
+                  </a>
+                </div><!-- end item -->
+
+                <div class="comment reply">
+                  <div class="item-info">
+                    <span class="profile-thumb">
+                      <a href="#" title="View profile of user">
+                        <i class="icon-profile"></i><!--replace with profile img-->username
+                      </a>
+                    </span>
+                    <span class="item-time">32 minutes ago</span>
+                    <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+                  </div>
+                  <div class="interaction">
+                      <i class="icon-up" title="Vote up"></i>
+                      <i class="icon-favorite" title="Follow item"></i>
+                      <i class="icon-down" title="Vote down"></i>
+                      <i class="icon-edit" title="Edit item"></i>
+                  </div>
+                  <div class="item">
+                    nested reply
+                    <a class="link flag-btn" title="Flag">flag</a>
+                    <a class="link reply-btn" title="Reply">
+                        <i class="icon-plus" title="Reply"></i>
+                        Reply
+                    </a>
+                  </div><!-- end item -->
+                </div><!-- end sub reply -->
+              </div><!-- end sub reply -->
+            </div><!-- end reply -->
+          </div><!-- end replies -->
+        </div><!-- end comment -->
+
+        <div class="comment">
+          <div class="item-info">
+            <span class="profile-thumb">
+              <a href="#" title="View profile of user">
+                <i class="icon-profile"></i><!--replace with profile img-->username
+              </a>
+            </span>
+            <span class="item-time">32 minutes ago</span>
+            <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+          </div>
+          <div class="interaction">
+              <i class="icon-up" title="Vote up"></i>
+              <i class="icon-favorite" title="Follow item"></i>
+              <i class="icon-down" title="Vote down"></i>
+              <i class="icon-edit" title="Edit item"></i>
+          </div>
+          <div class="item">
+            text of the comment
+            <a class="link flag-btn" title="Flag">flag</a>
+            <a class="link reply-btn" title="Reply">
+                <i class="icon-plus" title="Reply"></i>
+                Reply
+            </a>
+          </div><!-- end item -->
+
+          <div class="replies">
+            <i class="show-hide-toggle"></i>
+            <span class="comments-header" title="View all 3 replies">
+              3
+              replies
+            </span>
+
+            <div class="comment reply">
+              <div class="item-info">
+                <span class="profile-thumb">
+                  <a href="#" title="View profile of user">
+                    <i class="icon-profile"></i><!--replace with profile img-->username
+                  </a>
+                </span>
+                <span class="item-time">32 minutes ago</span>
+                <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+              </div>
+              <div class="interaction">
+                  <i class="icon-up" title="Vote up"></i>
+                  <i class="icon-favorite" title="Follow item"></i>
+                  <i class="icon-down" title="Vote down"></i>
+                  <i class="icon-edit" title="Edit item"></i>
+              </div>
+              <div class="item">
+                reply
+                <a class="link flag-btn" title="Flag">flag</a>
+                <a class="link reply-btn" title="Reply">
+                    <i class="icon-plus" title="Reply"></i>
+                    Reply
+                </a>
+              </div><!-- end item -->
+            </div><!-- end reply -->
+
+            <div class="comment reply">
+              <div class="item-info">
+                <span class="profile-thumb">
+                  <a href="#" title="View profile of user">
+                    <i class="icon-profile"></i><!--replace with profile img-->username
+                  </a>
+                </span>
+                <span class="item-time">32 minutes ago</span>
+                <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+              </div>
+              <div class="interaction">
+                  <i class="icon-up" title="Vote up"></i>
+                  <i class="icon-favorite" title="Follow item"></i>
+                  <i class="icon-down" title="Vote down"></i>
+                  <i class="icon-edit" title="Edit item"></i>
+              </div>
+              <div class="item">
+                reply
+                <a class="link flag-btn" title="Flag">flag</a>
+                <a class="link reply-btn" title="Reply">
+                    <i class="icon-plus" title="Reply"></i>
+                    Reply
+                </a>
+              </div><!-- end item -->
+            </div><!-- end reply -->
+
+            <div class="comment reply">
+              <div class="item-info">
+                <span class="profile-thumb">
+                  <a href="#" title="View profile of user">
+                    <i class="icon-profile"></i><!--replace with profile img-->username
+                  </a>
+                </span>
+                <span class="item-time">32 minutes ago</span>
+                <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span>
+              </div>
+              <div class="interaction">
+                  <i class="icon-up" title="Vote up"></i>
+                  <i class="icon-favorite" title="Follow item"></i>
+                  <i class="icon-down" title="Vote down"></i>
+                  <i class="icon-edit" title="Edit item"></i>
+              </div>
+              <div class="item">
+                reply
+                <a class="link flag-btn" title="Flag">flag</a>
+                <a class="link reply-btn" title="Reply">
+                    <i class="icon-plus" title="Reply"></i>
+                    Reply
+                </a>
+              </div><!-- end item -->
+            </div><!-- end reply -->
+          </div><!-- end replies -->
+        </div><!-- end comment -->
+      </div><!-- end comments -->
+    </section>
+    </div><!-- end row -->
+  </div> <!-- container -->
+{% endblock %}
+
+{% block jsfooter %}
+<!-- <script type="text/javascript" src="/js/frontend.js"></script> -->
+<script type="text/javascript" src="/js/comments-ui.js"></script>
+{% endblock %}

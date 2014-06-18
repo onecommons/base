@@ -1,0 +1,53 @@
+{% extends 'layouts/layout-profile.html' %}
+{% import 'payment-plan-macros.html' as paymentMacros %}
+
+{% block head %}
+
+<!-- CSS for credit card processing -->
+<link href="/css/creditcardjs-v0.10.9.min.css" rel="stylesheet">
+
+<style>
+
+.ccjs-card {
+	margin:1em 0;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block profilecontent %}
+
+
+    <div class="row">
+    	<h2><a name="Payment">Setup Payment Plan</a></h2>
+    	{% if debug %}
+		<button type="button" id="populate" class="btn btn-default" style="margin-bottom: 20px;">Populate Test Data</button>
+		{% endif %}
+
+		{{ paymentMacros.donationFormHTML() }}
+
+		{{ paymentMacros.addCreditCardHTML() }}
+
+
+		<!-- Donate Button -->
+		<div class="form-group">
+		  <label class="col-sm-4 control-label" for="donate"></label>
+		  <div class="col-sm-4">
+		    <button id="cc-donate" name="donate" class="btn btn-success">Donate Message</button>
+		  </div>
+		</div>
+
+    </div><!-- /row -->
+
+
+
+
+{% endblock %}
+
+{% block jsfooter %}
+
+{{ paymentMacros.donationFormJS() }}
+
+{% endblock %}

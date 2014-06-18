@@ -1,0 +1,225 @@
+<html>
+<head>
+
+<style>
+body {
+  font-family: sans-serif;
+  margin: 100px 100px 100px 100px;
+}
+h4 { 
+  padding: 1px 1px 1px 1px; 
+  margin: 1px 1px 1px 1px;}
+div.testcase, div.notestcase {
+    margin-top: 10px;
+    border: 2px solid #999;
+}
+
+div.notestcase {
+  background: #ffc;
+}
+div.test {
+    margin: 5px;
+    background-color: #fee;
+}
+div.expect {
+    margin: 5px;
+    background-color: #eef;
+}
+
+</style>
+</head>
+<body>
+  <h2>Dataform test</h2>
+  
+  <div class= "testcase" ><h4>selected true</h4>
+    <div class= "test">[{{df.selected(true)}}]</div>
+    <div class= "expect">[selected]</div>
+  </div>
+  
+  <div class= "testcase" ><h4>selected false</h4>
+    <div class= "test">{{df.selected(false)}}</div>
+    <div class= "expect"></div>
+  </div>
+
+  <div class= "testcase"><h4>form</h4>
+    <div class= "test">{{df.form(testdata, {class: 'testclass'})}}{{df.form_end()}}</div>
+    <div class= "expect"><form class="testclass dbform">
+<input type= "hidden" name="_id" value= "testdata1">
+<input type="hidden" name="__t" value="test"></form></div>
+  </div> 
+
+<hr/>
+{{df.form(testdata, {class: 'testinputs'})}} <!-- bind form to testdata -->
+<h4>Text Input tests</h4>
+
+  <div class= "testcase"><h4>text field bound to a string property</h4>
+    <div class= "test">{{df.input('a string')}}</div>
+    <div class= "expect"><input type='text' value= "v" name='a string' /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>text field bound to a number property </h4>
+     <div class= "test">{{df.input('nested.object.value', { maxlength: '4', size:'4'})}}</div>
+     <div class= "expect"><input type= "text" maxlength= "4" size= "4" class= "type[number]" value= "1" name= "nested.object.value" ></input></div>
+  </div>
+
+  <div class= "testcase">    
+     <h4>text field bound to a null property </h4>
+     <div class= "test">{{df.input('none')}}</div>
+     <div class= "expect"><input type= "text" class= "type[null]" value= "" name= "none"></input></div>
+  </div>
+
+  <div class= "testcase">    
+     <h4>text field bound to a missing property </h4>
+     <div class= "test">{{df.input('nothere')}}</div>
+    <div class= "expect"><input type= "text" value= "" name= "nothere" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>text field bound to a missing property with defaultValue set </h4>
+     <div class= "test">{{df.input('missing', { type:'text', defaultValue: "default"})}}</div>
+     <div class= "expect"><input type= "text" value= "default" name= "missing" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>text field bound to a nested missing property </h4>
+     <div class= "test">{{df.input('nested.missing.value')}}</div>
+     <div class= "expect"><input type= "text" value= "" name= "nested.missing.value" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>text field bound to a missing property with defaultValue set</h4>
+     <div class= "test">{{df.input("nested.missing.value", {type: "text", defaultValue: "default"})}}</div>
+     <div class= "expect"><input type= "text" value= "default" name= "nested.missing.value" /></div>
+  </div>
+
+  <hr/><h4>Array Input tests</h4>
+  
+  <div class= "testcase">
+    <h4>test list with index 0: </h4>
+     <div class= "test">{{df.input("array[0]")}}</div>
+     <div class= "expect"><input type= "text" class= "type[number]" value= "0" name= "array[0]" /></div>
+  </div>
+  
+  <div class= "testcase">
+    <h4>test list with index 1: </h4>
+      <div class= "test">{{df.input("array[1]")}}</div>
+     <div class= "expect"><input type= "text" class= "type[number]" value= "1" name= "array[1]" /></div>     
+  </div>
+  
+  <div class= "testcase"> 
+    <h4>test out-of-range index: </h4>
+      <div class= "test">{{df.input("array[2]")}}</div>
+     <div class= "expect"><input type= "text" value= "" name= "array[2]" /></div>    
+  </div>
+  
+  <div class= "testcase">
+    <h4> test list:</h4>
+     <div class= "test">{{df.input("array")}}</div>
+     <div class= "expect"><input type= "text" class= "type[json]" value= "[0,1]" name= "array" /></div>    
+  </div>
+
+<hr/><h4> checkbox tests </h4>
+
+  <div class= "testcase">   
+     <h4>checkbox bound to true: </h4>
+     <div class= "test">{{df.input('enabled',{type: "checkbox"})}}</div>
+     <div class= "expect"><input type= "checkbox" class= "type[boolean]" value= "true" name= "enabled" checked /></div>
+  </div>
+
+  <div class= "testcase">   
+     <h4>checkbox bound to false </h4>
+     <div class= "test">{{df.input('disabled', { type: "checkbox"})}}</div>
+     <div class= "expect"><input type= "checkbox" class= "type[boolean]" value= "true" name= "disabled" /></div>
+  </div>
+
+
+  <div class= "testcase">
+     <h4>checkbox bound to value "v": </h4>
+     <div class= "test">{{df.input('a string', {type: "checkbox"})}}</div>
+     <div class= "expect"><input type= "checkbox" value= "v" name= "a string" checked /></div>
+  </div>
+
+
+  <div class= "testcase"> 
+     <h4>checkbox bound to "": </h4>
+     <div class= "test">{{df.input('emptystring', { type: "checkbox"})}}</div>
+     <div class= "expect"><input type= "checkbox" value= "on" name= "emptystring" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>checkbox bound to a missing property with defaultValue set to true: </h4>
+     <div class= "test">{{df.input('missingproperty', { type: "checkbox", defaultValue: true})}}</div>
+     <div class= "expect"><input type= "checkbox" class= "type[boolean]" value= "true" name= "missingproperty" checked  /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>checkbox bound to "" with defaultOnValue set:</h4>
+     <div class= "test">{{df.input('emptystring',{ type: "checkbox", defaultOnValue: "hello"})}}</div>
+     <div class= "expect"><input type= "checkbox" value= "hello" name= "emptystring" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>checkbox bound to null: </h4>
+     <div class= "test">{{df.input(null, { type: "checkbox"} )}}</div>
+     <div class= "expect"><input type= "checkbox" class= "type[json]" value= "true" name= "none" /></div>
+  </div>
+
+<hr><h4>hidden input tests </h4>
+
+  <div class= "testcase">
+     <h4>hidden - string property </h4>
+     <div class= "test">{{df.hidden('a string', { extra_attr: "extra_attr_value"} )}}</div>
+     <div class= "expect"><input type= "hidden" name= "a string" extra_attr= "extra_attr_value" value= "v" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>hidden - null property </h4>
+     <div class= "test">{{df.hidden('none', { extra_attr: "extra_attr_value"} )}}</div>
+     <div class= "expect"><input type= "hidden" name= "none" extra_attr= "extra_attr_value" class= "type[null]" value= "" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>hidden - nested number property </h4>
+     <div class= "test">{{df.hidden('nested.object.value', { extra_attr: "extra_attr_value"} )}}</div>
+     <div class= "expect"><input type= "hidden" name= "nested.object.value" extra_attr= "extra_attr_value" class= "type[number]" value= "1" /></div>
+  </div>
+
+  <hr><h4>textarea tests </h4>
+
+  <div class= "testcase">
+     <h4>textarea - simple string </h4>
+     <div class= "test">{{df.textarea('a string', { extra_attr: "extra_attr_value"} )}}</div>
+     <div class= "expect"><textarea name= "a string" extra_attr= "extra_attr_value" >v</textarea></div>
+  </div>
+
+  <hr><h4>select tests </h4>
+
+  <div class= "testcase">
+     <h4>select - simple select options </h4>
+     <div class= "test">{{df.select('simpleSelection', simpleArray )}}</div>
+     <div class= "expect"><select name= "simpleSelection"><option>one</option><option selected >two</option></select></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>select - labeled select options </h4>
+     <div class= "test">{{df.select('labeledSelection', labeledArray )}}</div>
+     <div class= "expect"><select name= "labeledSelection" ><option class= "type[number]" value= "1">once</option><option selected class= "type[number]" value= "2" >twice</option><option class= "type[number]" value= "3" >three times</option></select></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>select - object select options </h4>
+     <div class= "test">{{df.select('objectSelection', objectArray )}}</div>
+     <div class= "expect"><select name="objectSelection" ><option value= "@1">option 1(first)</option><option selected value= "@2" >option 2()</option></select></div>
+  </div>
+
+  {{df.form_end()}}
+
+  <div class= "testcase">    
+     <h4>fields should no longer be bound after form_end()</h4>
+     <div class= "test">{{df.input('a string')}}</div>
+    <div class= "expect"><input type= "text" value= "" name= "a string" /></div>
+  </div>
+
+</body>
+</html>

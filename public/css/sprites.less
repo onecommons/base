@@ -1,0 +1,150 @@
+// SPRITES &  ICONS
+
+//variables
+@iconSpritePath:      "../images/app-sprite.png";
+@iconOpacity:         .40;
+@iconOpacityHover:    1.00;
+
+// following Bootstrap approach:
+// <i class="icon-view-grid"></i>.
+
+[class^="icon-"],
+[class*=" icon-"] {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 20px;
+  vertical-align: text-top;
+  background-image: url(@iconSpritePath);
+  background-position: 0px 0px;
+  background-repeat: no-repeat;
+  margin:0 1px 0 0;
+  padding:2px;
+  .opacity(@iconOpacity);
+  cursor: pointer;
+}
+
+.icon-view-grid { 
+    background-position: -300px 0px; 
+}
+.icon-view-list {
+    background-position: -360px 0px; 
+}
+.icon-info { 
+    background-position: -420px 0px; 
+    &:hover {
+      background-position: -450px 0px; 
+      .opacity(@iconOpacityHover);
+    }
+}
+.icon-search { 
+    background-position: -480px 0px; 
+    &:hover {
+      background-position: -510px 0px; 
+    }
+}
+.icon-plus { 
+    background-position: -540px 0px; 
+    &:hover {
+      background-position: -570px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+}
+.icon-more { 
+    background-position: -598px -5px; 
+    .opacity(100);
+    &:hover {
+      background-position: -630px -5px; 
+    }
+    height:14px;
+    width:32px;
+    padding:0;
+}
+.icon-favorite { 
+    background-position: -662px 0px; 
+    &:hover {
+      background-position: -690px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+}
+.icon-up { 
+    background-position: -720px 0px; 
+    &:hover {
+      background-position: -750px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+}
+.icon-down { 
+    background-position: -780px 0px; 
+    &:hover {
+      background-position: -810px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+}
+.icon-edit { 
+    background-position: -840px 0px; 
+    &:hover {
+      background-position: -870px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+}
+.icon-profile { 
+    background-position: -965px 0px; 
+    height:25px;
+    width:25px;
+    &:hover {
+      background-position: -995px 0px; 
+      .opacity(@iconOpacityHover);      
+    }
+    border:1px dotted @grayLight;
+}
+.icon-comments { 
+    background-position: -1289px 0px; 
+    .opacity(@iconOpacity);
+    &:hover {
+      .opacity(100);
+      background-position: -1259px 0px; 
+    }
+}
+//header nav
+.icon-bookmark, 
+.icon-help,
+.icon-tools,
+.icon-logout {
+  .opacity(80);
+}     
+.icon-tools { 
+    background-position: -1050px 0px;       
+    &:hover {
+      //background-position: -1020px 0px;   
+    }
+}
+.icon-bookmark { 
+    background-position: -1110px 0px; 
+    &:hover {
+      //background-position: -1080px 0px;   
+    }
+}
+.icon-help { 
+    background-position: -1170px 0px; 
+
+    &:hover {
+      //background-position: -1140px 0px;   
+    }
+}
+.icon-logout { 
+    background-position: -1230px 0px; 
+    &:hover {
+      //background-position: -1200px 0px; 
+    }
+}
+//header nav end
+
+.icon-history { 
+    background-position: -1290px 0px; 
+    .opacity(@iconOpacity);
+    &:hover {
+      .opacity(100);
+      background-position: -1320px 0px; 
+    }
+}

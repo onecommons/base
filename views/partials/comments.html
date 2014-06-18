@@ -1,0 +1,41 @@
+      <div class="comments">
+        <i class="show-hide-toggle"></i>
+        <span class="comments-header" title="View all comments">
+         {{comments.length}}
+        </span>
+        <nav class="comments-nav">
+            <ul>
+              <li class="active">Most Recent</li>
+              <li>Oldest First</li>
+              <li>Most Trusted</li>
+            </ul>
+        </nav>
+       {% for comment in comments %}
+        <div class="comment">
+          <div class="item-info">
+            <span class="profile-thumb">
+              <a href="#" title="View profile of user">
+                <i class="icon-profile"></i><!--replace with profile img-->
+                <span class="item-creator">{{comment.creator.displayName}}</span>
+             </a>
+            </span>
+            <!-- <span class="item-stats">last edit <span class="item-date">Feb 23 2012</span></span> -->
+            <span class="item-time">{{comment.ago}} </span>
+          </div>
+          <div class="interaction">                
+              <i class="icon-up" title="Vote up"></i>
+              <i class="icon-favorite" title="Follow item"></i>
+              <i class="icon-down" title="Vote down"></i>
+              <i class="icon-edit" title="Edit item"></i>
+          </div>
+          <div class="item">
+            <span class= "comment-content">{{ comment.content }}</span>
+            <a class="link flag-btn" title="Flag">flag</a>
+            <a class="link reply-btn" title="Reply">
+                <i class="icon-plus" title="Reply"></i>
+                Reply
+            </a>
+          </div><!-- end item -->
+        </div><!-- end comment -->
+      {% endfor %}
+      </div><!-- end comments -->

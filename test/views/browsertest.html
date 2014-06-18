@@ -1,0 +1,47 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Browser Mocha Test</title>
+  <link rel="stylesheet" href="/mocha.css" />
+</head>
+<body>
+  <h3>Browser Mocha Test [ {{ testName }} ]</h3>
+  <div class="log"></div>
+  <div id="mocha"></div>
+
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="/chai.js"></script>
+  <script src="/promise-3.2.0.js"></script>
+  <script src="/mocha.js"></script>
+
+  <script>
+  chai.config.includeStack = true;
+  var assert = chai.assert;
+  var expect = chai.expect;
+  mocha.ui('bdd');
+  </script>
+
+   <script src="/js/data.js"></script>
+
+  <!-- this path /tests/ is equiv of  test/public/tests -->
+  <script src="/tests/{{testName}}"></script>
+
+  <script>
+  $(document).ready(function() {
+    // mocha.checkLeaks();
+    mocha.globals(['jQuery']);
+    if (window.mochaPhantomJS) {
+      // using OUR mocha.js which has a json reporter that writes to console.
+      mocha.reporter('json');
+      mochaPhantomJS.run();
+    } else {
+      // standard browser invocation.
+      mocha.reporter(location.search.slice(1)||'html').run();
+    }
+
+  });
+  </script>
+
+
+</body>
+</html>
