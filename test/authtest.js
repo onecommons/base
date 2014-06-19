@@ -25,7 +25,7 @@ describe('Authentication', function() {
             });
           });
         });
-    }); 
+    });
   });
 
   // remove users after test
@@ -73,7 +73,7 @@ describe('Authentication', function() {
 
   describe('sessions', function() {
     // agent stores cookies for multiple requests
-    
+
     it('should create a new session', function(done) {
       agent1
       .get('/')
@@ -88,6 +88,7 @@ describe('Authentication', function() {
       .type('form')
       .redirects(2)
       .send({email:"test@onecommons.org", password:"test"})
+      .expect(/html/)
       .expect(200)
       .end(function(err, res) {
 

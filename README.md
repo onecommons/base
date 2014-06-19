@@ -19,14 +19,11 @@ DEBUG=express:* node index.js
 ```
 
 ## To create a new app
-1. `npm install https://github.com/onecommons/base.git`
-2. 
 ```
-var base = require("base");
-var app = base.createApp(__dirname);
-//add your app routes:
-//app.get(...
-app.start()
+git clone https://github.com/onecommons/base-example.git`
+cd base-example
+npm install
+edit app.js
 ```
 
 ## Tests
