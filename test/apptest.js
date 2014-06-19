@@ -12,14 +12,15 @@ describe('app', function() {
 
   it("should start the app", function(done) {
     app.updateNamedRoutes({
-      index: ['', function(req, res) {
+      //should use existing path if path isn't specified
+      index: function(req, res) {
         var response = "derived";
         res.writeHead(200, {
           'Content-Length': Buffer.byteLength(response),
           'Content-Type': req.contentType
         });
         res.end(response);
-      }]
+      }
     });
 
     app.get("dburl").should.equal(app.parent.get("dburl"));
@@ -31,7 +32,7 @@ describe('app', function() {
     });
   });
 
-  it("should do get the correct route", function(done) {
+  it("should use existing path if path isn't specified in an updated route", function(done) {
     request(app.getUrl())
     .get('/')
     .expect(/derived/)
