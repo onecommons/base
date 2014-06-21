@@ -12,7 +12,7 @@
     "less-middleware": "~1.0.3",
     "mongodb": "*",
     "promise": "*",
-    "swig": "~1.3.2",
+    "swig": "git://github.com/paularmstrong/swig.git#9b754364a026b14ce81e6942279678f7d476425d",
     "mongoose": "~3.8.1",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
