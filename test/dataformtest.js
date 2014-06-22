@@ -39,7 +39,6 @@ var app = require('./fixtures/app')();
 
 describe('dataform', function() {
   before(function(done) {
-    app.set('views', __dirname + '/views');
     app.get('/dataformtest.html', function (req, res) {
       res.render('dataformtest.html', {
           df : require("../lib/dataForm").dataform(),
@@ -88,7 +87,7 @@ describe('dataform', function() {
   });
 
   it('should have correct number of tests', function(done) {
-    count.should.equal(29);
+    count.should.equal(30);
     done();//needs to be async to run after first test
   });
 });

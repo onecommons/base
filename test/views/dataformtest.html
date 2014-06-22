@@ -6,8 +6,8 @@ body {
   font-family: sans-serif;
   margin: 100px 100px 100px 100px;
 }
-h4 { 
-  padding: 1px 1px 1px 1px; 
+h4 {
+  padding: 1px 1px 1px 1px;
   margin: 1px 1px 1px 1px;}
 div.testcase, div.notestcase {
     margin-top: 10px;
@@ -30,12 +30,12 @@ div.expect {
 </head>
 <body>
   <h2>Dataform test</h2>
-  
+
   <div class= "testcase" ><h4>selected true</h4>
     <div class= "test">[{{df.selected(true)}}]</div>
     <div class= "expect">[selected]</div>
   </div>
-  
+
   <div class= "testcase" ><h4>selected false</h4>
     <div class= "test">{{df.selected(false)}}</div>
     <div class= "expect"></div>
@@ -46,7 +46,7 @@ div.expect {
     <div class= "expect"><form class="testclass dbform">
 <input type= "hidden" name="_id" value= "testdata1">
 <input type="hidden" name="__t" value="test"></form></div>
-  </div> 
+  </div>
 
 <hr/>
 {{df.form(testdata, {class: 'testinputs'})}} <!-- bind form to testdata -->
@@ -63,13 +63,13 @@ div.expect {
      <div class= "expect"><input type= "text" maxlength= "4" size= "4" class= "type[number]" value= "1" name= "nested.object.value" ></input></div>
   </div>
 
-  <div class= "testcase">    
+  <div class= "testcase">
      <h4>text field bound to a null property </h4>
      <div class= "test">{{df.input('none')}}</div>
      <div class= "expect"><input type= "text" class= "type[null]" value= "" name= "none"></input></div>
   </div>
 
-  <div class= "testcase">    
+  <div class= "testcase">
      <h4>text field bound to a missing property </h4>
      <div class= "test">{{df.input('nothere')}}</div>
     <div class= "expect"><input type= "text" value= "" name= "nothere" /></div>
@@ -94,40 +94,40 @@ div.expect {
   </div>
 
   <hr/><h4>Array Input tests</h4>
-  
+
   <div class= "testcase">
     <h4>test list with index 0: </h4>
      <div class= "test">{{df.input("array[0]")}}</div>
      <div class= "expect"><input type= "text" class= "type[number]" value= "0" name= "array[0]" /></div>
   </div>
-  
+
   <div class= "testcase">
     <h4>test list with index 1: </h4>
       <div class= "test">{{df.input("array[1]")}}</div>
-     <div class= "expect"><input type= "text" class= "type[number]" value= "1" name= "array[1]" /></div>     
+     <div class= "expect"><input type= "text" class= "type[number]" value= "1" name= "array[1]" /></div>
   </div>
-  
-  <div class= "testcase"> 
+
+  <div class= "testcase">
     <h4>test out-of-range index: </h4>
       <div class= "test">{{df.input("array[2]")}}</div>
-     <div class= "expect"><input type= "text" value= "" name= "array[2]" /></div>    
+     <div class= "expect"><input type= "text" value= "" name= "array[2]" /></div>
   </div>
-  
+
   <div class= "testcase">
     <h4> test list:</h4>
      <div class= "test">{{df.input("array")}}</div>
-     <div class= "expect"><input type= "text" class= "type[json]" value= "[0,1]" name= "array" /></div>    
+     <div class= "expect"><input type= "text" class= "type[json]" value= "[0,1]" name= "array" /></div>
   </div>
 
 <hr/><h4> checkbox tests </h4>
 
-  <div class= "testcase">   
+  <div class= "testcase">
      <h4>checkbox bound to true: </h4>
      <div class= "test">{{df.input('enabled',{type: "checkbox"})}}</div>
      <div class= "expect"><input type= "checkbox" class= "type[boolean]" value= "true" name= "enabled" checked /></div>
   </div>
 
-  <div class= "testcase">   
+  <div class= "testcase">
      <h4>checkbox bound to false </h4>
      <div class= "test">{{df.input('disabled', { type: "checkbox"})}}</div>
      <div class= "expect"><input type= "checkbox" class= "type[boolean]" value= "true" name= "disabled" /></div>
@@ -141,7 +141,7 @@ div.expect {
   </div>
 
 
-  <div class= "testcase"> 
+  <div class= "testcase">
      <h4>checkbox bound to "": </h4>
      <div class= "test">{{df.input('emptystring', { type: "checkbox"})}}</div>
      <div class= "expect"><input type= "checkbox" value= "on" name= "emptystring" /></div>
@@ -161,8 +161,14 @@ div.expect {
 
   <div class= "testcase">
      <h4>checkbox bound to null: </h4>
-     <div class= "test">{{df.input(null, { type: "checkbox"} )}}</div>
+     <div class= "test">{{df.input('none', { type: "checkbox"} )}}</div>
      <div class= "expect"><input type= "checkbox" class= "type[json]" value= "true" name= "none" /></div>
+  </div>
+
+  <div class= "testcase">
+     <h4>checkbox bound to null with defaultOnValue set: </h4>
+     <div class= "test">{{df.input('none', { type: "checkbox", defaultOnValue: "@ref"} )}}</div>
+     <div class= "expect"><input type= "checkbox" class= "type[json]" value= "@ref" name= "none" /></div>
   </div>
 
 <hr><h4>hidden input tests </h4>
@@ -215,7 +221,7 @@ div.expect {
 
   {{df.form_end()}}
 
-  <div class= "testcase">    
+  <div class= "testcase">
      <h4>fields should no longer be bound after form_end()</h4>
      <div class= "test">{{df.input('a string')}}</div>
     <div class= "expect"><input type= "text" value= "" name= "a string" /></div>
