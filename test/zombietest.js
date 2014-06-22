@@ -43,7 +43,7 @@ describe('zombietest', function() {
   }).forEach(function(file){
 
       it(file, function(done) {
-        this.timeout(1500); 
+        this.timeout(4000); //could take a while since it relies on the internet
         var stats = null;
         var msg = '';
         var testresults = null;

@@ -13,7 +13,6 @@ mongoose.model('DbTest1',
 
 
 function addBrowserTests() {
-  this.set('views', __dirname + '/../views');
   this.get('/browsertest/:testname', function(req, res) {
       res.render('browsertest.html', {
           testName: req.params.testname
@@ -22,9 +21,12 @@ function addBrowserTests() {
 }
 
 function createApp() {
-  app = main.createApp();
+  app = main.createApp(__dirname, {
+    views: __dirname + '/../views',
+    public: __dirname + '/../public'
+  });
   //console.log('test public dir', main.dirname + '/test/public');
-  app.use(express.static(main.dirname + '/test/public'));
+  //app.use(express.static(main.dirname + '/test/public'));
   app.addBrowserTests = addBrowserTests;
   return app;
 }
