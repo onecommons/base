@@ -1,10 +1,14 @@
+var path = require('path');
 var base = require('../lib/app');
 var assert = require('chai').assert;
 require('should');
 var request = require('supertest');
 
 describe('app', function() {
-  var app = base.createApp(__dirname);
+  var app = base.createApp(__dirname, {
+    //customize config dir so for config tests below
+    configdir: path.join(__dirname, 'fixtures')
+  });
 
   after(function(done){
     app.stop(done);
@@ -37,6 +41,20 @@ describe('app', function() {
     .expect(/derived/)
     .expect(200)
     .end(done);
+  });
+
+  describe('config', function() {
+    it("should merge configuration files properly", function() {
+      process.env.NODE_ENV.should.equal('test'); //NODE_ENV=test will always be defined
+      var config = app.loadConfig("configtest");
+      app.loadConfig.paths.length.should.equal(2);
+      app.loadConfig.paths[0].should.equal(path.resolve(path.join(__dirname, 'fixtures')));
+      config.defaultonly.should.equal(true);
+      config.derivedonly.should.equal(true);
+      config.inboth.should.equal("default"); //shouldn't load the derived local config
+      config.derivedlocal.should.equal("derived-local");
+    });
+
   });
 
   describe('views', function() {

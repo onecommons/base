@@ -5,21 +5,21 @@ var assert = require('chai').assert;
 describe('createModel', function(){
     var db;
     var s;
-    
+
     before(function(done) {
         s = new mongoose.Schema({
              //__t: String,
              // _id: String,
              prop1: []
              },{strict: 'throw'});
-        var config = require('../lib/config')('app');
+        var config = require('../lib/config')()('app');
         db = mongoose.connect(config.dburl, done);
     });
-    
+
     afterEach(function(done) {
         db.connection.db.dropDatabase(done);
     });
-    
+
     after(function(done){
       db.connection.db.dropDatabase(function(){
         mongoose.connection.close(function(){
@@ -27,9 +27,9 @@ describe('createModel', function(){
         });
       });
     });
-    
+
     it('should make a model and instance based on a schema', function(done) {
-            
+
         var Test = createModel("Test", s);
         var t = new Test();
         t.save(function() {
@@ -37,11 +37,11 @@ describe('createModel', function(){
                 assert.instanceOf(doc, Test);
                 done();
             })
-        });        
+        });
     });
-   
+
      it('should make a model and instance without a schema', function(done) {
-            
+
         var Test3 = createModel("Test3", {prop2: String});
         var t = new Test3();
         t.save(function() {
@@ -49,17 +49,17 @@ describe('createModel', function(){
                 assert.instanceOf(doc, Test3);
                 done();
             })
-        });        
+        });
     });
-    
+
     it('should make a base and a derivative model', function(done) {
         var Testbase = createModel("Testbase",{prop2: String});
         var Testd = createModel("Testd",
             {prop3: String, prop4: String},  Testbase);
-             
+
         var base = new Testbase();
             base.save();
-            
+
         var derived = new Testd();
         derived.prop4 = "This is prop4";
         derived.save(function() {
@@ -100,10 +100,9 @@ describe('createModel', function(){
                   });
                });
            });
-        });        
+        });
     });
-  
+
 
 
  }); // describe...
-

@@ -4,7 +4,7 @@ var should = require('should')
   , datastore = require('../lib/datastore')
   , mongoose = require('mongoose');
 var DBRef = mongodb.DBRef, ObjectID = mongodb.ObjectID;
-var config = require('../lib/config')('app');
+var config = require('../lib/config')()('app');
 
 describe('datastore', function(){
 
