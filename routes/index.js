@@ -9,9 +9,9 @@ var profile         = require('./profile');
 var directory       = require('./directory'); //XXX delete from app
 var datarequest     = require('./datarequest');
 var payments        = require('./payments');
-var sharedPageVars = utils.sharedPageVars;
 
 module.exports = function(app, passport) {
+  var sharedPageVars = utils.sharedPageVars.bind(app);
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>
   return {
 
