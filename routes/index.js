@@ -15,7 +15,7 @@ module.exports = function(app, passport) {
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>
   return {
 
-    index:            ['', utils.renderer('index.html')],
+    index:            ['', sharedPageVars, utils.renderer('index.html')],
 
     login:            { get:  [ sharedPageVars, login.login],
                         post: [ login.loginPost(passport)]},
