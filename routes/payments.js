@@ -7,16 +7,13 @@ var Campaign                = require('../models/campaign');
 var Fund                    = require('../models/fund');
 var bp                      = require('../lib/oc-balanced');
 var async                   = require('async');
-var u                       = require('../lib/utils');
-
-DBG_ON = false;
 
 module.exports.fundCampaignGet = function(req,res,user){
   // get the provided campaign id if any; default to default campaign.
   var theCampaign;
   var theUser = (req.user ? req.user : user);
   var campaign_id = req.param('id');
-  campaign_id = (campaign_id ? campaign_id : Campaign.DEFAULT_ID); 
+  campaign_id = (campaign_id ? campaign_id : Campaign.DEFAULT_ID);
 
   Campaign.findOne({_id: campaign_id}
    ,function(err,campaignBack){
@@ -29,27 +26,27 @@ module.exports.fundCampaignGet = function(req,res,user){
 
 }
 /*
- * fundCampaign() – JSON POST handler. 
+ * fundCampaign() – JSON POST handler.
  * ----------------------------------
  *  Expected data sent as json:
  *   amount           – REQUIRED - in USD cents, by default.
- *   currency         - OPTIONAL - if absent USD assumed. 
+ *   currency         - OPTIONAL - if absent USD assumed.
  *   campaignId       - OPTIONAL - recipient campaign id; if absent assume the default One Commons campaign.
  *   frequency        - OPTIONAL - same as enum of subscription frequency; default = 'once'
- * 
+ *
  * following fields should either ALL be included or ALL be absent:
  *   ccToken          - OPTIONAL - card token; if absent, assumes user has a valid FundingInstrument; if not, FAIL.
  *   ccLastFour       - OPTIONAL - card info
- *   ccNameOnCard     - OPTIONAL - 
+ *   ccNameOnCard     - OPTIONAL -
  *   ccCVV            - OPTIONAL - nnn 3 digit cvv code.
  *   ccExpirationDate - OPTIONAL - mmyy
  *   cctype           - OPTIONAL - one of ["amex", "discover","mastercard","visa","diners-club","jcb",'']
  * ------------------------------------
- * 
+ *
  * will respond with a JSON object with:
  *  status: ['noFI', 'succeeded', 'failed']
  *  comment:  – reason for failure, if any.
- *  
+ *
  */
 module.exports.fundCampaignPost = function(req,res, user){
   // check args: amount provided? if not  ret failed / 'amount unspecified'
@@ -68,7 +65,7 @@ module.exports.fundCampaignPost = function(req,res, user){
   var setupFI = function(done){
     if(typeof(data.ccToken) === 'undefined') {
       // retrieve the existing user FI.
-      FundingInstrument.findOne({_id: locals.theUser.activeFI}, 
+      FundingInstrument.findOne({_id: locals.theUser.activeFI},
         function(err, fiback){
           if(err || !fiback) { res.json({status: 'noFI', comment: 'user has no funding instrument'}); done(); return }
           locals.fi = fiback;
@@ -89,7 +86,6 @@ module.exports.fundCampaignPost = function(req,res, user){
       locals.fi.ccCVV                  = data.ccCVV;
       locals.fi.save(function(err, fiback){
         locals.fi = fiback;
-        u.dbg('fiback in payments', fiback);
         if(err || !fiback) { res.json({status: 'failed', comment: 'funding instrument creation failed'}); done(); return }
         done();
       });
@@ -119,7 +115,6 @@ module.exports.fundCampaignPost = function(req,res, user){
 
 
   var setupFT = function(done){
-    u.dbg("LOCALS on setupFT", locals);
     // setup FT to define transaction.
     locals.FT               = new FinancialTransaction();
     locals.FT.user          = locals.theUser._id;
@@ -148,7 +143,7 @@ module.exports.fundCampaignPost = function(req,res, user){
 // setup users payment plan and do a payment transaction with balanced API.
 // optional 3rd 'user' arg is used in testing, set up when route is defined.
 module.exports.setupPaymentPlanPost = function(req, res, user) {
-  
+
        var data = req.body;
 
        var resultStatus = 'error';
@@ -156,15 +151,13 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
 
        var theUser =  (req.user ? req.user : user); // optional user passed while testing, in prod will be undefined.
 
-       u.dbg('theUsers', [theUser, req.user, user]);
-
        // validate fields.
        if( data.fundingInstrument.match(/\/cards\//) === null) {
         res.json({status: 'error', message: "bad funding instrument token, no transaction attempted."});
         return;
        }
 
-       // validate min/max amount of transaction? 
+       // validate min/max amount of transaction?
        if(data.donationAmount < bp.minAmount || data.donationAmount > bp.maxAmount){
         res.json({status: 'error', message: "no transaction attempted, payment amount out of range: " + data.amount / 100.0 })
        }
@@ -175,13 +168,12 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
             var now = new Date;
 
             if(err) {
-              res.json({status:'error', 
+              res.json({status:'error',
                   message: "error done(); returned from balanced payments",
                   bp_reply: bp_reply });
               done(); return;
             }
 
-            u.dbg('bp_reply', bp_reply);
             // no err, but there still could be a transaction failure. If so, record it and done(); return.
             if(bp_reply.errors) {
               var fft = new FinancialTransaction();
@@ -200,7 +192,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
               done(); return;
             }
 
-            // If we got here, payment succeeded: 
+            // If we got here, payment succeeded:
             // Create FI, edit user payment plan, create a success FT record, and done(); return success.
 
             var fi                   = new FundingInstrument();
@@ -222,7 +214,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
               ,function(err,uFound){
                 if(err) { throw err }
                 uFound.paymentPlan =  {
-                        frequency: data.donationFrequency, 
+                        frequency: data.donationFrequency,
                         lastCharge: now,
                         fi: fi._id
                 };
@@ -244,11 +236,9 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
                   ft.appearsOnStatementAs = bpdata.appears_on_statement_as;
                   ft.description  = bpdata.description;
 
-                  u.dbg('defined ft', ft);
                   ft.save(
                   function(err, ftback){
                     if(err) { throw err }
-                    u.dbg('saved ft', ftback);
                     // send response.
                     res.json({
                       status: bp_reply.debits[0].status,
@@ -256,6 +246,6 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
                       bp_reply: '[omitted]' // bp_reply
                     });
 
-      }) }) }) }) }); // bp.debitCard(function(){ ... 
+      }) }) }) }) }); // bp.debitCard(function(){ ...
 
 } // module.exports.setupPaymentPlanPost

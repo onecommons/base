@@ -12,14 +12,14 @@ var x                       = require('../lib/utils');
 var financialTransactionSchema = mongoose.Schema({
   status                        : { type: String, enum: ['prepare', 'succeeded', 'failed'], default: 'prepare'},
   subscription                  : { type: String, ref: 'Subscription'},
-  fi                            : { type: String, ref: 'FundingInstrument'}, 
-  transactionType               : { type: String, 
-                                     enum: ['oneTimeDebit', 'subscriptionDebit', 'credit', 'refund', 'chargeBack'], 
+  fi                            : { type: String, ref: 'FundingInstrument'},
+  transactionType               : { type: String,
+                                     enum: ['oneTimeDebit', 'subscriptionDebit', 'credit', 'refund', 'chargeBack'],
                                      default: 'subscriptionDebit'},
   paymentProcessor              : { type: String, enum: ['balancedPayments', 'stripe', 'payPal'], default: 'balancedPayments' },
   date                          : { type: Date, default: Date.now },
   amount                        : { type: Number, max: 1500000, min: 100},
-  currency                      : { type: String, default: 'USD' }, 
+  currency                      : { type: String, default: 'USD' },
   appearsOnStatementAs          : { type: String, default: 'OneCommons' },
   description                   : { type: String, default: 'normal subscription debit' },
   campaign                      : { type: String, ref: 'Campaign'},
@@ -27,12 +27,10 @@ var financialTransactionSchema = mongoose.Schema({
   processorTransactionNumber    : String   // in BP, e.g. debits.transaction_number
 });
 
-DBG_ON = true;
-
-// do an account debit using current settings of an FT. Callback is passed the 
+// do an account debit using current settings of an FT. Callback is passed the
 // state of the saved FT record after the transaction is attempted or completed.
 // Call this on a FT object, either pre-populated or to be populated with the options
-// array, which can have entries for these field in the FT schema: 
+// array, which can have entries for these field in the FT schema:
 //  user, fi, transactionType, paymentProcessor, amount, currency, appearsOnStatementAs, description.
 //
 // On return, date will be set and status will be 'succeeded' or 'failed'.
@@ -75,58 +73,58 @@ financialTransactionSchema.methods.doDebit = function(options, callback){
     theFT.description = 'failed transaction: unsupported payment processor ' + theFT.paymentProcessor;
     errExit(theFT, null, callback, new Error(theFT.description));
     return;
-  } 
+  }
 
   if( theFT.transactionType !== 'subscriptionDebit') {
     theFT.status = 'failed';
-    theFT.description = 'Transaction type ' + theFT.transactionType + ' not yet supported'; 
+    theFT.description = 'Transaction type ' + theFT.transactionType + ' not yet supported';
     errExit(theFT, null, callback, new Error(theFT.description));
     return;
   }
-  
+
 
   // // OK, entering callback chain.
 
-  User.findById(theFT.user, 
+  User.findById(theFT.user,
     function(err,u){
-      if(!u){ 
-        theFT.status = 'failed'; theFT.description = 'couldnt find user'; 
+      if(!u){
+        theFT.status = 'failed'; theFT.description = 'couldnt find user';
         errExit(theFT, theUser, callback, new Error(theFT.description));
         return;
       }
 
       theUser = u;
 
-      
+
       if(theFT.transactionType === 'paymentPlanDebit'){
         theFT.amount = theUser.paymentPlan.amount;
         theFT.fi = theUser.paymentPlan.fi;
       }
-      
-      
-      FundingInstrument.findById(theFT.fi, 
+
+
+      FundingInstrument.findById(theFT.fi,
         function(err,fi){
-          if(!fi || !theFT){ 
-            theFT.status = 'failed'; theFT.description = "couldn't find Funding Instrument"; 
+          if(!fi || !theFT){
+            theFT.status = 'failed'; theFT.description = "couldn't find Funding Instrument";
             errExit(theFT, theUser, callback, new Error(theFT.description) );
             return;
           }
 
           theFI = fi;
           theBPToken = theFI.ccToken;
-          bp.debitCard(theBPToken, 
-                      { amount:                  theFT.amount, 
-                        appears_on_statement_as: theFT.appearsOnStatementAs, 
-                        description:             theFT.description }, 
+          bp.debitCard(theBPToken,
+                      { amount:                  theFT.amount,
+                        appears_on_statement_as: theFT.appearsOnStatementAs,
+                        description:             theFT.description },
             function(err, bp_reply){
-              if(err){ 
+              if(err){
                 theFT.status = 'failed'; theFT.description = "couldn't reach payment processor or bad card token";
-                errExit(theFT, theUser, callback); // , new Error(theFT.description));  
+                errExit(theFT, theUser, callback); // , new Error(theFT.description));
                 return;
 
-              } 
+              }
 
-              if (bp_reply.errors){ 
+              if (bp_reply.errors){
                 theFT.status = 'failed';
                 theFT.description = bp_reply.errors[0].description;
                 if(bp_reply.debits){
@@ -136,7 +134,7 @@ financialTransactionSchema.methods.doDebit = function(options, callback){
                 errExit(theFT, null, callback); // , new Error(theFT.description));
                 return;
 
-              } 
+              }
 
               // else success!
               theFT.status                          = 'succeeded';
