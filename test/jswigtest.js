@@ -4,22 +4,18 @@ var express			= require('express');
 var request 		= require('supertest');
 var assert			= require('chai').assert;
 var path				= require('path');
-//var bodyParser = require('body-parser');
-// var request 		= request('http://localhost:3000');
 var app = express();
-//app.use(express.bodyParser());
-require('../routes/jswig'); // add jswig routes to app.
 app.get('/jswig/*', require('../routes/jswig')(app)); // add jswig routes to app.
 app.set('views', __dirname + '/views');
 
 describe('clientinclude', function() {
-  var consolidate = require('consolidate');
+  //var consolidate = require('consolidate');
   var swig = require("swig")
   require('../lib/swigextensions')(swig);
 
   //var path = require('path');
   //app.set('views', path.join(__dirname, '/test/views'));
-  app.engine('html', consolidate.swig);
+  app.engine('html', swig.renderFile);
   app.set('view engine', 'html');
   app.get('/test-clientinclude.html', function (req, res) {
     res.render('test-clientinclude.html', { foo: [
