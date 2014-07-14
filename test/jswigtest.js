@@ -9,7 +9,6 @@ app.get('/jswig/*', require('../routes/jswig')(app)); // add jswig routes to app
 app.set('views', __dirname + '/views');
 
 describe('clientinclude', function() {
-  //var consolidate = require('consolidate');
   var swig = require("swig")
   require('../lib/swigextensions')(swig);
 
