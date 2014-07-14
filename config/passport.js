@@ -10,13 +10,12 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var User            = require('../models/user');
 var LoginHistory    = require('../models/loginhistory');
 
-var sendmail = require('../lib/email');
 var auth = require('../lib/auth');
 
-var config = require('../lib/config')('auth'); // XXX this file should live elsewhere
-
 // expose this function to our app using module.exports
-module.exports = function(passport) {
+module.exports = function(passport, app) {
+    var config = app.loadConfig('auth');
+    passport.email = require('../lib/email')(app);
 
     // =========================================================================
     // passport session setup ==================================================
@@ -83,7 +82,7 @@ module.exports = function(passport) {
                             throw err;
 
                         // send the email notification
-                        sendmail.sendWelcome(newUser);
+                        passport.email.sendWelcome(newUser);
 
                         return done(null, newUser);
                     });
@@ -227,8 +226,8 @@ module.exports = function(passport) {
                     var newUser            = new User();
 
                     // set all of the facebook information in our user model
-                    newUser.facebook.id    = profile.id; // set the users facebook id                   
-                    newUser.facebook.token = token; // we will save the token that facebook provides to the user                    
+                    newUser.facebook.id    = profile.id; // set the users facebook id
+                    newUser.facebook.token = token; // we will save the token that facebook provides to the user
                     newUser.facebook.name  = profile.name.givenName + ' ' + profile.name.familyName; // look at the passport user profile to see how names are returned
                     newUser.facebook.email = profile.emails[0].value; // facebook can return multiple emails so we'll take the first
 

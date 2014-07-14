@@ -30,7 +30,7 @@ module.exports = function(app, passport) {
 
     verificationResend: { path: 'verification-resend',
                           get: login.resendVerification,
-                          post: login.resendVerificationPost },
+                          post: login.resendVerificationPost(passport) },
 
     setupPaymentPlan: { path: 'profile/setup-payment-plan',
                         get:  [ utils.isLoggedIn, utils.renderer('setup-payment-plan')],

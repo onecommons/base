@@ -1,6 +1,5 @@
 // login.js  routes for login/logout and authentication.
 var auth  = require('../lib/auth.js');
-var email = require('../lib/email.js');
 var User  = require('../models/user');
 var utils = require('../lib/utils.js');
 
@@ -22,7 +21,7 @@ module.exports.loginPost = function(passport) {
 
 module.exports.logout = function(req, res) {
   req.logout();
-  res.redirect('/');  
+  res.redirect('/');
 }
 
 //
@@ -77,47 +76,48 @@ module.exports.verificationPost = function(req, res) {
       return res.redirect("/profile");
     }
   });
-
 }
 
 module.exports.resendVerification = function(req, res) {
   res.render('verification-resend.html');
 }
 
-module.exports.resendVerificationPost = function(req, res) {
-  var sendErr = function(msg) {
-    res.render('verification-resend.html', {
-      message:msg
+module.exports.resendVerificationPost = function(passport) {
+  return function(req, res) {
+    var sendErr = function(msg) {
+      res.render('verification-resend.html', {
+        message:msg
+      });
+    }
+
+    var address = req.param('email');
+    if (!address) {
+      return sendErr("Please enter an email address");
+    }
+
+    User.findOne({"local.email":address}, function(err, user) {
+      if (err) {
+        console.log("error looking up user with address:" + address);
+        console.log(err);
+        return sendErr("Can't find a user with that email address");
+      }
+
+      if (!user) {
+        console.log("can't find a user with address:" + address);
+        return sendErr("Can't find a user with that email address");
+      }
+
+      // XXX what to do if the user is already verified?
+
+      passport.email.resendVerification(user);
+      req.flash('verificationEmail', address);
+      res.redirect('/verification');
     });
-  }
-
-  var address = req.param('email');
-  if (!address) {
-    return sendErr("Please enter an email address");
-  }
-
-  User.findOne({"local.email":address}, function(err, user) {
-    if (err) {
-      console.log("error looking up user with address:" + address);
-      console.log(err);
-      return sendErr("Can't find a user with that email address");
-    }
-
-    if (!user) {
-      console.log("can't find a user with address:" + address);
-      return sendErr("Can't find a user with that email address");
-    }
-
-    // XXX what to do if the user is already verified?
-
-    email.resendVerification(user);
-    req.flash('verificationEmail', address);
-    res.redirect('/verification');
-  });
+  };
 }
 
 module.exports.profile = function(req, res) {
-  res.render('profile.html', { 
+  res.render('profile.html', {
     user : req.user
   });
 }
