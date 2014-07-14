@@ -3,11 +3,17 @@
 // expose our config directly to our application using module.exports
 module.exports = {
 
-    'facebookAuth' : {
-        'clientID'      : 'your-app-id-here',
-        'clientSecret'  : 'your-app-secret-here',
-        'callbackURL'   : 'auth/facebook/callback'
-    }
+    failedLoginsWarning: 3,
+    failedLoginAttempts: 5,
+    accountLockedTime: 60 * 5, // seconds
+
+    confirmationTokenValidFor: 24, // hours
+
+    // 'facebookAuth' : {
+    //     'clientID'      : 'your-app-id',
+    //     'clientSecret'  : 'your-app-secret',
+    //     'callbackURL'   : 'http://localhost:8080/auth/facebook/callback'
+    // }
 
     // 'twitterAuth' : {
     //     'consumerKey'       : 'your-consumer-key-here',

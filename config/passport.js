@@ -1,4 +1,6 @@
 // config/passport.js
+var moment = require('moment');
+var uuid = require('node-uuid');
 
 // load all the things we need
 var LocalStrategy   = require('passport-local').Strategy;
@@ -6,15 +8,12 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 
 // load up the user model & auth vars
 var User            = require('../models/user');
-try {
-var configAuth      = require('./auth');
-} catch (err) {
-  if (err.code == "MODULE_NOT_FOUND") {
-    console.log("WARNING: ./config/auth.js not found, Facebook auth is disabled");
-  } else {
-    throw err;
-  }
-}
+var LoginHistory    = require('../models/loginhistory');
+
+var sendmail = require('../lib/email');
+var auth = require('../lib/auth');
+
+var config = require('../lib/config')('auth'); // XXX this file should live elsewhere
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
@@ -66,7 +65,6 @@ module.exports = function(passport) {
                 if (user) {
                     return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
                 } else {
-
                     // if there is no user with that email
                     // create the user
                     var newUser            = new User();
@@ -75,10 +73,18 @@ module.exports = function(passport) {
                     newUser.local.email    = email;
                     newUser.local.password = newUser.generateHash(password);
 
+                    // generate a signup token & expiration
+                    newUser.local.signupToken = uuid.v4();
+                    newUser.local.signupTokenExpires = moment().add(config.confirmationTokenValidFor, 'hours');
+
                     // save the user
                     newUser.save(function(err) {
                         if (err)
                             throw err;
+
+                        // send the email notification
+                        sendmail.sendWelcome(newUser);
+
                         return done(null, newUser);
                     });
                 }
@@ -114,12 +120,76 @@ module.exports = function(passport) {
             if (!user)
                 return done(null, false, req.flash('loginMessage', 'Oops! Wrong email or password')); // req.flash is the way to set flashdata using connect-flash
 
-            // if the user is found but the password is wrong
-            if (!user.validPassword(password))
-                return done(null, false, req.flash('loginMessage', 'Oops! Wrong email or password')); // create the loginMessage and save it to session as flashdata
+            if (!user.local.verified) {
+                // XXX should offer a link to re-send verification email!
+                auth.recordLogin(user, 'unverified', req.ip);
+                return done(null, false, req.flash('loginMessage', 'This account has not been verified. Please check your email'));
+            }
 
-            // all is well, return successful user
-            return done(null, user);
+            // check for too many failed login attempts
+            if (user.local.accountLocked && new Date(user.local.accountLockedUntil) > new Date()) {
+                auth.recordLogin(user, 'reject', req.ip);
+                return done(null, false, req.flash('loginMessage', 'That account is temporarily locked'));
+            }
+
+            // the user is found but the password is wrong
+            if (!user.validPassword(password)) {
+                var errorMessage = null;
+
+                user.local.failedLoginAttempts += 1;
+                // console.log("failed logins:" + user.local.failedLoginAttempts);
+
+                // lock account on too many login attempts (defaults to 5)
+                if (user.local.failedLoginAttempts >= config.failedLoginAttempts) {
+
+                  var lockTime = moment().add(config.accountLockedTime, 'seconds');
+                  var lockTimeDescription = lockTime.fromNow(true);
+
+                  // console.log("locking account until " + lockTime.toDate());
+                  // console.log("account has been locked for " + lockTimeDescription);
+                  user.local.accountLocked = true;
+                  user.local.accountLockedUntil = lockTime.toDate();
+
+                  errorMessage = 'Invalid user or password. Your account is now locked for ' + lockTimeDescription;
+                } else if (user.local.failedLoginAttempts >= config.failedLoginsWarning) {
+                  // show a warning after 3 (default setting) failed login attempts
+                  errorMessage = 'Invalid user or password. Your account will be locked soon.';
+                }
+
+                user.save(function(err) {
+                    if (err) {
+                        console.log("error saving user");
+                        console.log(err);
+                        throw err;
+                    }
+
+                    // console.log("updating user with failed login counts");
+                    var failType = user.local.accountLocked ? 'lock' : 'fail';
+                    auth.recordLogin(user, failType, req.ip);
+                    return done(null, false, req.flash('loginMessage', errorMessage));
+                });
+            } else {
+                // console.log("successful login");
+
+                user.local.accountLocked = false;
+                user.local.failedLoginAttempts = 0;
+                user.local.accountLockedUntil = null;
+
+                auth.recordLogin(user, 'ok', req.ip);
+
+                user.save(function(err) {
+                    if (err) {
+                        console.log("error saving user");
+                        console.log(err);
+                        throw err;
+                    }
+
+                    // console.log("successful login recorded!");
+
+                    return done(null, user);
+                });
+            }
+
         });
 
     }));
@@ -128,13 +198,12 @@ module.exports = function(passport) {
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
-    if (configAuth) {
+    if (config.facebookAuth) {
       passport.use(new FacebookStrategy({
         // pull in our app id and secret from our auth.js file
-        clientID        : configAuth.facebookAuth.clientID,
-        clientSecret    : configAuth.facebookAuth.clientSecret,
-        callbackURL     : configAuth.facebookAuth.callbackURL
-
+        clientID        : config.facebookAuth.clientID,
+        clientSecret    : config.facebookAuth.clientSecret,
+        callbackURL     : config.facebookAuth.callbackURL
       },
       // facebook will send back the token and profile
       function(token, refreshToken, profile, done) {

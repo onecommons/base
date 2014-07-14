@@ -1,6 +1,9 @@
 var express = require('express')
 var mongoose = require('mongoose');
-var request = require('supertest');
+var request = require("supertest-as-promised");
+
+var Promise = require("promise");
+
 var m = require('../models');
 
 describe('Authentication', function() {
@@ -69,41 +72,121 @@ describe('Authentication', function() {
       .end(done)
     });
 
+    it('should lock an account after 5 failed logins', function(done) {
+
+      function makeIncorrectLogin() {
+        return agent1.post('/login')
+          .type('form')
+          .redirects(0)
+          .send({
+            email: "test@onecommons.org",
+            password: "badpassword"
+          })
+          .expect(302)
+          .expect('Location', '/login')
+      }
+
+      // XXX could add check for warning
+      // "Your account will be locked soon"
+      // make four failed attempts
+      makeIncorrectLogin()
+        .then(makeIncorrectLogin)
+        .then(makeIncorrectLogin)
+        .then(makeIncorrectLogin)
+        // fifth attempt will lock the account
+        .then(function(res) {
+          return agent1.post('/login')
+                      .type('form')
+                      .redirects(2)
+                      .send({
+                        email: "test@onecommons.org",
+                        password: "badpassword"
+                      })
+                      .expect(200)
+                      .expect(/Your account is now locked/);
+        })
+        // subsequent logins with the correct password will fail
+        .then(function(res) {
+          return agent1.post('/login')
+                  .type('form')
+                  .redirects(2)
+                  .send({
+                    email: "test@onecommons.org",
+                    password: "test"
+                  })
+                  .expect(/That account is temporarily locked/);
+        })
+        // wait for the 1-second lockout period to expire
+        .then(function(res) {
+          return new Promise(function(fulfill, reject) {
+            setTimeout(function() {
+              fulfill();
+            }, 1000);
+          });
+        })
+        // next login attempt with correct password should pass
+        .then(function(res) {
+          return agent1.post('/login')
+                  .type('form')
+                  .redirects(0)
+                  .send({
+                    email: "test@onecommons.org",
+                    password: "test"
+                  })
+                  .expect(302)
+                  .expect('Location', '/profile');
+        })
+        .then(function(res) {
+          done();
+        })
+    });
+
   });
 
   describe('sessions', function() {
+
+    // recreate the user before these tests
+    before(function(done) {
+      m.User.remove({}
+      ,function(){
+          theUser = new m.User();
+          theUser.displayName = "Test User";
+          theUser.local.email = "test@onecommons.org";
+          theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
+          theUser._id = "@User@123";
+          theUser.save(function(){
+            done();
+          });
+        });
+    });
+
     // agent stores cookies for multiple requests
+    var agent = request.agent(app);
 
     it('should create a new session', function(done) {
-      agent1
-      .get('/')
-      .expect('set-cookie', /.+/)
-      .expect(/html/)
-      .expect(200, done)
+      agent.get('/')
+           .expect('set-cookie', /.+/)
+           .expect(/html/)
+           .expect(200, done);
     });
 
     it('should allow access to restricted pages after login', function(done) {
-      agent1
+      agent
       .post('/login')
       .type('form')
-      .redirects(2)
+      .redirects(0)
       .send({email:"test@onecommons.org", password:"test"})
-      .expect(/html/)
-      .expect(200)
-      .end(function(err, res) {
-
-        if (err) {
-          return done(err);
-        }
-
-        agent1
-        .get('/profile')
-        .redirects(0)
-        .expect(200, done)
-
+      .expect(302)
+      .expect('Location', '/profile')
+      .then(function() {
+        return agent.get('/profile')
+                    .redirects(0)
+                    .expect(200)
+                    .then(function() {
+                      done();
+                    });
       });
     });
 
   })
-
 })

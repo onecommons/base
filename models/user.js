@@ -21,6 +21,12 @@ var userSchema = mongoose.Schema({
     local            : {
         email        : String,
         password     : String,
+        verified     : {type: Boolean, default:false},
+        accountLocked: {type: Boolean, default:false},
+        accountLockedUntil: Date,
+        failedLoginAttempts: {type:Number, default:0},
+        signupToken        : String,
+        signupTokenExpires : Date
      },
     facebook         : {
         id           : String,

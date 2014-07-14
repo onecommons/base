@@ -1,0 +1,27 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+<div class="container">
+
+<div class="col-sm-6 col-sm-offset-3">
+
+	<h3>Please check your email</h3>
+
+	<!-- show any messages that come back with authentication -->
+	{% if message.length > 0 %}
+		<div class="alert alert-danger">{{message}}</div>
+	{% endif %}
+
+	<br>
+	<br>
+	<p>We've sent a verification email to {{email}}. Please click on the link in the email to verify your email address.</p>
+	<p>If you don't receive it, check your spam filters. <a href="{{resendLink}}">Click here to re-send it</a></p>
+
+	<hr>
+
+	<p>Already have an account? <a href="/login">Log in</a></p>
+
+</div>
+
+</div>
+{% endblock %}

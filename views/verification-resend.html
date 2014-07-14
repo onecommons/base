@@ -1,0 +1,30 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+<div class="container">
+
+<div class="col-sm-6 col-sm-offset-3">
+
+	<h3>Re-send verification email</h3>
+
+	<!-- show any messages that come back with authentication -->
+	{% if message.length > 0 %}
+		<div class="alert alert-danger">{{message}}</div>
+	{% endif %}
+
+	<br>
+	<br>
+	<form action="/verification-resend" method="post" autocomplete="off">
+		<label for="email">Enter the email address you used to register:</label>
+		<input type="email" name="email">
+		<input type="submit" value="Resend email">
+	</form>
+
+	<hr>
+
+	<p>Already have an account? <a href="/login">Log in</a></p>
+
+</div>
+
+</div>
+{% endblock %}
