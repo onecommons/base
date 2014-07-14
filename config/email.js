@@ -9,7 +9,8 @@ module.exports = {
     // nodemailer config vars
     // see http://www.nodemailer.com/docs/transports
     "mailer": {
-        "transport":"SMTP",
+        "transport":"Stub", //"SMTP"
+        /*
         "config": {
             service: "SendGrid",
             auth: {
@@ -17,6 +18,7 @@ module.exports = {
                 pass: "password"
             }
         }
+        */
     },
 
     "templates": {
