@@ -13,7 +13,7 @@ module.exports = {
     //     'clientID'      : 'your-app-id',
     //     'clientSecret'  : 'your-app-secret',
     //     'callbackURL'   : 'http://localhost:8080/auth/facebook/callback'
-    // }
+    // },
 
     // 'twitterAuth' : {
     //     'consumerKey'       : 'your-consumer-key-here',
@@ -25,6 +25,6 @@ module.exports = {
     //     'clientID'      : 'your-secret-clientID-here',
     //     'clientSecret'  : 'your-client-secret-here',
     //     'callbackURL'   : 'http://localhost:8080/auth/google/callback'
-    // }
+    // },
 
 };
