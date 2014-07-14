@@ -4,8 +4,6 @@ module.exports = {
 
     "from": "help@onecommons.org",
     "appname": "OneCommons baseapp",
-    "appurl":  "http://www.onecommons.org",
-
     // nodemailer config vars
     // see http://www.nodemailer.com/docs/transports
     "mailer": {
