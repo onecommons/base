@@ -198,12 +198,28 @@ module.exports = function(passport, app) {
     // FACEBOOK ================================================================
     // =========================================================================
     if (config.facebookAuth) {
+      app.updateNamedRoutes({
+        fbAuth:           ['auth/facebook', function() {
+                                  return passport.authenticate('facebook', {
+                                    scope: 'email'
+                                  })
+                          }],
+
+        fbAuthCallback:   ['auth/facebook/callback', function() {
+                                return passport.authenticate('facebook', {
+                                  successRedirect: '/profile',
+                                  failureRedirect: '/'
+                                });
+                          }]
+      });
+
       passport.use(new FacebookStrategy({
         // pull in our app id and secret from our auth.js file
         clientID        : config.facebookAuth.clientID,
         clientSecret    : config.facebookAuth.clientSecret,
         callbackURL     : config.facebookAuth.callbackURL
       },
+
       // facebook will send back the token and profile
       function(token, refreshToken, profile, done) {
 

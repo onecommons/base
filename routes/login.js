@@ -121,19 +121,3 @@ module.exports.profile = function(req, res) {
     user : req.user
   });
 }
-
-//
-// Facebook login handlers
-//
-module.exports.facebookAuth = function(passport) {
-  return passport.authenticate('facebook', {
-    scope: 'email'
-  });
-}
-
-module.exports.facebookAuthCallback = function(passport) {
-  passport.authenticate('facebook', {
-    successRedirect: '/profile',
-    failureRedirect: '/'
-  });
-}

@@ -50,9 +50,5 @@ module.exports = function(app, passport) {
     userTransactions: [ 'profile/transactions', utils.isLoggedIn, profile.transactionHistory],
 
     jswig:            ['jswig/*', jswig(app)],
-
-    fbAuth:           ['auth/facebook', login.facebookAuth],
-
-    fbAuthCallback:   ['auth/facebook/callback', login.facebookAuthCallback],
   };
 }

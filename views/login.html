@@ -11,11 +11,13 @@
 	{% endif %}
 
 	<!-- FACEBOOK LOGIN -->
+	{% if routes.fbAuth%}
 	<h3><span class="fa fa-sign-in"></span> Login with Facebook</h3>
 	<br>
 	<a href='/auth/facebook' class="btn btn-primary"><span class="fa fa-facebook"></span>Facebook</a>
 
 	<hr>
+  {% endif %}
 
 	<h3><span class="fa fa-sign-in"></span> Login with Onecommons</h3>
 	<form action="/login" method="post">
