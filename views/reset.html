@@ -1,0 +1,30 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+<div class="container">
+
+<div class="col-sm-6 col-sm-offset-3">
+
+	<h1><span class="fa fa-sign-in"></span>Reset Password</h1>
+
+	{% if message.length > 0 %}
+		<div class="alert alert-danger">{{message}}</div>
+	{% endif %}
+
+	<p>Please enter your new password:</p>
+
+	<form action="" method="post">
+		<div class="form-group">
+			<label>Password</label>
+			<input type="password" class="form-control" name="pass1">
+			<label>Again</label>
+			<input type="password" class="form-control" name="pass2">
+		</div>
+
+		<button type="submit" class="btn btn-warning btn-lg">Save Password</button>
+	</form>
+
+</div>
+
+</div>
+{% endblock %}

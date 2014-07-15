@@ -26,11 +26,18 @@ module.exports = function(app, passport) {
 
     verification:     login.verification,
 
-    verificationPost: [ 'verification/:token', login.verificationPost ],
+    verificationToken: [ 'verification/:token', login.verificationToken ],
 
     verificationResend: { path: 'verification-resend',
                           get: login.resendVerification,
                           post: login.resendVerificationPost(passport) },
+
+    forgot:           { get: login.forgot,
+                        post: login.forgotPost },
+
+    forgotToken:      { path: 'forgot/:token',
+                        get:  login.forgotToken,
+                        post: login.forgotTokenPost },
 
     setupPaymentPlan: { path: 'profile/setup-payment-plan',
                         get:  [ utils.isLoggedIn, utils.renderer('setup-payment-plan')],

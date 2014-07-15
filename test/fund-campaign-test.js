@@ -6,7 +6,6 @@ var mongoose    = require('mongoose');
 var bp          = require('../lib/oc-balanced');
 var m           = require('../models');
 
-var consolidate = require('consolidate');
 var swig        = require('swig');
 require('../lib/swigextensions')(swig);
 var bodyParser = require('body-parser');
@@ -29,7 +28,7 @@ describe('fund campaign', function () {
 
     // all environments
     app.set('views', __dirname + '/../views'); // this path looks stupid but it works independent of how tests are run.
-    app.engine('html', consolidate.swig);
+    app.engine('html', swig.renderFile);
     swig.setDefaults({ cache: false });
     app.set('view engine', 'html');
 

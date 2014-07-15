@@ -59,7 +59,7 @@ module.exports.verification = function(req, res) {
   }
 }
 
-module.exports.verificationPost = function(req, res) {
+module.exports.verificationToken = function(req, res) {
   var token = req.params.token;
   auth.checkVerificationToken(token, function(err, user) {
     if (err) {
@@ -114,6 +114,84 @@ module.exports.resendVerificationPost = function(passport) {
       res.redirect('/verification');
     });
   };
+}
+
+// if 'forgotEmail' flash is set, an email was sent so show that page
+// otherwise just show the forgot page with the form
+module.exports.forgot = function(req, res) {
+  var tmp = req.flash('forgotEmail'); // returns empty array if unset
+  var sentTo = tmp.length > 0 ? tmp[0] : null;
+
+  res.render('forgot.html', {
+    message: req.flash('message'),
+    sentTo: sentTo
+  });
+}
+
+module.exports.forgotPost = function(req, res) {
+  var sendErr = function(msg) {
+    res.render('forgot.html', { message:msg });
+  }
+
+  var address = req.param('email');
+  if (!address) {
+    return sendErr("Please enter an email address");
+  }
+
+  User.findOne({"local.email":address}, function(err, user) {
+    // XXX be careful what we reveal here! possible security issues
+    if (err || !user) {
+      return sendErr("Can't find a user with that email address");
+    }
+
+    // generate a password reset token & expiration
+    auth.createResetToken(user, function(err, resetToken) {
+      if (err) {
+        throw err; // XXX just set something on the flash?
+      } else {
+        // XXX use app object instead
+        // passport.email.sendForgot(user);
+        req.flash('forgotEmail', address);
+      }
+
+      res.redirect('/forgot');
+    });
+  });
+
+};
+
+module.exports.forgotToken = function(req, res) {
+  var token = req.params.token;
+
+  auth.userForResetToken(token, function(err, user) {
+    if (err) {
+      res.render('forgot.html', { message:err });
+    } else {
+      console.log("got user:"+ user);
+      res.render('reset.html');
+    }
+  });
+}
+
+module.exports.forgotTokenPost = function(req, res) {
+  console.log("forgotTokenPost");
+
+  var token = req.params.token;
+  console.log("got forgotTokenPost:" + token);
+  var p1 = req.param('pass1');
+  var p2 = req.param('pass2');
+
+  auth.resetPasswordWithToken(token, p1, p2, function(err, user) {
+    if (err) {
+      res.render('reset.html', {message:err})
+    } else {
+      req.flash("msg", "Password reset");
+      // XXX where to redirect after reset? login again with new pw?
+      res.redirect('/profile');
+    }
+
+  });
+
 }
 
 module.exports.profile = function(req, res) {
