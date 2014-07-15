@@ -26,7 +26,9 @@ var userSchema = mongoose.Schema({
         accountLockedUntil: Date,
         failedLoginAttempts: {type:Number, default:0},
         signupToken        : String,
-        signupTokenExpires : Date
+        signupTokenExpires : Date,
+        resetToken         : String,
+        resetTokenExpires  : Date
      },
     facebook         : {
         id           : String,
