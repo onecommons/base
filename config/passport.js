@@ -170,6 +170,9 @@ module.exports = function(passport, app) {
             } else {
                 // console.log("successful login");
 
+                //XXX when logging-in we want to change the session cookie's expiration depending on remember me option
+                //e.g. req.session.cookie.maxAge = 14 * 24 * 60 * 60 * 1000; //two weeks
+
                 user.local.accountLocked = false;
                 user.local.failedLoginAttempts = 0;
                 user.local.accountLockedUntil = null;
