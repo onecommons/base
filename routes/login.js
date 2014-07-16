@@ -128,36 +128,37 @@ module.exports.forgot = function(req, res) {
   });
 }
 
-module.exports.forgotPost = function(req, res) {
-  var sendErr = function(msg) {
-    res.render('forgot.html', { message:msg });
-  }
-
-  var address = req.param('email');
-  if (!address) {
-    return sendErr("Please enter an email address");
-  }
-
-  User.findOne({"local.email":address}, function(err, user) {
-    // XXX be careful what we reveal here! possible security issues
-    if (err || !user) {
-      return sendErr("Can't find a user with that email address");
+module.exports.forgotPost = function(app) {
+  return function(req, res) {
+    var sendErr = function(msg) {
+      res.render('forgot.html', { message:msg });
     }
 
-    // generate a password reset token & expiration
-    auth.createResetToken(user, function(err, resetToken) {
-      if (err) {
-        throw err; // XXX just set something on the flash?
-      } else {
-        //XXX app.email.sendForgot(user);
-        req.flash('forgotEmail', address);
+    var address = req.param('email');
+    if (!address) {
+      return sendErr("Please enter an email address");
+    }
+
+    User.findOne({"local.email":address}, function(err, user) {
+      // XXX be careful what we reveal here! possible security issues
+      if (err || !user) {
+        return sendErr("Can't find a user with that email address");
       }
 
-      res.redirect('/forgot');
-    });
-  });
+      // generate a password reset token & expiration
+      auth.createResetToken(user, function(err, resetToken) {
+        if (err) {
+          throw err; // XXX just set something on the flash?
+        } else {
+          app.email.sendForgot(user);
+          req.flash('forgotEmail', address);
+        }
 
-};
+        res.redirect('/forgot');
+      });
+    });
+  };
+}
 
 module.exports.forgotToken = function(req, res) {
   var token = req.params.token;
@@ -185,7 +186,7 @@ module.exports.forgotTokenPost = function(req, res) {
       res.render('reset.html', {message:err})
     } else {
       req.flash("msg", "Password reset");
-      // XXX where to redirect after reset? login again with new pw?
+      // XXX where to redirect after reset? login again with new pw? 
       res.redirect('/profile');
     }
 
