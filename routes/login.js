@@ -83,7 +83,6 @@ module.exports.resendVerification = function(req, res) {
 }
 
 module.exports.resendVerificationPost = function(app) {
-  var passport = app.passport;
   return function(req, res) {
     var sendErr = function(msg) {
       res.render('verification-resend.html', {
@@ -110,7 +109,7 @@ module.exports.resendVerificationPost = function(app) {
 
       // XXX what to do if the user is already verified?
 
-      passport.email.resendVerification(user);
+      app.email.resendVerification(user);
       req.flash('verificationEmail', address);
       res.redirect('/verification');
     });
