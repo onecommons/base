@@ -15,7 +15,7 @@ var auth = require('../lib/auth');
 // expose this function to our app using module.exports
 module.exports = function(passport, app) {
     var config = app.loadConfig('auth');
-    passport.email = require('../lib/email')(app);
+    app.email = require('../lib/email')(app);
 
     // =========================================================================
     // passport session setup ==================================================
@@ -82,7 +82,7 @@ module.exports = function(passport, app) {
                             throw err;
 
                         // send the email notification
-                        passport.email.sendWelcome(newUser);
+                        app.email.sendWelcome(newUser);
 
                         return done(null, newUser);
                     });

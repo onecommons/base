@@ -82,7 +82,8 @@ module.exports.resendVerification = function(req, res) {
   res.render('verification-resend.html');
 }
 
-module.exports.resendVerificationPost = function(passport) {
+module.exports.resendVerificationPost = function(app) {
+  var passport = app.passport;
   return function(req, res) {
     var sendErr = function(msg) {
       res.render('verification-resend.html', {
@@ -149,8 +150,7 @@ module.exports.forgotPost = function(req, res) {
       if (err) {
         throw err; // XXX just set something on the flash?
       } else {
-        // XXX use app object instead
-        // passport.email.sendForgot(user);
+        //XXX app.email.sendForgot(user);
         req.flash('forgotEmail', address);
       }
 
