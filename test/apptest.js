@@ -16,29 +16,26 @@ describe('app', function() {
   before(function(){
     base.createApp(__dirname, {
       //customize config dir so for config tests below
-      configdir: path.join(__dirname, 'fixtures')
+      configdir: path.join(__dirname, 'fixtures'),
+      routes: {
+        index: function(req, res) {
+          var response = "derived";
+          res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(response),
+            'Content-Type': req.contentType
+          });
+          res.end(response);
+        }
+      }
     });
     app = base.app; //tests that app singleton is set
   });
-
 
   after(function(done){
     app.stop(done);
   });
 
   it("should start the app", function(done) {
-    app.updateNamedRoutes({
-      //should use existing path if path isn't specified
-      index: function(req, res) {
-        var response = "derived";
-        res.writeHead(200, {
-          'Content-Length': Buffer.byteLength(response),
-          'Content-Type': req.contentType
-        });
-        res.end(response);
-      }
-    });
-
     app.start(function(listen) {
       listen(function(server){
         assert(app.get("server"));
