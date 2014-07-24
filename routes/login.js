@@ -33,8 +33,11 @@ module.exports.signup = function(req, res) {
 }
 
 module.exports.signupPost = function(passport) {
+  var successRedirect = passport.config.requireEmailVerification
+          ? '/verification' : '/profile';
+
   return passport.authenticate('local-signup', {
-    successRedirect: '/verification', // verification notification page
+    successRedirect: successRedirect,
     failureRedirect: '/signup',  // back to signup on error
     failureFlash: true
   });

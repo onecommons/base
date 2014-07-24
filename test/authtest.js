@@ -20,7 +20,7 @@ describe('Authentication', function() {
           theUser.displayName = "Test User";
           theUser.local.email = "test@onecommons.org";
           theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
-          theUser.local.verified = true,
+          //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
           theUser._id = "@User@123";
           theUser.save(function(){
             listen(function(server){
@@ -154,7 +154,7 @@ describe('Authentication', function() {
           theUser.displayName = "Test User";
           theUser.local.email = "test@onecommons.org";
           theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
-          theUser.local.verified = true,
+          //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
           theUser._id = "@User@123";
           theUser.save(function(){
             done();
@@ -184,6 +184,7 @@ describe('Authentication', function() {
         return agent.get('/profile')
                     .redirects(0)
                     .expect(200)
+                    .expect(/html/)
                     .then(function() {
                       done();
                     });

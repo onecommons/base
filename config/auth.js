@@ -7,6 +7,7 @@ module.exports = {
     failedLoginAttempts: 5,
     accountLockedTime: 60 * 5, // seconds
 
+    requireEmailVerification: false,
     confirmationTokenValidFor: 24, // hours
 
     // 'facebookAuth' : {
