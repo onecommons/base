@@ -4,11 +4,23 @@ var assert = require('chai').assert;
 require('should');
 var request = require('supertest');
 
-describe('app', function() {
-  var app = base.createApp(__dirname, {
-    //customize config dir so for config tests below
-    configdir: path.join(__dirname, 'fixtures')
+describe('app singleton', function() {
+  it("should throw if it is accessed before app creation", function() {
+    assert.throws( function() {var app = base.app;} );
   });
+});
+
+describe('app', function() {
+  var app;
+
+  before(function(){
+    base.createApp(__dirname, {
+      //customize config dir so for config tests below
+      configdir: path.join(__dirname, 'fixtures')
+    });
+    app = base.app; //tests that app singleton is set
+  });
+
 
   after(function(done){
     app.stop(done);
@@ -65,8 +77,11 @@ describe('app', function() {
         r.expect(200);
       r.end(done);
     };
-    app.get('/testview/*', function(req, res) {
-      res.render(req.params[0], {});
+
+    before(function() {
+      app.get('/testview/*', function(req, res) {
+        res.render(req.params[0], {});
+      });
     });
 
     [
