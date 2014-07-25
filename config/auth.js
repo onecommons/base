@@ -8,7 +8,8 @@ module.exports = {
     accountLockedTime: 60 * 5, // seconds
 
     requireEmailVerification: false,
-    confirmationTokenValidFor: 24, // hours
+    confirmationTokenValidHours: 24,
+    resetTokenValidMinutes: 30
 
     // 'facebookAuth' : {
     //     'clientID'      : 'your-app-id',

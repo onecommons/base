@@ -33,7 +33,7 @@ module.exports = function(app, passport) {
                           post: login.resendVerificationPost(app) },
 
     forgot:           { get: login.forgot,
-                        post: login.forgotPost },
+                        post: login.forgotPost(app) },
 
     forgotToken:      { path: 'forgot/:token',
                         get:  login.forgotToken,
