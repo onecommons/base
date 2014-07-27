@@ -191,5 +191,20 @@ describe('Authentication', function() {
       });
     });
 
+    it('should allow access to recent login restricted pages after login', function(done) {
+       agent.get('/profile/transactions')
+                    .redirects(0)
+                    .expect(/html/)
+                    .expect(200, done);
+    });
+
+    it('should not allow access to recent login restricted pages after timeout', function(done) {
+      setTimeout(function() {
+       agent.get('/profile/transactions')
+             .expect(302)
+             .expect('Location', '/login')
+             .end(done);
+      }, 300);
+    });
   })
 })

@@ -54,7 +54,7 @@ module.exports = function(app, passport) {
 
     profile:          [ utils.isLoggedIn, login.profile],
 
-    userTransactions: [ 'profile/transactions', utils.isLoggedIn, profile.transactionHistory],
+    userTransactions: [ 'profile/transactions', utils.isRecentlyLoggedIn, profile.transactionHistory],
 
     jswig:            ['jswig/*', jswig(app)],
   };

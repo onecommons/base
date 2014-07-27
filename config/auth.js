@@ -3,6 +3,8 @@
 // expose our config directly to our application using module.exports
 module.exports = {
 
+    recentLoginTimeoutSeconds: 60, //seconds
+
     failedLoginsWarning: 3,
     failedLoginAttempts: 5,
     accountLockedTime: 60 * 5, // seconds
