@@ -10,6 +10,7 @@ describe('app singleton', function() {
   });
 });
 
+
 describe('app', function() {
   var app;
 

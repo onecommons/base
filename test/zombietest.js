@@ -8,10 +8,10 @@ var EventEmitter = require("events").EventEmitter;
 
 var Browser = require("zombie");
 describe('zombietest', function() {
-  var app = require('./fixtures/app')();
-  app.testresults = new EventEmitter();
-
+  var app;
   before(function(done) {
+    app = require('./fixtures/app')();
+    app.testresults = new EventEmitter();
     app.addBrowserTests();
     app.post('/testresult', function (req, res) {
       app.testresults.emit('clienttestresults', req.body);

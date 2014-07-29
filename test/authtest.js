@@ -8,11 +8,12 @@ var m = require('../models');
 
 describe('Authentication', function() {
 
-  var app = require('./fixtures/app')();
+  var app;
   var agent1 = null;
 
   // create a test user for login
   before(function(done) {
+    app = require('./fixtures/app')();
     app.start(function(listen) {
       m.User.remove({}
       ,function(){
@@ -145,9 +146,12 @@ describe('Authentication', function() {
   });
 
   describe('sessions', function() {
+    // agent stores cookies for multiple requests
+    var agent;
 
     // recreate the user before these tests
     before(function(done) {
+      agent = request.agent(app);
       m.User.remove({}
       ,function(){
           theUser = new m.User();
@@ -162,8 +166,6 @@ describe('Authentication', function() {
         });
     });
 
-    // agent stores cookies for multiple requests
-    var agent = request.agent(app);
 
     it('should create a new session', function(done) {
       agent.get('/')
