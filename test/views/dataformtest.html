@@ -31,16 +31,6 @@ div.expect {
 <body>
   <h2>Dataform test</h2>
 
-  <div class= "testcase" ><h4>selected true</h4>
-    <div class= "test">[{{df.selected(true)}}]</div>
-    <div class= "expect">[selected]</div>
-  </div>
-
-  <div class= "testcase" ><h4>selected false</h4>
-    <div class= "test">{{df.selected(false)}}</div>
-    <div class= "expect"></div>
-  </div>
-
   <div class= "testcase"><h4>form</h4>
     <div class= "test">{{df.form(testdata, {class: 'testclass'})}}{{df.form_end()}}</div>
     <div class= "expect"><form class="testclass dbform">
@@ -204,20 +194,36 @@ div.expect {
   <div class= "testcase">
      <h4>select - simple select options </h4>
      <div class= "test">{{df.select('simpleSelection', simpleArray )}}</div>
-     <div class= "expect"><select name= "simpleSelection"><option>one</option><option selected >two</option></select></div>
+     <div class= "expect"><select name= "simpleSelection"><option>one</option>
+<option selected >two</option>
+</select></div>
   </div>
 
   <div class= "testcase">
      <h4>select - labeled select options </h4>
      <div class= "test">{{df.select('labeledSelection', labeledArray )}}</div>
-     <div class= "expect"><select name= "labeledSelection" ><option class= "type[number]" value= "1">once</option><option selected class= "type[number]" value= "2" >twice</option><option class= "type[number]" value= "3" >three times</option></select></div>
+     <div class= "expect"><select name= "labeledSelection" ><option class= "type[number]" value= "1">once</option>
+<option class= "type[number]" selected value= "2" >twice</option>
+<option class= "type[number]" value= "3" >three times</option>
+</select></div>
   </div>
 
   <div class= "testcase">
      <h4>select - object select options </h4>
-     <div class= "test">{{df.select('objectSelection', objectArray )}}</div>
-     <div class= "expect"><select name="objectSelection" ><option value= "@1">option 1(first)</option><option selected value= "@2" >option 2()</option></select></div>
+     <div class= "test">{{df.select('objectSelection', objectArray, {labelKey:'name'} )}}</div>
+     <div class= "expect"><select name="objectSelection" ><option value= "@1">option 1</option>
+<option selected value= "@2" >option 2</option>
+</select></div>
   </div>
+
+<div class= "testcase">
+   <h4>select - labeled select options </h4>
+   <div class= "test">{{df.select('multipleSelection', labeledArray )}}</div>
+   <div class= "expect"><select name= "multipleSelection[]" multiple><option class= "type[number]" value= "1">once</option>
+<option class= "type[number]" selected value= "2" >twice</option>
+<option class= "type[number]" selected value= "3" >three times</option>
+</select></div>
+</div>
 
   {{df.form_end()}}
 

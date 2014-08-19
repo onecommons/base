@@ -17,7 +17,8 @@ var testdata = {
   'array' : [0, 1],
   'objectSelection' : '@2',
   'labeledSelection' : 2,
-  'simpleSelection' : 'two'
+  'simpleSelection' : 'two',
+  'multipleSelection' : [2, 3],
 };
 
 var simpleArray = ['one', 'two'];
@@ -88,7 +89,7 @@ describe('dataform', function() {
   });
 
   it('should have correct number of tests', function(done) {
-    count.should.equal(30);
+    count.should.equal(29); //make sure the expected number of dom tests ran
     done();//needs to be async to run after first test
   });
 });
