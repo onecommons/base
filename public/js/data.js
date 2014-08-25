@@ -6,11 +6,11 @@
 var konsole = {
     log : function() {
       if (window.console && window.console.log)
-        window.console.log.apply(window.console, Array.prototype.slice.call(arguments)); 
+        window.console.log.apply(window.console, Array.prototype.slice.call(arguments));
     },
-    assert : function(expr, msg) { 
-      if (!expr) { 
-        if (window.console && window.console.assert) 
+    assert : function(expr, msg) {
+      if (!expr) {
+        if (window.console && window.console.assert)
           //console.assert doesn't abort, just logs
           window.console.assert.apply(window.console, Array.prototype.slice.call(arguments));
         debugger; //note: no-op if debugger isn't active
@@ -47,7 +47,7 @@ Txn.prototype = {
         //XXX if a new request updates an object in a previous request
         //    update the previous object
         //different requests but the same id
-        /*        
+        /*
         if (typeof data.id != 'undefined') {
              if (this.requests[data.id-1]) {
                 if (action == 'update') {
@@ -85,21 +85,21 @@ Txn.prototype = {
             });
         }
 
-        if (this.autocommit) 
+        if (this.autocommit)
             this.commit();
 
         return requestId;
    },
 
-    /* 
+    /*
     */
     commit : function(callback, elem) {
         var elem = elem || document;
-        var txnId = this.txnId;        
+        var txnId = this.txnId;
         if (callback) { //callback signature: function(event, responses, requests)
             $(elem).one('dbdata.'+txnId, callback);
-        }        
-        
+        }
+
         var comment = this.txnComment;
         var request = this.requests;
         //var clientErrorMsg = this.clientErrorMsg;
@@ -111,9 +111,9 @@ Txn.prototype = {
                 $(elem).trigger('dbdata.'+txnId, [data, request, comment]);
                 $(elem).trigger('dbdata-*', [data, request, comment]);
             } else {
-                //when textStatus != 'success', data param will be a XMLHttpRequest obj 
+                //when textStatus != 'success', data param will be a XMLHttpRequest obj
                 var errorObj = {"jsonrpc": "2.0", "id": null,
-                  "error": {"code": -32000, 
+                  "error": {"code": -32000,
                         "message": data.statusText || textStatus,
                         'data' : data.responseText
                   }
@@ -122,14 +122,14 @@ Txn.prototype = {
                 $(elem).trigger('dbdata-*', [errorObj, request, comment]);
             }
          };
-    
+
         /*
-        //XXX consolidate updates to the same object 
+        //XXX consolidate updates to the same object
         var changes = [];
         for (var name in pendingChanges ) {
             changes.push( pendingChanges[name] );
-        }   
-        this.pendingChanges = {}; 
+        }
+        this.pendingChanges = {};
         */
         //XXX path should be configurable
         //konsole.log('requests', this.requests);
@@ -137,8 +137,8 @@ Txn.prototype = {
             if (this.txnComment) {
                 this.requests.push({
                     jsonrpc : '2.0',
-                    method : 'transaction_info', 
-                    params : { 'comment' : this.txnComment }, 
+                    method : 'transaction_info',
+                    params : { 'comment' : this.txnComment },
                     id : this.requests.length+1
                 });
                 this.txnComment = '';
@@ -149,7 +149,7 @@ Txn.prototype = {
               type: 'POST',
               url: this.url,
               data: requests,
-              processData: false, 
+              processData: false,
               contentType: 'application/json',
               success: ajaxCallback,
               error: ajaxCallback,
@@ -175,7 +175,7 @@ txn.commit();
 */
 
 (function($) {
-    
+
     function deduceArgs(args) {
         //return data, { callback, txn, comment}
         // accepts: [] | [data] | [callback] | [data, options] | [null, options] | [null, callback]
@@ -184,7 +184,7 @@ txn.commit();
             if (!jQuery.isFunction(args[0])) {
                 data = args.shift();
                 //sanity check first arg
-                konsole.assert( !jQuery.isFunction(data.callback), 
+                konsole.assert( !jQuery.isFunction(data.callback),
                     "options dictionary must be second parameter, not first");
             }
         } else if (args.length > 1) {
@@ -204,7 +204,7 @@ txn.commit();
     $.fn.extend({
         /*
         action [data] [options]
-        */        
+        */
       _executeTxn : function() {
          //copy to make real Array
          var args = Array.prototype.slice.call( arguments );
@@ -219,14 +219,14 @@ txn.commit();
                  txn = new Txn($.db.url);
                  commitNow = true;
              }
-         }         
+         }
          //konsole.log('execute', action, data, callback);
          var requestIds = [];
          if (data) {
             if (action == 'query') {
                 if (!data.conditions) {
                     data = { conditions : data };
-                } 
+                }
                 //assert data.query;
                 var thisid = this.attr('itemid');
                 if (thisid) {
@@ -234,7 +234,7 @@ txn.commit();
                         data.bindvars = {}
                     }
                     data.bindvars['this'] =  thisid;
-                }                
+                }
             } else if (!data[_IDkey] && this.attr('itemid')) {
                 data[_IDkey] = this.attr('itemid');
             }
@@ -254,7 +254,7 @@ txn.commit();
          }
          if (comment) { //XXX this is all kind of hacky
             comment = comment.replace('$new0', '$new'+requestIds[0]);
-            if (txn.txnComment) 
+            if (txn.txnComment)
                 txn.txnComment += ' and ' + comment;
             else
                 txn.txnComment = comment;
@@ -281,13 +281,13 @@ txn.commit();
      },
      dbUpdate : function(a1, a2, a3) {
          return this._executeTxn('update', a1,a2);
-     },     
+     },
      dbReplace : function(a1, a2, a3) {
          return this._executeTxn('replace', a1,a2);
-     },     
+     },
      dbQuery : function(a1, a2, a3) {
          return this._executeTxn('query', a1,a2);
-     },     
+     },
      dbRemove : function(a1,a2,a3){
          return this._executeTxn('remove', a1,a2);
      },
@@ -299,7 +299,7 @@ txn.commit();
                  return $(this).attr('itemid') || null;
              }).get();
         }
-        konsole.assert(jQuery.isArray(data), 
+        konsole.assert(jQuery.isArray(data),
             "dbDestroy requires array of ids to delete as its data argument");
         return this._executeTxn('destroy', data, options);
      },
@@ -322,20 +322,20 @@ txn.commit();
         if (txn) {
             this.removeData('currentTxn'); //do this now so callbacks aren't in this txn
             var errorObj = {"jsonrpc": "2.0", "id": null,
-              "error": {"code": -32001, 
+              "error": {"code": -32001,
                   "message": "client-side rollback",
                   'data' : null
-                } 
+                }
             };
             this.trigger('dbdata.'+txn.txnId, [errorObj, txn.requests, txn.txnComment]);
             this.trigger('dbdata-*', [errorObj, txn.requests, txn.txnComment]);
         } else {
             konsole.log('warning: rollback with no txn');
         }
-        return this;        
+        return this;
      }
     ,dbRenderToString: function(model, templatename) {
-      if (model === undefined) 
+      if (model === undefined)
         model = this.data('_model');
       if (templatename === undefined)
         templatename = this.data('_template');
@@ -353,7 +353,7 @@ txn.commit();
 })(jQuery);
 
 function parseAttrPropValue(data) {
-    var jsonstart = /^({|\[|"|-?\d|true$|false$|null$)/;    
+    var jsonstart = /^({|\[|"|-?\d|true$|false$|null$)/;
     if ( typeof data === "string" ) {
         try {
             return jsonstart.test( data ) ? jQuery.parseJSON( data ) : data;
@@ -362,16 +362,16 @@ function parseAttrPropValue(data) {
         }
     } else {
         return data;
-    }    
+    }
 }
 
 function bindElement(elem, rootOnly, forItemRef) {
-    if (elem.nodeName == 'FORM' && 
+    if (elem.nodeName == 'FORM' &&
             !elem.hasAttribute('itemscope') && !elem.hasAttribute('itemid')) {
-        var binder = Binder.FormBinder.bind( elem ); 
+        var binder = Binder.FormBinder.bind( elem );
         return binder.serialize();
     }
-            
+
     //otherwise emulate HTML microdata scheme
     //see http://dev.w3.org/html5/spec/microdata.html
     //except also include forms controls serialized as above
@@ -379,7 +379,7 @@ function bindElement(elem, rootOnly, forItemRef) {
 
     function setAttrProps(elem, item) {
         var type = elem.getAttribute('itemtype');
-        if (type) 
+        if (type)
             item['type'] = type;
         var attrs = elem.attributes, name;
         for ( var i = 0, l = attrs.length; i < l; i++ ) {
@@ -390,7 +390,7 @@ function bindElement(elem, rootOnly, forItemRef) {
             }
         }
     }
-    
+
     function getItem(elem) {
         var item = $(elem).data('item');
         if (typeof item != 'undefined') {
@@ -398,7 +398,7 @@ function bindElement(elem, rootOnly, forItemRef) {
         }
         item = {};
         var id = $(elem).attr('itemid');
-        if (id) 
+        if (id)
             item['id'] = id;
         $(elem).data('item', item);
         itemElems.push(elem);
@@ -425,7 +425,7 @@ function bindElement(elem, rootOnly, forItemRef) {
         }[elem.tagName];
         if (attr) {
             //XXX resolve urls to absolute urls
-            return $this.attr(attr) || '';        
+            return $this.attr(attr) || '';
         } else {
             return $this.text();
         }
@@ -434,7 +434,7 @@ function bindElement(elem, rootOnly, forItemRef) {
     function addProp(item, elem) {
         var $this = $(elem);
         var propnames = $this.attr('itemprop').split(/\s+/);
-        var value = getPropValue(elem);    
+        var value = getPropValue(elem);
         for (var i=0; i<propnames.length; i++){
             var propname = propnames[i];
             var current = item[ propname ];
@@ -455,7 +455,7 @@ function bindElement(elem, rootOnly, forItemRef) {
         descendPredicate = rootOnly;
     } else {
         //descend unless the value is an itemid (i.e. dont follow separate items)
-        descendPredicate = function(elem) { return !$(elem).attr('itemid'); } 
+        descendPredicate = function(elem) { return !$(elem).attr('itemid'); }
     }
 
     function descend($this) {
@@ -476,16 +476,16 @@ function bindElement(elem, rootOnly, forItemRef) {
           }
         });
     }
-    
+
     var elems = rootOnly ? descend($(elem)) : $(elem).find('*');
     if (forItemRef || !$(elem).is('[itemscope],[itemscope=],[itemid]'))
         elems = elems.add(elem);
-        
+
     elems.filter('[itemprop]').each(function(){
-       var $this = $(this);       
-       var refItem = $(elem).data('itemref');       
-       if (refItem) {           
-           addProp(refItem, this);           
+       var $this = $(this);
+       var refItem = $(elem).data('itemref');
+       if (refItem) {
+           addProp(refItem, this);
        } else {
            var parent = $this.parent().closest('[itemscope],[itemscope=],[itemid]');
            if (parent.length) {
@@ -494,7 +494,7 @@ function bindElement(elem, rootOnly, forItemRef) {
            }
        }
     });
- 
+
     //console.log('elems', elems)
     var refElems = (forItemRef && forItemRef.refElems) || [];
     elems.add(elem).filter('[itemref]').each(function(){
@@ -506,16 +506,16 @@ function bindElement(elem, rootOnly, forItemRef) {
             bindElement(this, false, {itemElems:itemElems, refElems:refElems});
         });
     });
-    
+
     elems.filter(':input').each(function(){
         var parent = $(this).parent().closest('[itemscope],[itemscope=],[itemid]');
         if (parent.length) {
             var item = getItem(parent.get(0));
-            var binder = Binder.FormBinder.bind(null, item); 
+            var binder = Binder.FormBinder.bind(null, item);
             binder.serializeField(this);
         }
     });
-       
+
     if (forItemRef) {
         return;
     }
@@ -529,7 +529,7 @@ function bindElement(elem, rootOnly, forItemRef) {
             if (existing) {
                 //items with same id but appear on multiple elements should be merged
                 $.extend(existing, item);
-                return null; //don't include 
+                return null; //don't include
             } else {
                 itemDict[item[_IDkey]] = item;
             }
@@ -539,10 +539,10 @@ function bindElement(elem, rootOnly, forItemRef) {
         else
             return item;
     });
-    
+
     $(itemElems).removeData('item').removeData('itemidonly');
-    $(refElems).removeData('itemref');    
-    return items;     
+    $(refElems).removeData('itemref');
+    return items;
 }
 
 // binder-0.3.js
@@ -563,7 +563,7 @@ function bindElement(elem, rootOnly, forItemRef) {
 var Binder = {};
 Binder.Util = {
   isFunction: function( obj ) {
-    return obj != undefined 
+    return obj != undefined
             && typeof(obj) == "function"
             && typeof(obj.constructor) == "function"
             && obj.constructor.prototype.hasOwnProperty( "call" );
@@ -680,7 +680,7 @@ Binder.PropertyAccessor.prototype = {
   }
 };
 Binder.PropertyAccessor.bindTo = function( obj ) {
-  return new Binder.PropertyAccessor( obj ); 
+  return new Binder.PropertyAccessor( obj );
 }
 
 Binder.TypeRegistry = {
@@ -729,10 +729,10 @@ Binder.TypeRegistry = {
       return '';
     },
     parse: function( value ) {
-      return value ? value : null; 
+      return value ? value : null;
     },
     empty: function() { return null; }
-  }   
+  }
 };
 
 Binder.FormBinder = function( form, accessor ) {
@@ -797,7 +797,7 @@ Binder.FormBinder.prototype = {
       return this.accessor || new Binder.PropertyAccessor( obj );
     } else if( obj instanceof Binder.PropertyAccessor ) {
       return obj;
-    } 
+    }
     return new Binder.PropertyAccessor( obj );
   },
   serialize: function( obj ) {
@@ -813,7 +813,7 @@ Binder.FormBinder.prototype = {
     var accessor = this._getAccessor( obj );
     var value = undefined;
     if( element.type == "radio" || element.type == "checkbox" )  {
-      if( element.value != "" && element.value != "on" ) {          
+      if( element.value != "" && element.value != "on" ) {
         value = this._parse( element.name, element.value, element );
         if( element.checked ) {
           accessor.set( element.name, value );
@@ -824,7 +824,7 @@ Binder.FormBinder.prototype = {
         } else { //added: set to empty value
           accessor.set( element.name, this._getEmpty(element) );
         }
-      } else { 
+      } else {
         value = element.checked;
         accessor.set( element.name, value );
       }
@@ -839,7 +839,7 @@ Binder.FormBinder.prototype = {
           accessor.set( element.name, v );
         }
       }
-    } else {      
+    } else {
         value = this._parse( element.name, element.value, element );
         if( accessor.isIndexed(element.name) ) {
           var current = accessor.get( element.name ) ||  [];
@@ -859,7 +859,7 @@ Binder.FormBinder.prototype = {
   },
   deserializeField: function( element, obj ) {
     var accessor = this._getAccessor( obj );
-    var value = accessor.get( element.name );
+    var value = accessor.get( element.name || '');
     value = this._format( element.name, value, element );
     if( element.type == "radio" || element.type == "checkbox" )  {
       element.checked = this._isSelected( element.value, value );

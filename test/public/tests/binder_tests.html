@@ -1,0 +1,532 @@
+<html>
+<!--
+derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder_tests.html (rev. 21)
+-->
+  <head>
+  <meta charset="utf-8">
+  <title>Browser Mocha Test</title>
+  <link rel="stylesheet" href="/mocha.css" />
+</head>
+<body>
+  <h3>Browser Mocha Test [ binder tests ]</h3>
+  <div class="log"></div>
+  <div id="mocha"></div>
+
+  <script src="/jquery-1.10.2.js"></script>
+  <script src="/chai.js"></script>
+  <script src="/promise-3.2.0.js"></script>
+  <script src="/mocha.js"></script>
+  <script src="/js/data.js"></script>
+
+  <script>
+  chai.config.includeStack = true;
+  var Assert = chai.assert;
+  Assert.areEqual = Assert.equal;
+  var expect = chai.expect;
+  mocha.ui('exports');
+  </script>
+
+  <script type="text/javascript">
+    var $$ = function( id ) { return document.getElementById( id ); };
+
+    var ArrayAssert = {
+      containsItems: function(needles, haystack, message) {
+        for (var i=0; i < needles.length; i++){
+            Assert.include(haystack, needles[i], message);
+        }
+      },
+
+      doesNotContainItems: function(needles, haystack, message) {
+        for (var i=0; i < needles.length; i++){
+          Assert.notInclude(haystack, needles[i], message)
+        }
+      }
+    };
+
+    function assertJsonEqual(o1, o2) {
+      Assert.areEqual(JSON.stringify(o1), JSON.stringify(o2));
+    }
+
+//require.register("bindertests.js", function(module, exports, require){
+    var exports = {
+     "Binder.Util Tests": {
+
+        testIsFunction: function() {
+            Assert.isTrue( Binder.Util.isFunction( function() { return "hello" } ) );
+            Assert.isTrue( Binder.Util.isFunction( "foo".indexOf ), "String.indexOf should be function" );
+            Assert.isFalse( Binder.Util.isFunction( "Hello" ), "String should not be function" );
+            Assert.isFalse( Binder.Util.isFunction( 12345 ), "Number should not be function" );
+            Assert.isFalse( Binder.Util.isFunction( true ), "Boolean should not be function" );
+            Assert.isFalse( Binder.Util.isFunction( { foo: 'bar' } ), "Object should not be function" );
+        },
+
+        testIsArray: function() {
+            Assert.isTrue( Binder.Util.isArray( [ 1, 2, 3] ), "Literal array");
+            Assert.isTrue( Binder.Util.isArray( new Array() ), "New Array" );
+            Assert.isFalse( Binder.Util.isArray( "Hello" ), "String should not be Array" );
+            Assert.isFalse( Binder.Util.isArray( { foo: 'bar' } ), "Object should not be array" );
+        },
+
+        testIsString: function() {
+            Assert.isTrue( Binder.Util.isString( "Hello" ), "String primitive" );
+            Assert.isTrue( Binder.Util.isString( new String( "Bye!" ) ), "String object" );
+            Assert.isFalse( Binder.Util.isString( 12345 ), "Number should not be string" );
+            Assert.isFalse( Binder.Util.isString( true ), "Boolean should not be string" );
+        },
+
+        testIsNumber: function() {
+            Assert.isTrue( Binder.Util.isNumber( 1234 ), "Number primitive" );
+            Assert.isTrue( Binder.Util.isNumber( new Number( 1234 ) ), "Number object" );
+            Assert.isFalse( Binder.Util.isNumber( "Hello" ), "String should not be number" );
+            Assert.isFalse( Binder.Util.isNumber( true ), "Boolean should not be number" );
+        },
+
+        testIsBoolean: function() {
+            Assert.isTrue( Binder.Util.isBoolean( false ), "Boolean primitive" );
+            Assert.isTrue( Binder.Util.isBoolean( true ), "Boolean primitive" );
+            Assert.isTrue( Binder.Util.isBoolean( new Boolean( false ) ), "Boolean object" );
+            Assert.isFalse( Binder.Util.isBoolean( "Hello" ), "String should not be boolean" );
+        },
+
+        testIsDate: function() {
+            Assert.isTrue( Binder.Util.isDate( new Date() ), "Date Object" )
+            Assert.isFalse( Binder.Util.isDate( "Hello" ), "String should not be date" );
+        },
+
+        testIsBasicType: function() {
+            Assert.isTrue( Binder.Util.isBasicType( new Date() ), "Date Object" )
+            Assert.isTrue( Binder.Util.isBasicType( false ), "Boolean primitive" );
+            Assert.isTrue( Binder.Util.isBasicType( 1234 ), "Number primitive" );
+            Assert.isTrue( Binder.Util.isBasicType( "Hello" ), "String primitive" );
+            Assert.isFalse( Binder.Util.isBasicType( [ 1, 2, 3] ), "Literal array");
+            Assert.isFalse( Binder.Util.isBasicType( function() { return "hello" } ) );
+        },
+
+        testIsNumeric: function() {
+            Assert.isTrue( Binder.Util.isNumeric( 123 ), "Number primitive" );
+            Assert.isTrue( Binder.Util.isNumeric( new Number( 123 ) ), "Number object" );
+            Assert.isTrue( Binder.Util.isNumeric( "123" ), "Parsable string (int)" );
+            Assert.isTrue( Binder.Util.isNumeric( "123.45" ), "Parsable string (float)" );
+            Assert.isFalse( Binder.Util.isNumeric( true ), "Boolean value" );
+            Assert.isFalse( Binder.Util.isNumeric( "abc" ), "Unparsable string" );
+        },
+
+        testFilter: function() {
+            var values = [1,2,3,4,5,6,7,8];
+            var newValues = Binder.Util.filter( values, function( item ) { return item % 2 == 0; } );
+            ArrayAssert.containsItems( [ 2, 4, 6, 8 ], newValues );
+            ArrayAssert.doesNotContainItems( [ 1, 3, 5, 7 ], newValues );
+        }
+    },
+
+    "Binder.PropertyAccessor Tests":
+      {
+
+        // Verify basic property access
+        testGetProperties: function() {
+            var obj = {
+                stringProp: "hello",
+                booleanProp: true,
+                numberProp: 123,
+                child: {
+                    stringProp: "Bye"
+                }
+            };
+
+            var accessor = new Binder.PropertyAccessor( obj );
+            Assert.areEqual( "hello", accessor.get( "stringProp" ) );
+            Assert.areEqual( true, accessor.get( "booleanProp" ) );
+            Assert.areEqual( 123, accessor.get( "numberProp" ) );
+            Assert.areEqual( "Bye", accessor.get( "child.stringProp" ) );
+            Assert.isUndefined( accessor.get( "noprop" ) );
+        },
+        // Verify property accessor can build up object from scratch.
+        testSetPropertiesEmptyObject: function() {
+            var accessor = new Binder.PropertyAccessor();
+            accessor.set( "stringProp", "hello" );
+            accessor.set( "booleanProp", true );
+            accessor.set( "numberProp", 123 );
+            accessor.set( "child.stringProp", "Bye" );
+
+            var obj = accessor.target;
+            Assert.areEqual( "hello", obj.stringProp );
+            Assert.areEqual( true, obj.booleanProp );
+            Assert.areEqual( 123, obj.numberProp );
+            Assert.areEqual( "Bye", obj.child.stringProp );
+        },
+        // Verify property accessor doesn't overwrite existing properties unless
+        // set() called.
+        testBindToExistingObject: function() {
+            var obj = {
+                prop1: "hello",
+                prop2: "world"
+            };
+            var accessor = new Binder.PropertyAccessor( obj);
+            accessor.set( "prop2", "goodbye" );
+
+            Assert.areEqual( "hello", obj.prop1 );
+            Assert.areEqual( "goodbye", obj.prop2 );
+        },
+
+        testSetAndGetIndexedArray: function() {
+            var obj = {
+                a: [1, 2, 3]
+            };
+            var accessor = new Binder.PropertyAccessor( obj );
+            Assert.areEqual( 1, accessor.get( "a[0]" ) );
+            Assert.areEqual( 2, accessor.get( "a[1]" ) );
+            Assert.areEqual( 3, accessor.get( "a[2]" ) );
+            Assert.isUndefined( accessor.get( "a[3]" ) );
+
+            accessor.set( "a[0]", "abc" );
+            Assert.areEqual( "abc", obj.a[0] );
+
+            accessor.set( "a[9]", 12345 );
+            Assert.areEqual( 10, obj.a.length );
+        },
+
+        testSetAndGetCollection: function() {
+            var obj = {
+                a: [1, 2, 3]
+            };
+            var accessor = new Binder.PropertyAccessor( obj );
+            Assert.deepEqual( [1,2,3], accessor.get( "a[]" ) );
+            accessor.set( "a[]", "abc" );
+            Assert.areEqual( "abc", obj.a[3] );
+        }
+    },
+
+    "Binder.FormBinder Tests": {
+        testFillForm: function() {
+            var obj = {
+                username: 'jdoe',
+                email: 'foo@bar.com',
+                contactable: true,
+                age: 30,
+                address: {
+                    line1: '123 Market St.',
+                    line2: 'Suite 12345',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    postalCode: '94105'
+                },
+                interests: [ 'sports', 'food' ]
+            };
+            var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
+            binder.deserialize();
+            Assert.areEqual( 'jdoe', $$( "fUsername" ).value, "Username field" );
+            Assert.areEqual( 'foo@bar.com', $$( "fEmail" ).value, "Email field" );
+            Assert.areEqual( true, $$( "fContactable" ).checked, "Contactable checkbox" );
+            Assert.areEqual( '30', $$( "fAge" ).value, "Age field" );
+            Assert.areEqual( '123 Market St.', $$( "fLine1" ).value, "Address field" );
+            Assert.areEqual( '94105', $$( "fPostal" ).value, "Postal Code field" );
+            Assert.areEqual( '123 Market St.', $$( "fLine1" ).value, "Address field" );
+            Assert.isTrue( $$( "optCA" ).selected, "CA should be selected" );
+            Assert.isFalse( $$( "optNY" ).selected, "NY should not be selected" );
+            Assert.isTrue( $$( "fSports" ).checked, "Sports should be selected" );
+            Assert.isTrue( $$( "fFood" ).checked, "Food should be selected" );
+            Assert.isFalse( $$( "fShopping" ).checked, "Shopping should not be selected" );
+            Assert.isFalse( $$( "fFinance" ).checked, "Finance should not be selected" );
+            Assert.isFalse( $$( "fGames" ).checked, "Games should not be selected" );
+        },
+
+        testSerializeForm: function() {
+            var obj = {
+                username: 'jdoe',
+                email: 'foo@bar.com',
+                contactable: true,
+                age: 30,
+                address: {
+                    line1: '123 Market St.',
+                    line2: 'Suite 12345',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    postalCode: '94105'
+                },
+                interests: [ 'sports', 'food' ]
+            };
+            var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
+            binder.deserialize();
+            $$( 'fUsername' ).value = "bob";
+            $$( 'fAge' ).value = 27;
+            $$( 'optNY' ).selected = true;
+            $$( 'fContactable' ).checked = false;
+            $$( 'fSports' ).checked = false;
+            $$( 'fGames' ).checked = true;
+            binder.serialize();
+            Assert.areEqual( 'bob', obj.username, "Username field" );
+            Assert.isFalse( obj.contactable, "Contactable checkbox" );
+            Assert.areEqual( '27', obj.age, "Age field" );
+            Assert.areEqual( 'NY', obj.address.state, "State field" );
+            ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
+            ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
+        },
+
+        testSerializeFormsWithNoNames : function() {
+          var obj = {};
+          var binder = new Binder.FormBinder( document.getElementById( "testForm1" ), obj );
+          binder.deserialize();
+          assertJsonEqual({}, obj);
+        },
+
+        testSerializeFormsArrayNames : function() {
+          var obj = {};
+          var binder = new Binder.FormBinder( document.getElementById( "testForm3" ), obj );
+          binder.serialize();
+          assertJsonEqual({"array":[1,2,3]}, obj);
+        },
+
+        testSerializeFields: function() {
+            var obj = {
+                username: 'jdoe',
+                email: 'foo@bar.com',
+                contactable: true,
+                age: 30,
+                address: {
+                    line1: '123 Market St.',
+                    line2: 'Suite 12345',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    postalCode: '94105'
+                },
+                interests: [ 'sports', 'food' ]
+            };
+            var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
+            binder.deserialize();
+            $$( 'fUsername' ).value = "bob";
+            binder.serializeField( $$('fUsername') );
+            Assert.areEqual( 'bob', obj.username, "Username field" );
+            $$( 'fContactable' ).checked = false;
+            binder.serializeField( $$('fContactable') );
+            Assert.isFalse( obj.contactable, "Contactable checkbox" );
+            $$( 'fSports' ).checked = false;
+            binder.serializeField( $$('fSports') );
+            $$( 'fGames' ).checked = true;
+            binder.serializeField( $$('fGames') );
+            ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
+            ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
+            $$( 'fEmail' ).value = "";
+            binder.serializeField( $$('fEmail') );
+            Assert.isUndefined( obj.email );
+        }
+
+    },
+
+   "Microdata Tests": {
+
+        testBindElement: function() {
+          var items = bindElement($$('microdata1'));
+          Assert.isNotNull(items);
+          Assert.isUndefined($('*').data('item'));
+          Assert.isUndefined($('*').data('itemidonly'));
+          Assert.isUndefined($('*').data('itemref'));
+          var itemsJson = JSON.stringify(items);
+          //console.log('items', itemsJson);
+          //console.log($('#microdata1expected').text());
+          var expected = JSON.stringify(JSON.parse($('#microdata1expected').text()));
+          Assert.areEqual(expected, itemsJson);
+
+          //test state is cleaned up and results are idempotent
+          var items2 = JSON.stringify(bindElement($$('microdata2')) );
+          Assert.areEqual('[{"name":"Amanda","band":{"name":"Jazz Band","size":"12"}}]', items2);
+          var items2again = JSON.stringify(bindElement($$('microdata2')) );
+          Assert.areEqual(items2, items2again);
+
+          //test itemrefs
+          var items2asRefs = JSON.stringify(bindElement($$('amanda')) );
+          Assert.areEqual(items2, items2asRefs);
+          Assert.isUndefined($('*').data('item'));
+          Assert.isUndefined($('*').data('itemidonly'));
+          Assert.isUndefined($('*').data('itemref'));
+
+          //test multiple values for a prop
+          var items3 = JSON.stringify(bindElement($$('microdata3')) );
+          Assert.areEqual('[{"flavor":["Lemon sorbet","Apricot sorbet"]}]', items3);
+          //test multiple properties on an itemprop
+          var items4 = JSON.stringify(bindElement($$('microdata4')) );
+          Assert.areEqual('[{"favorite-color":"orange","favorite-fruit":"orange"}]', items4);
+
+          //test binding on individual property element
+          var items5 = JSON.stringify(bindElement($$('testprop1')) );
+          Assert.areEqual('[{"id":"testid","favorite-color":"orange","favorite-fruit":"orange"}]', items5);
+
+          //test binding on form fields
+          var items6 = JSON.stringify(bindElement($$('microdata6')) );
+          Assert.areEqual('[{"id":"testid","enabled":true,"disabled":false}]', items6);
+
+          //test binding on individual input field
+          var items7 = JSON.stringify(bindElement($$('testprop2')) );
+          Assert.areEqual('[{"id":"testid","enabled":true}]', items7);
+          var items8 = JSON.stringify(bindElement($$('testprop3')) );
+          Assert.areEqual('[{"id":"testid","disabled":false}]', items8);
+
+          //don't include prop not descendent of element but find itemid outside it
+          var items9 = JSON.stringify(bindElement($$('nested1')) );
+          Assert.areEqual('[{"id":"n1","label":"foo"}]', items9);
+
+          //test that when binding a nested object the outer object isn't included
+          var items10 = JSON.stringify(bindElement($$('nested-microdata')) );
+          Assert.areEqual('[{"id":"2","label":"foo","type":"bar"}]', items10);
+
+          //test anonymous objects
+          var items11 = JSON.stringify(bindElement($$('outer1')) );
+          Assert.areEqual('[{"id":"1","child":{"id":"2","label":"foo","type":"bar"},"anotherprop":{"comment":"an anonymous object"}},{"id":"3","comment":"an unrelated object"}]', items11);
+
+          //test rootOnly option
+          var items12 = JSON.stringify(bindElement($$('outer1'), true) );
+          Assert.areEqual('[{"id":"1","child":{"id":"2"},"anotherprop":{"comment":"an anonymous object"}}]', items12);
+          Assert.isUndefined($('*').data('item'));
+          Assert.isUndefined($('*').data('itemidonly'));
+          Assert.isUndefined($('*').data('itemref'));
+        }
+
+    },
+  }
+//}); // module: bindertests.js
+  </script>
+
+  <form id="testForm1">
+    <input id="f1" type="text" value='no name text' />
+    <select>
+    <option>no name option</option>
+    </select>
+  </form>
+
+  <form id="testForm2">
+     <label>Username:</label><input id="fUsername" type="text" name="username"/><br/>
+     <label>Email:</label><input id="fEmail" type="text" name="email"/><br/>
+     <label>Receive E-Mail?</label><input id="fContactable" type="checkbox" name="contactable" class="type[boolean]"/><br/>
+     <label>Age:</label><input id="fAge" type="text" name="age" class="type[number]"/><br/>
+     <label>Address:</label><input id="fLine1" type="text" name="address.line1"/><br/>
+     <label>Address:</label><input id="fLine2" type="text" name="address.line2"/><br/>
+     <label>City:</label><input id="fCity" type="text" name="address.city"/><br/>
+     <label>State:</label><select id="fState" name="address.state">
+                            <option id="optCA" value="CA">California</option>
+                            <option id="optNY" value="NY">New York</option>
+                          </select><br/>
+     <label>Postal Code:</label><input id="fPostal" type="text" name="address.postalCode"/><br/>
+     <label>Interests:</label><br/>
+        <input id="fSports" type="checkbox" name="interests[]" value="sports"/>Sports<br/>
+        <input id="fGames" type="checkbox" name="interests[]" value="games"/>Games<br/>
+        <input id="fShopping" type="checkbox" name="interests[]" value="shopping"/>Shopping<br/>
+        <input id="fFood" type="checkbox" name="interests[]" value="food"/>Food<br/>
+        <input id="fFinance" type="checkbox" name="interests[]" value="finance"/>Finance<br/>
+  </form>
+
+  <form  id="testForm3">
+    <button name='array[]' class="type[number]" value='1'>1</button>
+    <button itemprop='selected' name='array[]' class="type[number]" value='2'>2</button>
+    <button name='array[]' class="type[number]" value='3'>3</button>
+  </form>
+
+<div class='save' id='microdata1'>
+        <dl itemscope
+            itemtype="http://purl.org/vocab/frbr/core#Work"
+            itemid="http://purl.oreilly.com/works/45U8QJGZSQKDH8N">
+         <dt>Title</dt>
+         <dd><cite itemprop="http://purl.org/dc/terms/title">Just a Geek</cite></dd>
+         <dt>By</dt>
+         <dd><span itemprop="http://purl.org/dc/terms/creator">Wil Wheaton</span></dd>
+         <dt>Format</dt>
+         <dd itemprop="http://purl.org/vocab/frbr/core#realization"
+             itemscope
+             itemtype="http://purl.org/vocab/frbr/core#Expression"
+             itemid="http://purl.oreilly.com/products/9780596007683.BOOK">
+          <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/BOOK">
+          Print
+         </dd>
+         <dd itemprop="http://purl.org/vocab/frbr/core#realization"
+             itemscope
+             itemtype="http://purl.org/vocab/frbr/core#Expression"
+             itemid="http://purl.oreilly.com/products/9780596802189.EBOOK">
+          <link itemprop="http://purl.org/dc/terms/type" href="http://purl.oreilly.com/product-types/EBOOK">
+          Ebook
+         </dd>
+        </dl>
+</div>
+
+<div itemscope=''  id='microdata2'>
+ <p>Name: <span itemprop="name">Amanda</span></p>
+ <p>Band: <span itemprop="band" itemscope=''> <span itemprop="name">Jazz Band</span>
+   (<span itemprop="size">12</span> players)</span></p>
+</div>
+
+<div itemscope=itemscope id="amanda" itemref="a b"></div>
+<p id="a">Name: <span itemprop="name">Amanda</span></p>
+<div id="b" itemprop="band" itemscope=itemscope itemref="c"></div>
+<div id="c">
+ <p>Band: <span itemprop="name">Jazz Band</span></p>
+ <p>Size: <span itemprop="size">12</span> players</p>
+</div>
+
+<div id='microdata3' itemscope=itemscope>
+ <p>Flavors in my favorite ice cream:</p>
+ <ul>
+  <li itemprop="flavor">Lemon sorbet</li>
+  <li itemprop="flavor">Apricot sorbet</li>
+ </ul>
+</div>
+
+<div id='microdata4'itemscope=itemscope>
+ <span itemprop="favorite-color favorite-fruit">orange</span>
+</div>
+
+<div itemid='testid'>
+ <span id='testprop1' itemprop="favorite-color favorite-fruit">orange</span>
+</div>
+
+<div id='microdata6' itemid='testid' itemscope=itemscope>
+   Enabled: <input id='testprop2' type='checkbox' class="type[boolean]" type="checkbox" name='enabled' checked value='true'></input>
+   Disabled: <input id='testprop3' type='checkbox' class="type[boolean]" type="checkbox" name='disabled' value='true'></input>
+</div>
+
+<div itemid=n1>
+ <div id='nested1'>
+    <span itemprop=label>foo</span>
+ </div>
+ <span itemprop=outoftestscope>bar</span>
+</div>
+
+<div id='outer1' itemid=1>
+ <div id='nested-microdata' itemid=2 itemtype=bar itemprop=child>
+   <span itemprop=label>foo</span>
+ </div>
+ <div itemprop=anotherprop itemscope>
+  <span itemprop=comment>an anonymous object</span>
+ </div>
+ <div itemid=3>
+   <span itemprop=comment>an unrelated object</span>
+ </div>
+</div>
+
+<textarea id='microdata1expected'>
+[{"id":"http://purl.oreilly.com/works/45U8QJGZSQKDH8N",
+  "http://purl.org/dc/terms/title": "Just a Geek",
+  "http://purl.org/dc/terms/creator":"Wil Wheaton",
+  "http://purl.org/vocab/frbr/core#realization":
+    [{"id":"http://purl.oreilly.com/products/9780596007683.BOOK",
+    "http://purl.org/dc/terms/type":"http://purl.oreilly.com/product-types/BOOK",
+    "type":"http://purl.org/vocab/frbr/core#Expression"
+    },
+    {"id":"http://purl.oreilly.com/products/9780596802189.EBOOK",
+    "http://purl.org/dc/terms/type":"http://purl.oreilly.com/product-types/EBOOK",
+    "type":"http://purl.org/vocab/frbr/core#Expression"
+    }
+    ],
+  "type":"http://purl.org/vocab/frbr/core#Work"
+  }]
+</textarea>
+
+<script>
+  $(document).ready(function() {
+    // mocha.checkLeaks();
+    mocha.globals(['jQuery']);
+    var reporter = mocha.reporter(location.search.slice(1)||'html');
+    mocha.suite.emit('require', exports);
+    reporter.run();
+  });
+  </script>
+
+
+  </body>
+</html>
