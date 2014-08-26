@@ -663,7 +663,8 @@ Binder.PropertyAccessor.prototype = {
     }
   },
   isIndexed: function( property ) {
-    return property.match( this.index_regexp ) != undefined;
+    var match = property.match( this.index_regexp )
+    return match && !match[2];
   },
   set: function(  property, value ) {
     var path = property.split( "." );
@@ -800,33 +801,45 @@ Binder.FormBinder.prototype = {
     }
     return new Binder.PropertyAccessor( obj );
   },
-  serialize: function( obj ) {
+  serialize: function( obj ) { //set obj with form values
     var accessor = this._getAccessor( obj );
+    var seen = {};
     for( var i = 0; i < this.form.elements.length; i++) {
-      this.serializeField( this.form.elements[i], accessor );
+      this.serializeField( this.form.elements[i], accessor, seen);
     }
     return accessor.target;
   },
-  serializeField: function( element, obj ) {
+  serializeField: function( element, obj, seen) {
     if (!element.name || (element.className && element.className.match(/excludefield/))) //added if (!element.name) check
         return; //skip unnamed fields
     var accessor = this._getAccessor( obj );
     var value = undefined;
     if( element.type == "radio" || element.type == "checkbox" )  {
+      //if property is not an array (!isIndexed):
+      //  if the element is checked set the value
+      //  if no elements are checked, set to "empty"
+      //if it is an array, start with an empty array
+      //and push the value of each checked element
+      var isArray = accessor.isIndexed( element.name );
+      if (seen && !seen[element.name]) {
+        seen[element.name] = true;
+        accessor.set( element.name, isArray ? [] : this._getEmpty(element));
+      }
       if( element.value != "" && element.value != "on" ) {
         value = this._parse( element.name, element.value, element );
-        if( element.checked ) {
-          accessor.set( element.name, value );
-        } else if( accessor.isIndexed( element.name ) ) {
-          var values = accessor.get( element.name );
-          values = Binder.Util.filter( values, function( item) { return item != value; } );
-          accessor.set( element.name, values );
-        } else { //added: set to empty value
-          accessor.set( element.name, this._getEmpty(element) );
-        }
       } else {
         value = element.checked;
-        accessor.set( element.name, value );
+      }
+      if (element.checked)
+        accessor.set( element.name, value ); //will value push if property isIndexed()
+      else if (!seen) { //stateless call: true to remove the property value
+        var values = accessor.get( element.name );
+        if (isArray) {
+          values = Binder.Util.filter( values, function( item) { return item != value; } );
+          accessor.set( element.name, values );
+        } else {
+          accessor.set( element.name, this._getEmpty(element));
+        }
       }
     } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
       accessor.set( element.name, accessor.isIndexed( element.name ) ? [] : undefined );
@@ -850,7 +863,7 @@ Binder.FormBinder.prototype = {
     }
     return accessor.target;
   },
-  deserialize: function( obj ) {
+  deserialize: function( obj ) { //set form html
     var accessor = this._getAccessor( obj );
     for( var i = 0; i < this.form.elements.length; i++) {
       this.deserializeField( this.form.elements[i], accessor );

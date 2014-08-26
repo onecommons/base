@@ -45,6 +45,6 @@ debug app:
 debug unit tests:
 
 ```
-NODE_ENV=test ./node_modules/.bin/mocha --reporter=list --debug-brk
+NODE_ENV=test ./node_modules/.bin/mocha --reporter=list --debug-brk -t 999999
 node-inspector
 ```

@@ -246,7 +246,11 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
                 interests: [ 'sports', 'food' ]
             };
             var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
-            binder.deserialize();
+            binder.deserialize(); //set form html
+            var obj2 = {};
+            var binder2 = new Binder.FormBinder( document.getElementById( "testForm2" ), obj2 );
+            binder2.serialize();
+            assertJsonEqual(obj, obj2);
             $$( 'fUsername' ).value = "bob";
             $$( 'fAge' ).value = 27;
             $$( 'optNY' ).selected = true;
@@ -276,6 +280,35 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
           assertJsonEqual({"array":[1,2,3]}, obj);
         },
 
+      testSerializeFormsCheckboxes : function() {
+        //only checked fields should be serialized
+        var obj = {};
+        var binder = new Binder.FormBinder( document.getElementById( "testForm4" ), obj );
+        binder.serialize();
+        assertJsonEqual(obj, {array:[], number: 0});
+
+        $$( 'tfc2' ).checked = true;
+        $$( 'tfr2' ).checked = true;
+        binder.serialize();
+        assertJsonEqual(obj, {array:[2], number: 2});
+
+        $$( 'tfc1' ).checked = true;
+        $$( 'tfc2' ).checked = false;
+        $$( 'tfc3' ).checked = true;
+
+        $$( 'tfr2' ).checked = false;
+        $$( 'tfr1' ).checked = true;
+
+        binder.serialize();
+        assertJsonEqual(obj, {array:[1,3], number: 1});
+
+        $$( 'tfc1' ).checked = false;
+        $$( 'tfc3' ).checked = false;
+        $$( 'tfr1' ).checked = false;
+        binder.serialize();
+        assertJsonEqual(obj, {array:[], number: 0});
+      },
+
         testSerializeFields: function() {
             var obj = {
                 username: 'jdoe',
@@ -297,12 +330,12 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
             binder.serializeField( $$('fUsername') );
             Assert.areEqual( 'bob', obj.username, "Username field" );
             $$( 'fContactable' ).checked = false;
-            binder.serializeField( $$('fContactable') );
+            binder.serializeField( $$('fContactable'));
             Assert.isFalse( obj.contactable, "Contactable checkbox" );
             $$( 'fSports' ).checked = false;
             binder.serializeField( $$('fSports') );
             $$( 'fGames' ).checked = true;
-            binder.serializeField( $$('fGames') );
+            binder.serializeField( $$('fGames'));
             ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
             ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
             $$( 'fEmail' ).value = "";
@@ -418,6 +451,17 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
     <button itemprop='selected' name='array[]' class="type[number]" value='2'>2</button>
     <button name='array[]' class="type[number]" value='3'>3</button>
   </form>
+
+<form  id="testForm4">
+  <input type='checkbox'  name='array[]' class="type[number]" value='1' id='tfc1'>1</button>
+  <input type='checkbox'  name='array[]' class="type[number]" value='2' id='tfc2'>2</button>
+  <input type='checkbox'  name='array[]' class="type[number]" value='3' id='tfc3'>3</button>
+
+<input type='radio'  name='number' class="type[number]" value='1' id='tfr1'>1</button>
+<input type='radio'  name='number' class="type[number]" value='2' id='tfr2'>2</button>
+<input type='radio'  name='number' class="type[number]" value='3' id='tfr3'>3</button>
+
+</form>
 
 <div class='save' id='microdata1'>
         <dl itemscope
