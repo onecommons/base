@@ -6,9 +6,13 @@ var utils = require('../lib/utils.js');
 //
 // Login / Logout page
 //
-module.exports.login = function(req, res) {
-  // render the page and pass in any flash data if it exists
-  res.render('login.html', { message: req.flash('loginMessage') });
+module.exports.login = function(app) {
+  return function(req, res) {
+    // render the page and pass in any flash data if it exists
+    res.render('login.html', { message: req.flash('loginMessage'),
+      remembermeEnabled: !!app.config.persistentSessionSeconds
+    });
+  }
 }
 
 module.exports.loginPost = function(passport) {
@@ -189,7 +193,7 @@ module.exports.forgotTokenPost = function(req, res) {
       res.render('reset.html', {message:err})
     } else {
       req.flash("msg", "Password reset");
-      // XXX where to redirect after reset? login again with new pw? 
+      // XXX where to redirect after reset? login again with new pw?
       res.redirect('/profile');
     }
 

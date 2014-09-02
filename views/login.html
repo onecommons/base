@@ -29,7 +29,9 @@
 			<label>Password</label>
 			<input type="password" class="form-control" name="password">
 		</div>
-
+{% if remembermeEnabled %}<div class="checkbox">
+<label><input type="checkbox" name="rememberme"> Remember Me</label>
+</div>{% endif %}
 		<button type="submit" class="btn btn-warning btn-lg">Login</button>
 	</form>
 

@@ -16,7 +16,7 @@ module.exports = function(app, passport) {
 
     index:            ['', utils.renderer('index.html')],
 
-    login:            { get:  [ login.login],
+    login:            { get:  [ login.login(app)],
                         post: [ login.loginPost(passport)]},
 
     logout:           login.logout,

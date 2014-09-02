@@ -1,6 +1,7 @@
 var main = require('../../index'),
  express = require('express'),
- mongoose = require('mongoose')
+ mongoose = require('mongoose');
+var _ = require('underscore');
 
 // create some  models we will need for testing.
 mongoose.model('DbTest1',
@@ -20,11 +21,11 @@ function addBrowserTests() {
   });
 }
 
-function createApp() {
-  app = main.createApp(__dirname, {
+function createApp(options) {
+  app = main.createApp(__dirname, _.defaults(options || {}, {
     views: __dirname + '/../views',
     public: __dirname + '/../public'
-  });
+  }));
   //console.log('test public dir', main.dirname + '/test/public');
   //app.use(express.static(main.dirname + '/test/public'));
   app.addBrowserTests = addBrowserTests;
