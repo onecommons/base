@@ -37,12 +37,10 @@ describe('app', function() {
   });
 
   it("should start the app", function(done) {
-    app.start(function(listen) {
-      listen(function(server){
+    app.start(null, function(server){
         assert(app.get("server"));
         done();
       });
-    });
   });
 
   it("should use existing path if path isn't specified in an updated route", function(done) {

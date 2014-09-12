@@ -51,9 +51,7 @@ describe('dataform', function() {
        });
     });
 
-    app.start(function(listen) {
-      listen(function(server){console.log('test app started'); done();});
-    });
+    app.start(null, function(server){console.log('test app started'); done();});
   });
 
   // remove users after test

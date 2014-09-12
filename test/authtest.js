@@ -21,7 +21,7 @@ function extractCookie(cookie) {
 
 function setupApp(cb, options) {
   var app = require('./fixtures/app')(options);
-  app.start(function(listen) {
+  app.start(function(next) {
     m.User.remove({}
     ,function(){
         theUser = new m.User();
@@ -30,12 +30,10 @@ function setupApp(cb, options) {
         theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
         //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
         theUser._id = "@User@123";
-        theUser.save(function(){
-          listen(function(server){
-            cb(app, request.agent(app.getUrl()));
-          });
-        });
+        theUser.save(next);
       });
+  }, function(server){
+      cb(app, request.agent(app.getUrl()));
   });
 }
 

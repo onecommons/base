@@ -18,14 +18,12 @@ describe('zombietest', function() {
       res.send( '"OK"', 200 );
     });
 
-    app.start(function(listen) {
-     mongoose.connection.db.dropCollection('dbtest1', function(err, result) {
-        //may or may not exits, if it doesn't err will be set
-        //console.log("dropCollection", err, result);
-        listen(function(server) {
-          done();
-        });
-      });
+    app.start(function(next) {
+        //note: may or may not exits, if it doesn't err will be set
+        mongoose.connection.db.dropCollection('dbtest1', next);
+    },
+    function(server){
+        console.log('test app started'); done();
     });
   });
 
