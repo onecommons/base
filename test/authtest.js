@@ -21,26 +21,14 @@ function extractCookie(cookie) {
 
 function setupApp(cb, options) {
   var app = require('./fixtures/app')(options);
-  app.start(function(next) {
-    m.User.remove({}
-    ,function(){
-        theUser = new m.User();
-        theUser.displayName = "Test User";
-        theUser.local.email = "test@onecommons.org";
-        theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
-        //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
-        theUser._id = "@User@123";
-        theUser.save(next);
-      });
-  }, function(server){
+  app.addTestUser();
+  app.start(null, function(server){
       cb(app, request.agent(app.getUrl()));
   });
 }
 
 function stopApp(app, done) {
-  m.User.remove({}, function(err) {
     app.stop(done);
-  });
 }
 describe('Authentication', function() {
 
