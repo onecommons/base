@@ -39,7 +39,7 @@ function addBrowserTests() {
 }
 
 function addUserStartupListener(next) {
-  main.models.User.remove({}
+  main.models.User.remove({_id: "@User@123"}
   ,function(){
       theUser = new main.models.User();
       theUser.displayName = "Test User";
@@ -61,7 +61,7 @@ function createApp(options) {
   app.addTestUser = function() {
     app.addBeforeStartListener(addUserStartupListener);
     app.addBeforeStopListener(function(next) {
-      main.models.User.remove({}, next);
+      main.models.User.remove({_id: "@User@123"}, next);
     }, true);
   }
   app.addBrowserTests = addBrowserTests;
