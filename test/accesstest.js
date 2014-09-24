@@ -217,7 +217,7 @@ it('should handle rules with relationships and states and overrides',  function(
  });
 
 it('should rules matches type overrides even if the override rule do not apply', function() {
-  var checkerFactory = access.createCheckerFactory({
+  var policy = new access.Policy({
     'any': undefined,
     'read': 'any',
     'write': 'any',
@@ -234,13 +234,13 @@ it('should rules matches type overrides even if the override rule do not apply',
   //checker.getRules(op, qualifier)
   //checker.ensure(op, [qualifier], user, obj)
 
-  var checker = checkerFactory([{
+  var checker = access.createChecker([{
     'create|remove':'user',
     'create:prop1':'',
   }, {
     'any': 'admin',
     'create:prop1':'admin',
-  }]);
+  }], policy);
   //console.dir(checker.accessControlMap);
   /*
    assert.deepEqual(checker.accessControlMap, access.makeMap({
