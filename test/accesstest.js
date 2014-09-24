@@ -3,6 +3,18 @@ var should = require('should')
   , access = require('../lib/access')
   , _ = require('underscore');
 
+function assertAccessDenied(test, message){
+  assert.throws(test,
+    function(err) { return err.name == 'AccessDeniedError';},
+    message);
+}
+
+function assertInvalidAccessSpec(test, message){
+  assert.throws(test,
+    function(err) { return err.name == 'InvalidAccessSpec';},
+    message);
+}
+
 describe('access', function(){
   var makeRule = access.ruleFactory();
   function testspec(expected, user, obj, spec){
@@ -150,21 +162,114 @@ it('should handle rules with relationships and states and overrides',  function(
 
   });
 
-//XXX test more than one matching relation
+  it('should check multiple relations but not default if one of them applies');
+  //XXX e.g. {'' : '', 'rel1': 'admin', 'rel2': 'admin'} => denied
 
   it('should detect invalid specifications', function() {
     [ {op: []} //bad role spec
     , {'op1|op2': '', 'op2':''} //duplicate op
     , {'op1|op1': ''} //duplicate op
     , {op:1}
-    , {op: { 'bad rel': 'admin'}}
+    //, {op: { 'bad rel': 'admin'}} //now its valid
     , {op: { 'owner': 1}}
     , {op: { 'owner': {prop:'role'} }} //prop should have value map
     ].forEach(function(spec){
-        assert.throws(
+      assertInvalidAccessSpec(
           function(){ access.makeMap(spec, makeRule);},
-          function(err) { return err.name == 'InvalidAccessSpec';},
-          JSON.stringify(spec))
+          JSON.stringify(spec));
     })
   });
+
+  it('first multiple rules should the first that applies', function() {
+    var T = makeRule(''), F = makeRule("admin"),
+      U = makeRule({ owner: 'user' });
+
+    var test = [
+      [U], undefined,
+      [T], true,
+      [F], false,
+      [U, U], undefined,
+      [U, T], true,
+      [U, F], false,
+      [F, T], false,
+      [T, F], true
+    ];
+
+    var user = { id: 2,
+      roles:[ {guards:[ 'user' ]} ]
+    };
+    for (var i=0; i< test.length;i+=2) {
+      var args = test[i], expected = test[i+1];
+      var result = access.check(user, obj, args);
+      assert(result === expected, i + ' ' + expected + '!==' + result + ' ' + typeof result);
+      result = access.check.apply(null, [user, obj].concat(args));
+      assert(result === expected, i + ' ' + expected + '!==' + result + ' ' + typeof result);
+      if (expected) {
+        assert(access.ensure(user, obj, args));
+        assert(access.ensure.apply(null, [user, obj].concat(args)));
+      } else {
+        assertAccessDenied(function() {access.ensure(user, obj, args); });
+        assertAccessDenied(function() {
+            access.ensure.apply(null, [user, obj].concat(args));
+        });
+      }
+    }
+ });
+
+it('should rules matches type overrides even if the override rule do not apply', function() {
+  var checkerFactory = access.createCheckerFactory({
+    'any': undefined,
+    'read': 'any',
+    'write': 'any',
+    'edit':'write',
+    'create':'write',
+    'remove': 'write',
+    'view': 'read',
+  });
+
+  //createChecker(operations, accesscontrolmap) => checker
+  //createCheckerFactory(operations) => checkerFactory
+  //checkerFactory(accesscontrolmap) => checker
+  //checker.check(op, [qualifier], user, obj) //test omitting qualifier
+  //checker.getRules(op, qualifier)
+  //checker.ensure(op, [qualifier], user, obj)
+
+  var checker = checkerFactory([{
+    'create|remove':'user',
+    'create:prop1':'',
+  }, {
+    'any': 'admin',
+    'create:prop1':'admin',
+  }]);
+  //console.dir(checker.accessControlMap);
+  /*
+   assert.deepEqual(checker.accessControlMap, access.makeMap({
+    'any': 'admin',
+    'create':'user',
+    'remove':'user',
+    'create:prop1':'', //XXX test nullguard
+  }, makeRule));
+  */
+  var user = { id: 1,
+    roles:[ {guards:[ 'user' ]} ]
+  };
+
+  assertInvalidAccessSpec(function() {
+      checker.check('missing', user, obj)
+  });
+
+  assert(checker.getRules('create').length == 2);
+  assert(checker.getRules('create:prop1').length == 1);
+
+  //derived, base are merged
+  //so if the base's rule applies and derived didn't the base is still ignored
+
+  //however that is not true for
+  //op:qual, baseop:qual, op, baseop
+
+});
+
+//but rules do apply for property and operation overrides
+
+
 });

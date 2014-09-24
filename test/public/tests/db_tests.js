@@ -68,7 +68,7 @@ describe('db_tests', function() {
 
   it('should delete an object', function(done) {
       $(document).dbDestroy([pjson1._id], function(resp) {
-        assert.deepEqual(resp, {"_id":"@DbTest1@1","prop1":[]});
+        assert.deepEqual(resp, {"_id":"@DbTest1@1","prop1":[], __t:"DbTest1"});
         verifyQuery({_id: pjson1._id}, [], done);
       });
   });
@@ -89,8 +89,7 @@ it("should invoke callbacks and triggers in the correct order", function(done){
   $(document).bind('dbdata-*', customTriggerFunc);
 
   //make sure commit worked and dbQuery callback was called after dbCreate callback
-  //note: query will respond with an error because no _id or __t is in the query condition
-  $(document).dbBegin().dbQuery({},
+  $(document).dbBegin().dbQuery({__t:"DbTest1"},
      function(data) {
         dbCallbackCalled++;
         assert(commitCallbackCalled === 0, "commit callback should not have been called yet");

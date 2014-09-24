@@ -12,19 +12,15 @@ describe('createModel', function(){
              // _id: String,
              prop1: []
              },{strict: 'throw'});
+        s.statics.testStatics = function() { console.log('teststatic'); }
+        s.methods.testMethods = function() { console.log('testmethods'); }
         var config = require('../lib/config')()('app');
         db = mongoose.connect(config.dburl, done);
     });
 
-    afterEach(function(done) {
-        db.connection.db.dropDatabase(done);
-    });
-
     after(function(done){
       db.connection.db.dropDatabase(function(){
-        mongoose.connection.close(function(){
-          done();
-        });
+        mongoose.connection.close(done);
       });
     });
 
@@ -32,6 +28,8 @@ describe('createModel', function(){
 
         var Test = createModel("Test", s);
         var t = new Test();
+        assert(Test.check);
+        assert(t.check);
         t.save(function() {
             Test.findOne(function(err,doc) {
                 assert.instanceOf(doc, Test);
@@ -41,11 +39,13 @@ describe('createModel', function(){
     });
 
      it('should make a model and instance without a schema', function(done) {
-
         var Test3 = createModel("Test3", {prop2: String});
         var t = new Test3();
-        t.save(function() {
+        t.setPrinciple({role:'admin'}); //test access control
+        t.save(function(err) {
+            assert(!err,String(err));
             Test3.findOne(function(err,doc) {
+                assert(!err);
                 assert.instanceOf(doc, Test3);
                 done();
             })

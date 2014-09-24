@@ -50,7 +50,7 @@ module.exports = function(app, passport) {
     fundCampaignNoId: { path: 'fund-campaign',
                         get:  [ utils.isLoggedIn, payments.fundCampaignGet] },
 
-    datarequest:      { post: datarequest},
+    datarequest:      { post: [utils.isLoggedIn, datarequest]},
 
     profile:          [ utils.isLoggedIn, login.profile],
 

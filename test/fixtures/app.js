@@ -11,7 +11,8 @@ createModel('DbTest1',
     __t: String,
      _id: String,
     prop1: []
-    },{strict: false}) //'throw'
+  },{strict: false}), //'throw'
+  null, {'any': 'user'}
 );
 
 function addBrowserTests() {
