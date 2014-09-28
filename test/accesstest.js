@@ -216,16 +216,17 @@ it('should handle rules with relationships and states and overrides',  function(
     }
  });
 
+var policy = new access.Policy({
+  'any': undefined,
+  'read': 'any',
+  'write': 'any',
+  'edit':'write',
+  'create':'write',
+  'remove': 'write',
+  'view': 'read',
+});
+
 it('should rules matches type overrides even if the override rule do not apply', function() {
-  var policy = new access.Policy({
-    'any': undefined,
-    'read': 'any',
-    'write': 'any',
-    'edit':'write',
-    'create':'write',
-    'remove': 'write',
-    'view': 'read',
-  });
 
   //createChecker(operations, accesscontrolmap) => checker
   //createCheckerFactory(operations) => checkerFactory
@@ -270,6 +271,4 @@ it('should rules matches type overrides even if the override rule do not apply',
 });
 
 //but rules do apply for property and operation overrides
-
-
 });

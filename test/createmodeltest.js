@@ -1,6 +1,34 @@
 var mongoose = require("mongoose");
 var createModel = require('../lib/createmodel');
 var assert = require('chai').assert;
+var _ = require('underscore');
+
+function runAccessTest(test, model, i, done) {
+  var doc = new model();
+  /*doc.pre('set', function (next, key, val) {
+    console.log('set hook', key, val, 'old?', this[key], this.isNew);
+    next();
+  })*/
+  doc.setPrinciple(createModel.getAccessControlPolicy().defaultPrinciple || { roles:['user']}) //XXX
+  var prop = test[1];
+  failed = false
+  try {
+    if (prop)
+      doc[prop] = true;
+  } catch (err) {
+    failed = true;
+    assert(!test[2], 'unexpected fail '+ i + ": " + err);
+    done();
+    return;
+  }
+  if (prop)
+    assert(test[2] || failed, 'unexpected pass setting prop'+i);
+  doc.save(function(err, doc) {
+    if (!test[2])
+      assert(err || !doc, 'unexpected pass '+i + " while saving: " + doc);
+    done();
+  });
+}
 
 describe('createModel', function(){
     var db;
@@ -76,7 +104,7 @@ describe('createModel', function(){
    });
 
 
- it('should make a model and instance based on a schema and a derivative from it', function(done) {
+  it('should make a model and instance based on a schema and a derivative from it', function(done) {
         var s2 = new mongoose.Schema({
              //__t: String,
              // _id: String,
@@ -103,6 +131,55 @@ describe('createModel', function(){
         });
     });
 
+  [
+  [{"write:prop1": "admin",
+    "create"       : "user"},
+   "prop1", false],
 
+  [{"write:prop1": "admin",
+    "create:prop1" : "user"},
+    "prop1", true],
 
- }); // describe...
+  [{"create:prop1": "user",
+    "create"      : "admin"},
+    "prop1", true],
+
+  [{"create:prop1": "user",
+    "any"      : "admin"},
+    "prop1", true],
+
+  [{"any"       : "admin",
+    "create"      : "user"},
+    "prop1", true],
+
+  [{"any"       : "admin",
+    "create"      : "user"},
+    null, true],
+
+  [{"any"       : "user",
+    "create"      : "admin"},
+    "prop1", false],
+
+  [{"any"       : "user",
+    "create"      : "admin"},
+    null, false],
+  ].forEach(function(test, i){
+    it('apply access control rules properly ' + i, function(done) {
+      var m = createModel("TestAccess"+i, {prop1:Boolean}, null, test[0]);
+      runAccessTest(test, m, i, done);
+    });
+
+    it('apply access control rules properly to derived models' + i, function(done) {
+      //split access control map up:
+      var pairs = _.pairs(test[0]);
+      var base = createModel("TestAccessBase"+i, {}, null, _.object([pairs[0]]));
+      //set prop1 on derived even though its op is defined in the base' access map
+      var m = createModel("TestAccessDerived"+i, {prop1:Boolean}, base, _.object([pairs[1]]));
+      runAccessTest(test, m, i, done);
+    });
+
+  });
+
+  //XXX test default values
+
+}); // describe...

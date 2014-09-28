@@ -2,7 +2,8 @@ var should = require('should')
   , assert = require('assert')
   , mongodb = require('mongodb')
   , datastore = require('../lib/datastore')
-  , mongoose = require('mongoose');
+  , mongoose = require('mongoose')
+  , createModel = require('../lib/createmodel');
 var DBRef = mongodb.DBRef, ObjectID = mongodb.ObjectID;
 var config = require('../lib/config')()('app');
 
@@ -52,8 +53,22 @@ describe('datastore', function(){
 
  });
 
- describe('.mongoose', function(){
-    var Test1 = mongoose.model('Test1',
+ function makeTests(modelName, principle) {
+  return function(){
+    var expectAccessDenied = principle && !principle.role;
+    function checkAccessDenied(cb, done) {
+      return function(err, doc) {
+        if (expectAccessDenied) {
+          assert(err && err.name == 'AccessDeniedError', "expected AccessDeniedError, not " + err);
+          done();
+        } else {
+          cb(err, doc);
+        }
+      }
+    }
+
+    var testid = "@"+ modelName + "@1";
+    var Test1 = createModel(modelName,
       new mongoose.Schema({
         __t: String,
          _id: String,
@@ -66,12 +81,17 @@ describe('datastore', function(){
       var db = mongoose.connection;
 //      db.on('error', console.error.bind(console, 'connection error:'));
       db.once('open', function() {
-        //note!: model Test1 => namespace test1
-        db.db.dropCollection('test1', function(err, result) {
+        db.db.dropCollection(Test1.collection.collection.collectionName, function(err, result) {
           //may or may not exits, if it doesn't err will be set
           //console.log("dropCollection", err, result);
           done();
         });
+      });
+    });
+
+    after(function(done) {
+      mongoose.connection.db.dropCollection(Test1.collection.collection.collectionName, function(err, result) {
+        mongoose.connection.close(done);
       });
     });
 
@@ -81,14 +101,24 @@ describe('datastore', function(){
       ds = new datastore.MongooseDatastore();
       ds.create({
          prop1 : [], //XXX if property isn't defined in the schema this won't be saved
-         __t: "Test1"
-      }, function(err, doc) {
+         __t: modelName
+      }, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         assert(doc._id, JSON.stringify(doc));
         lastid = doc._id;
         assert(Array.isArray(doc.prop1));
         done();
-      });
+      }, function() {
+        //if access denied we need to create the object for the rest of the tests
+        ds.create({
+           prop1 : [],
+           __t: modelName
+        }, function(err, doc) {
+          assert(!err && doc && doc._id);
+          lastid = doc._id;
+          done();
+        })
+      }), principle);
     });
 
     it('should not create a doc with existing id',  function(done){
@@ -97,20 +127,20 @@ describe('datastore', function(){
       ds.create({
               _id: lastid,
               prop2: 'bad'
-      }, function(err, doc) {
+      }, checkAccessDenied(function(err, doc) {
         assert(err && err.code == 11000); //duplicate key error
         assert(!doc);
         done();
-      });
+      }, done), principle);
     });
 
      it('create with user-defined ids',  function(done){
       assert(ds);
-      ds.create('{"_id": "@Test1@1","prop": "test"}', function(err, doc) {
+      ds.create('{"_id": "'+ testid + '","prop": "test"}', checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
-        assert.deepEqual(doc.toObject(), {"__v":0,"_id":"@Test1@1","prop":"test","prop1":[]});
+        assert.deepEqual(doc.toObject(), {"__v":0,"_id":testid,"prop":"test","prop1":[],"__t":modelName});
         done();
-      });
+      },done), principle); //XXX security hole!!
     });
 
     it('add a property',  function(done){
@@ -121,16 +151,16 @@ describe('datastore', function(){
         "prop1": ["added1", "added2"]
       };
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
-      ds.add(obj, function(err, doc) {
+      ds.add(obj, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         obj['__v'] = 1;
-        obj['__t'] = 'Test1';
+        obj['__t'] = modelName;
         assert.deepEqual(doc.toObject(), obj);
         Test1.findOne({ _id: lastid}, function (err, doc) {
           assert.deepEqual(doc.toObject(), obj);
           done();
         });
-      });
+      }, done), principle);
     });
 
     it('removes properties and values', function(done){
@@ -141,10 +171,10 @@ describe('datastore', function(){
         "prop1": "added1"
       };
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
-      ds.remove(obj, function(err, doc) {
+      ds.remove(obj, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         obj['__v'] = 2;
-        obj['__t'] = 'Test1';
+        obj['__t'] = modelName;
         delete obj['prop-new'];
         obj['prop1'] = ["added2"];
         assert.deepEqual(doc.toObject(), obj);
@@ -152,7 +182,7 @@ describe('datastore', function(){
           assert.deepEqual(doc.toObject(), obj);
           done();
         });
-      });
+      },done), principle);
     });
 
     it('updates properties and values', function(done){
@@ -163,10 +193,10 @@ describe('datastore', function(){
         "prop1": 1 //replaced value
       };
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
-      ds.update(obj, function(err, doc) {
+      ds.update(obj, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         obj['__v'] = 3;
-        obj['__t'] = 'Test1';
+        obj['__t'] = modelName;
         obj['prop-new2'] =  "a new property";
         obj['prop1'] = [1];
         assert.deepEqual(doc.toObject(), obj);
@@ -174,7 +204,47 @@ describe('datastore', function(){
           assert.deepEqual(doc.toObject(), obj);
           done();
         });
-      });
+      }, done), principle);
+    });
+
+    it('replaces the object', function(done){
+      assert(ds);
+      //console.log('lastid', lastid);
+      var obj = {"_id": lastid,
+        "prop-new3": "another new property",
+        "prop1": 3 //replaced value
+      };
+      //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
+      ds.replace(obj, checkAccessDenied(function(err, doc) {
+        assert(!err, JSON.stringify(err));
+        obj['__v'] = 4;
+        obj['__t'] = modelName;
+        delete obj['prop-new2'];
+        obj['prop-new3'] =  "another new property";
+        obj['prop1'] = [3];
+        assert.deepEqual(doc.toObject(), obj);
+        Test1.findOne({ _id: lastid}, function (err, doc) {
+          assert.deepEqual(doc.toObject(), obj);
+          done();
+        });
+      }, done), principle);
+    });
+
+    it('queries', function(done){
+      ds.query({conditions:{__t:modelName}}, checkAccessDenied(function(err, doc) {
+        assert(!err, JSON.stringify(err));
+        assert(doc && doc.length == 2);
+        done();
+      }, done), principle);
+    });
+
+    it('queries with conditions', function(done){
+      //note: no checkAccessDenied() here because empty results will not have any checks done
+      ds.query({conditions:{missing:0, __t:modelName}}, function(err, doc) {
+        assert(!err, JSON.stringify(err));
+        assert(doc && doc.length == 0);
+        done();
+      }, principle);
     });
 
     it('deletes objects', function(done){
@@ -182,14 +252,14 @@ describe('datastore', function(){
       //console.log('lastid', lastid);
       var obj = {"_id": lastid};
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
-      ds.destroy(obj, function(err, doc) {
+      ds.destroy(obj, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         Test1.findOne({ _id: lastid}, function (err, doc) {
           assert(!err, JSON.stringify(err));
           assert(doc === null); //not found
           done();
         });
-      });
+      }, done), principle);
     });
 
     describe('.jsonrpc', function(){
@@ -208,19 +278,25 @@ describe('datastore', function(){
       });
 
       it('should create objects', function(done){
+        var id = "@"+modelName+"@2";
         assert(app);
         request(app)
         .post('/')
         //.set('Content-Type', 'application/json') //unnecessary since its the default
         .send(
-          [{"jsonrpc":"2.0","method":"create","params":{"_id":"@Test1@2","prop1":"adds a value to prop1"},"id":05968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
+          [{"jsonrpc":"2.0","method":"create","params":{"_id":id,"prop1":"adds a value to prop1"},"id":05968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
           )
-        .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":{"__v":0,"_id":"@Test1@2","prop1":["adds a value to prop1"]}},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]', done);
+        .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":{"__v":0,"_id":"@Test1@2","prop1":["adds a value to prop1"],"__t":"Test1"}},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]'
+            .replace(/Test1/g, modelName), done);
       });
 
     });
+  };
+}; //makeTests
 
- });
+describe('.mongoose', makeTests("Test1", null));
+describe('.mongoose access denied', makeTests("Test1d", {}));
+describe('.mongoose access allowed', makeTests("Test1a", {role:'admin'}));
 
  describe('.mongodb', function(){
     var testdb = null;
