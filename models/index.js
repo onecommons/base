@@ -1,10 +1,25 @@
-exports.Item                  = require('./item');
-exports.Post                  = require('./post');
-exports.Comment               = require('./comment');
-exports.FinancialTransaction  = require('./financial-transaction');
-exports.FundingInstrument     = require('./funding-instrument');
-exports.User                  = require('./user');
-exports.Org                   = require('./org');
-exports.Subscription          = require('./subscription');
-exports.Campaign              = require('./campaign');
-exports.Fund                  = require('./fund');
+exports.models = models = {};
+exports.schemas = schemas = {};
+
+function exportModel(schema) {
+ schemas[schema.metadata.modelName] = schema
+ //lazily get models
+ Object.defineProperty(models, schema.metadata.modelName, {
+    get: function() { return schema.getModel();}
+ });
+ Object.defineProperty(module.exports, schema.metadata.modelName, {
+   get: function() { return schema.getModel();}
+ });
+}
+
+[
+//require('./item'),
+//require('./post'),
+//require('./comment'),
+require('./financial-transaction'),
+require('./funding-instrument'),
+require('./user'),
+require('./subscription'),
+require('./campaign'),
+//require('./fund'),
+].forEach(exportModel);

@@ -2,7 +2,7 @@
 // load the things we need
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
-var createModel = require('../lib/createmodel');
+var createSchema = require('../lib/createmodel').createSchema;
 
 // define the schema for our user model
 var userSchema = mongoose.Schema({
@@ -77,4 +77,9 @@ userSchema.methods.doPaymentPlanDebit = function(){
 
 
 // create the model for users and expose it to our app
-module.exports = createModel('User', userSchema);
+module.exports = createSchema('User', userSchema, null, {
+    'any': {'': 'admin',
+            'id': { 'id' : 'user'}
+          },
+     'write:roles': 'admin'
+});

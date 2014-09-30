@@ -1,7 +1,7 @@
 // app/models/transaction.js
 
 var mongoose = require('mongoose');
-var createModel = require('../lib/createmodel');
+var createSchema = require('../lib/createmodel').createSchema;
 
 // define the schema for our item model
 var fundingInstrumentSchema = mongoose.Schema({
@@ -19,4 +19,4 @@ var fundingInstrumentSchema = mongoose.Schema({
 
 // expose model and schema to our app.
 
-module.exports = createModel('FundingInstrument', fundingInstrumentSchema);
+module.exports = createSchema('FundingInstrument', fundingInstrumentSchema);

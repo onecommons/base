@@ -1,12 +1,10 @@
 // app/models/transaction.js
 
 var mongoose                = require('mongoose');
-var createModel             = require('../lib/createmodel');
+var createSchema             = require('../lib/createmodel').createSchema;
 var bp                      = require('../lib/oc-balanced');
 var User                    = require('./user');
-var FundingInstrument       = require('./funding-instrument');
-var Subscription            = require('./subscription');
-var x                       = require('../lib/utils');
+var fi       = require('./funding-instrument');
 
 // define the schema for our transaction model
 var financialTransactionSchema = mongoose.Schema({
@@ -85,7 +83,7 @@ financialTransactionSchema.methods.doDebit = function(options, callback){
 
   // // OK, entering callback chain.
 
-  User.findById(theFT.user,
+  User.getModel().findById(theFT.user,
     function(err,u){
       if(!u){
         theFT.status = 'failed'; theFT.description = 'couldnt find user';
@@ -101,8 +99,7 @@ financialTransactionSchema.methods.doDebit = function(options, callback){
         theFT.fi = theUser.paymentPlan.fi;
       }
 
-
-      FundingInstrument.findById(theFT.fi,
+      fi.FundingInstrument.findById(theFT.fi,
         function(err,fi){
           if(!fi || !theFT){
             theFT.status = 'failed'; theFT.description = "couldn't find Funding Instrument";
@@ -158,7 +155,7 @@ financialTransactionSchema.methods.doDebit = function(options, callback){
 // Expects payment processor to be BP.
 financialTransactionSchema.methods.refundDebit = function(callback){
   var debitFT = this;
-  var refundFT = new FinancialTransaction();
+  var refundFT = new (this.schema.getModel())();
 
   function rdExit(newFT, cb, err){
     newFT.save(function(rft){
@@ -211,4 +208,4 @@ financialTransactionSchema.methods.refundDebit = function(callback){
 
 // expose model and schema to our app.
 
-var FinancialTransaction = module.exports = createModel('FinancialTransaction', financialTransactionSchema);
+module.exports = createSchema('FinancialTransaction', financialTransactionSchema);

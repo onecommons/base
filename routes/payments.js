@@ -1,10 +1,9 @@
 // pay-balanced.js  route
-var User                    = require('../models/user');
-var FundingInstrument       = require('../models/funding-instrument');
-var FinancialTransaction    = require('../models/financial-transaction');
-var Subscription            = require('../models/subscription');
-var Campaign                = require('../models/campaign');
-var Fund                    = require('../models/fund');
+var u                    = require('../models/user');
+var fim       = require('../models/funding-instrument');
+var ft    = require('../models/financial-transaction');
+var subscription            = require('../models/subscription');
+var campaign                = require('../models/campaign');
 var bp                      = require('../lib/oc-balanced');
 var async                   = require('async');
 
@@ -13,9 +12,9 @@ module.exports.fundCampaignGet = function(req,res,user){
   var theCampaign;
   var theUser = (req.user ? req.user : user);
   var campaign_id = req.param('id');
-  campaign_id = (campaign_id ? campaign_id : Campaign.DEFAULT_ID);
+  campaign_id = (campaign_id ? campaign_id : campaign.DEFAULT_ID);
 
-  Campaign.findOne({_id: campaign_id}
+  campaign.Campaign.findOne({_id: campaign_id}
    ,function(err,campaignBack){
     if(err) throw err;
     theCampaign = campaignBack;
@@ -65,7 +64,7 @@ module.exports.fundCampaignPost = function(req,res, user){
   var setupFI = function(done){
     if(typeof(data.ccToken) === 'undefined') {
       // retrieve the existing user FI.
-      FundingInstrument.findOne({_id: locals.theUser.activeFI},
+      fim.FundingInstrument.findOne({_id: locals.theUser.activeFI},
         function(err, fiback){
           if(err || !fiback) { res.json({status: 'noFI', comment: 'user has no funding instrument'}); done(); return }
           locals.fi = fiback;
@@ -76,7 +75,7 @@ module.exports.fundCampaignPost = function(req,res, user){
         });
     } else {
       // data has been submitted to create a new FI and tie it to the user.
-      locals.fi                        = new FundingInstrument();
+      locals.fi                        = new fim.FundingInstrument();
       locals.fi.user                   = locals.theUser._id;
       locals.fi.ccLastFour             = data.ccLastFour;
       locals.fi.ccType                 = data.ccType;
@@ -93,12 +92,12 @@ module.exports.fundCampaignPost = function(req,res, user){
   } // var setupFI()
 
   var setupSubscription = function(done){
-    Subscription.findOne({user: locals.theUser.id, campaign: locals.theCampaignId },
+    subscription.Subscription.findOne({user: locals.theUser.id, campaign: locals.theCampaignId },
       function(err,subBack1){
         if(err) { res.json({status: 'failed', comment: 'error finding subscription'}); done(); return }
         if(!subBack1){
           // create a new subscription and save it.
-          locals.sub = new Subscription();
+          locals.sub = new subscription.Subscription();
           locals.sub.user = locals.theUser.id;
           locals.sub.campaign = locals.theCampaignId;
           locals.sub.save(function(err,subBack2){
@@ -116,7 +115,7 @@ module.exports.fundCampaignPost = function(req,res, user){
 
   var setupFT = function(done){
     // setup FT to define transaction.
-    locals.FT               = new FinancialTransaction();
+    locals.FT               = new ft.FinancialTransaction();
     locals.FT.user          = locals.theUser._id;
     locals.FT.subscription  = locals.sub;
     locals.FT.fi            = locals.fi._id;
@@ -176,7 +175,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
 
             // no err, but there still could be a transaction failure. If so, record it and done(); return.
             if(bp_reply.errors) {
-              var fft = new FinancialTransaction();
+              var fft = new ft.FinancialTransaction();
               fft.status = 'fail';
               fft.user = theUser._id;
               fft.date = now;
@@ -195,7 +194,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
             // If we got here, payment succeeded:
             // Create FI, edit user payment plan, create a success FT record, and done(); return success.
 
-            var fi                   = new FundingInstrument();
+            var fi                   = new fim.FundingInstrument();
             fi.user                  = data.userId;
             fi.ccLastFour            = data.cclastfour;
             fi.type                  = 'cc';
@@ -210,7 +209,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
               fi._id = fiback._id;
 
               // setup users payment plan.
-              User.findOne({_id: theUser._id}
+              u.User.findOne({_id: theUser._id}
               ,function(err,uFound){
                 if(err) { throw err }
                 uFound.paymentPlan =  {
@@ -224,7 +223,7 @@ module.exports.setupPaymentPlanPost = function(req, res, user) {
                   if(err) { throw err }
                   // save financial transaction
                   var bpdata = bp_reply.debits[0];
-                  ft = new FinancialTransaction();
+                  ft = new ft.FinancialTransaction();
                   ft.status = 'succeeded';
                   ft.user = theUser._id;
                   ft.transactionType = 'subscriptionDebit'; // default value.

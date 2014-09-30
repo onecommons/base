@@ -2,7 +2,7 @@
 // load the things we need
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
-var createModel = require('../lib/createmodel');
+var createSchema = require('../lib/createmodel').createSchema;
 
 // define the schema for our user model
 // LINKS User > –- < Campaign
@@ -16,4 +16,4 @@ var subscriptionSchema = mongoose.Schema({
 });
 
 // create the model for users and expose it to our app
-module.exports = createModel('Subscription', subscriptionSchema);
+module.exports = createSchema('Subscription', subscriptionSchema);
