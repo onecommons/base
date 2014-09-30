@@ -1,6 +1,6 @@
 // login.js  routes for login/logout and authentication.
 var auth  = require('../lib/auth.js');
-var User  = require('../models/user');
+var u  = require('../models/user');
 var utils = require('../lib/utils.js');
 
 //
@@ -102,7 +102,7 @@ module.exports.resendVerificationPost = function(app) {
       return sendErr("Please enter an email address");
     }
 
-    User.findOne({"local.email":address}, function(err, user) {
+    u.User.findOne({"local.email":address}, function(err, user) {
       if (err) {
         console.log("error looking up user with address:" + address);
         console.log(err);
@@ -146,7 +146,7 @@ module.exports.forgotPost = function(app) {
       return sendErr("Please enter an email address");
     }
 
-    User.findOne({"local.email":address}, function(err, user) {
+    u.User.findOne({"local.email":address}, function(err, user) {
       // XXX be careful what we reveal here! possible security issues
       if (err || !user) {
         return sendErr("Can't find a user with that email address");
