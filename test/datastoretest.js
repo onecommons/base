@@ -55,7 +55,7 @@ describe('datastore', function(){
 
  function makeTests(modelName, principle) {
   return function(){
-    var expectAccessDenied = principle && !principle.role;
+    var expectAccessDenied = principle && !principle.roles;
     function checkAccessDenied(cb, done) {
       return function(err, doc) {
         if (expectAccessDenied) {
@@ -296,7 +296,7 @@ describe('datastore', function(){
 
 describe('.mongoose', makeTests("Test1", null));
 describe('.mongoose access denied', makeTests("Test1d", {}));
-describe('.mongoose access allowed', makeTests("Test1a", {role:'admin'}));
+describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
 
  describe('.mongodb', function(){
     var testdb = null;

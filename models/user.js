@@ -78,8 +78,8 @@ userSchema.methods.doPaymentPlanDebit = function(){
 
 // create the model for users and expose it to our app
 module.exports = createSchema('User', userSchema, null, {
-    'any': {'': 'admin',
-            'id': { 'id' : 'user'}
-          },
-     'write:roles': 'admin'
+    'write:displayName|write:avatarUrl':
+      {'': 'admin',
+       'id': 'user'
+      }
 });

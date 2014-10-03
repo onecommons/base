@@ -235,7 +235,7 @@ it('should rules matches type overrides even if the override rule do not apply',
   //checker.getRules(op, qualifier)
   //checker.ensure(op, [qualifier], user, obj)
 
-  var checker = access.createChecker([{
+  var checker = access.createOperationChecker([{
     'create|remove':'user',
     'create:prop1':'',
   }, {

@@ -6,4 +6,8 @@ module.exports = {
     //sessionfactory: function(sessionconfig, app, session) { sessionconfig.store: new FileStore();},
     persistentSessionSeconds: 0, //"remember me" login option, to enable set to e.g:  60 * 60 * 24 * 30 (1 month)
     browsersessionSessionSeconds: 60 * 60 * 24 * 14//2 weeks (how long a non-persisntent session lasts)
+    defaultAdmin: { //null to disable creation of default admin user
+      email: "admin@onecommons.org",
+      password: "admin"
+    }
 }

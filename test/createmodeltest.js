@@ -8,8 +8,8 @@ function runAccessTest(test, model, i, done) {
   /*doc.pre('set', function (next, key, val) {
     console.log('set hook', key, val, 'old?', this[key], this.isNew);
     next();
-  })*/
-  doc.setPrinciple(createModel.getAccessControlPolicy().defaultPrinciple || { roles:['user']}) //XXX
+  });*/
+  doc.setPrinciple(createModel.getAccessControlPolicy().defaultPrinciple || { roles:['user']})
   var prop = test[1];
   failed = false
   try {
@@ -22,10 +22,16 @@ function runAccessTest(test, model, i, done) {
     return;
   }
   if (prop)
-    assert(test[2] || failed, 'unexpected pass setting prop'+i);
+    assert(test[2] || failed, 'unexpected pass setting prop '+prop+ " on " + i);
   doc.save(function(err, doc) {
     if (!test[2])
       assert(err || !doc, 'unexpected pass '+i + " while saving: " + doc);
+    else {
+      assert(!err && doc, 'unexpected fail ' + i + " while saving: " + err);
+      if (prop) {
+        assert(doc[prop] === true, 'prop not saved')
+      }
+    }
     done();
   });
 }
@@ -69,7 +75,7 @@ describe('createModel', function(){
      it('should make a model and instance without a schema', function(done) {
         var Test3 = createModel("Test3", {prop2: String});
         var t = new Test3();
-        t.setPrinciple({role:'admin'}); //test access control
+        t.setPrinciple({roles:['admin']}); //test access control
         t.save(function(err) {
             assert(!err,String(err));
             Test3.findOne(function(err,doc) {
@@ -180,6 +186,63 @@ describe('createModel', function(){
 
   });
 
+  it('should handle extending access control allowed', function(done) {
+    var test = [{"create" : "admin"},
+      "prop2", true]
+    var schema = createModel.createSchema('testextendingallowed', {prop1: Boolean}, null, test[0]);
+    schema.add({prop2: Boolean});
+    schema.updateAccessControlMap({'write:prop2': 'user'});
+    runAccessTest(test, schema.getModel(), ' extending allowed ', done);
+  });
+
+it('should handle extending access control denied', function(done) {
+  var test = [{"create" : "user"},
+    "prop2", false];
+  var schema = createModel.createSchema('testextendingdenied', {prop1: Boolean}, null, test[0]);
+  schema.add({prop2: Boolean});
+  schema.updateAccessControlMap({'write:prop2': 'admin'});
+  runAccessTest(test, schema.getModel(), ' extending denied ', done);
+});
+
+  it('should handle nested properties', function() {
+    return; //XXX pending
+    var subdoc = createModel.createSchema('subdoc', {arrayitem: Number});
+    var model = createModel("TestAccessNested", {prop1:Boolean,
+          nested: {
+            nestedprop: Boolean
+          },
+          array: [subdoc]
+        }, null, {"any"       : "admin",
+                  "create"      : "user"}
+        );
+
+  var doc = new model();
+  function sethook(next, key, val) {
+    console.log('set hook', key, 'new:', val, 'old:', this[key]);
+    next();
+  }
+  doc.pre('set', sethook);
+  subdoc.pre('set', function sethook(next, key, val) {
+    console.log('set hook subdoc', key, 'new:', val, 'old:', this[key]);
+    next();
+  });
+  //note that this is never called
+  subdoc.pre('markModified', function (next, key) {
+    console.log('markmodified subdoc', key);
+    next();
+  });
+  doc.setPrinciple(createModel.getAccessControlPolicy().defaultPrinciple || { roles:['user']});
+  doc.nested.nestedprop = true;
+  doc.array.push( { arrayitem: 1});
+  doc.array[0].arrayitem = 'foo';
+  doc.array = [{ arrayitem: 2}];
+  doc.array[0].arrayitem = 'foo';
+  doc.array.push( { arrayitem: 3});
+  doc.array[1].arrayitem = 'foo';
+  doc.nested = { nestedprop: false};
+  });
+
+  //XXX test Any/mixed
   //XXX test default values
 
 }); // describe...

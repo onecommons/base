@@ -6,6 +6,7 @@ var Promise = require("promise");
 require("should")
 
 var m = require('../models');
+var utils  = require('../lib/utils');
 
 function delay(timeout, res) {
   return new Promise(function(fulfill, reject) {
@@ -41,6 +42,19 @@ describe('Authentication', function() {
       app = _app;
       agent1 = _agent;
       done();
+    }, {
+      configOverrides: {
+        app: {
+          defaultAdmin: {
+            email: "admin@onecommons.org",
+            password: "admin"
+          }
+        }
+      },
+      routes: {
+      protected: [utils.requirePermission('admin'), function(req,res) {
+        res.status(200).send("ok");
+      }]}
     });
   });
 
@@ -152,21 +166,11 @@ describe('Authentication', function() {
     // agent stores cookies for multiple requests
     var agent;
 
+
     // recreate the user before these tests
     before(function(done) {
       agent = request.agent(app);
-      m.User.remove({}
-      ,function(){
-          theUser = new m.User();
-          theUser.displayName = "Test User";
-          theUser.local.email = "test@onecommons.org";
-          theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
-          //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
-          theUser._id = "@User@123";
-          theUser.save(function(){
-            done();
-          });
-        });
+      done();
     });
 
 
@@ -197,7 +201,7 @@ describe('Authentication', function() {
     });
 
     it('should allow access to recent login restricted pages after login', function(done) {
-       agent.get('/profile/transactions')
+       agent.get('/profile/transactions') //route is protected by isRecentlyLoggedIn
                     .redirects(0)
                     .expect(/html/)
                     .expect(200, done);
@@ -205,11 +209,39 @@ describe('Authentication', function() {
 
     it('should not allow access to recent login restricted pages after timeout', function(done) {
       setTimeout(function() {
-       agent.get('/profile/transactions')
+       agent.get('/profile/transactions') //route is protected by isRecentlyLoggedIn
              .expect(302)
              .expect('Location', '/login')
              .end(done);
       }, 300);
+    });
+
+    it('should allow deny access to protected route', function(done) {
+       agent.get('/protected')
+                    .redirects(0)
+                    .expect(/Permission Denied/)
+                    .expect(403, done);
+    });
+
+    it('should allow access to protected route to admin user', function(done) {
+      assert(app.config.defaultAdmin, 'no default admin configured');
+      var adminAgent = request.agent(app.getUrl());
+      adminAgent.post('/login')
+      .type('form')
+      .redirects(0)
+      .send({
+        email:app.config.defaultAdmin.email,
+        password: app.config.defaultAdmin.password})
+      .expect(302)
+      .expect('Location', '/profile')
+      .then(function() {
+        return adminAgent.get('/protected')
+                    .redirects(0)
+                    .expect(/ok/)
+                    .then(function() {
+                      done();
+                    });
+      });
     });
   })
 });

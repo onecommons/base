@@ -20,12 +20,8 @@ describe('app', function() {
       configdir: path.join(__dirname, 'fixtures'),
       routes: {
         index: function(req, res) {
-          var response = "derived";
-          res.writeHead(200, {
-            'Content-Length': Buffer.byteLength(response),
-            'Content-Type': req.contentType
-          });
-          res.end(response);
+          assert(req.app);
+          res.send(200, "derived");
         }
       }
     });

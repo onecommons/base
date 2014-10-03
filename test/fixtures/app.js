@@ -46,7 +46,7 @@ function addUserStartupListener(next) {
       theUser.displayName = "Test User";
       theUser.local.email = "test@onecommons.org";
       theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
-      //theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
+      theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
       theUser._id = "@User@123";
       theUser.save(next);
     });
