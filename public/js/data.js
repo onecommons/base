@@ -105,7 +105,8 @@ Txn.prototype = {
         //var clientErrorMsg = this.clientErrorMsg;
         function ajaxCallback(data, textStatus) {
             //responses should be a list of successful responses
-            //if any request failed it should be an http-level error
+            //if any request failed it *may or may not* be an http-level error
+            //depending on server-side implementation
            // konsole.log("datarequest", data, textStatus, 'dbdata.'+txnId, comment);
             if (textStatus == 'success') {
                 $(elem).trigger('dbdata.'+txnId, [data, request, comment]);
@@ -286,22 +287,13 @@ txn.commit();
          return this._executeTxn('replace', a1,a2);
      },
      dbQuery : function(a1, a2, a3) {
-         return this._executeTxn('query', a1,a2);
+        return this._executeTxn('query', a1,a2);
      },
      dbRemove : function(a1,a2,a3){
-         return this._executeTxn('remove', a1,a2);
+        return this._executeTxn('remove', a1,a2);
      },
      dbDestroy : function(a1, a2, a3) {
-         var args = deduceArgs(Array.prototype.slice.call(arguments));
-         data = args[0], options = args[1];
-         if (!data) {
-             data = this.map(function() {
-                 return $(this).attr('itemid') || null;
-             }).get();
-        }
-        konsole.assert(jQuery.isArray(data),
-            "dbDestroy requires array of ids to delete as its data argument");
-        return this._executeTxn('destroy', data, options);
+        return this._executeTxn('destroy', a1, a2);
      },
      dbBegin : function() {
         this.data('currentTxn', new Txn($.db.url));
@@ -317,7 +309,7 @@ txn.commit();
         }
         return this;
      },
-     dbRollback : function() {
+     dbRollback : function(callback) {
         var txn = this.data('currentTxn');
         if (txn) {
             this.removeData('currentTxn'); //do this now so callbacks aren't in this txn
@@ -327,6 +319,8 @@ txn.commit();
                   'data' : null
                 }
             };
+            if (callback)
+              this.one('dbdata.'+txn.txnId, callback);
             this.trigger('dbdata.'+txn.txnId, [errorObj, txn.requests, txn.txnComment]);
             this.trigger('dbdata-*', [errorObj, txn.requests, txn.txnComment]);
         } else {
