@@ -4,10 +4,10 @@
 function verifyQuery(query, expected, done) {
   var errormsg = 'unexpected result for query: ' + JSON.stringify(query);
   $(document).dbQuery(query,
-   function(data) {
+   function(data, error) {
       //console.log("results for query", JSON.stringify(query), "got", JSON.stringify(data), " expected ", JSON.stringify(expected));
-      assert(data.error === undefined, 'unexpected error for query:' + JSON.stringify(data.error));
-      assert(Array.isArray(data), errormsg + " expected an array");
+      assert(!error, 'unexpected error for query:' + JSON.stringify(error));
+      assert(Array.isArray(data), errormsg + " expected an array, got " + JSON.stringify(data));
       //javascript doesn't provide an easy way to do deep equality on objects,
       //so instead we'll compare JSON strings of objects
       assert.deepEqual(data, expected, errormsg + " got " + JSON.stringify(data) + ' expected ' + JSON.stringify(expected));
@@ -33,13 +33,37 @@ describe('db_tests', function() {
       }];
 
       $(document).dbCreate(pjson1, function(resp) {
-        // console.log("RESPONSE:", JSON.stringify(resp));
-        console.log('dbCreate', arguments);
         assert.equal(pjson1.prop1, resp.prop1, JSON.stringify(resp));
         assert.equal(pjson1._id, resp._id);
         verifyQuery({_id: pjson1._id}, expected, done);
       });
   });
+
+ it('should fail to create the same object twice', function(done) {
+   var createCallbackCalled = 0;
+   var commitEventCalled = 0;
+
+   $(document).one('dbdata', function(event, response, request) {
+     assert(event.type == 'dbdata');
+     assert(response.hasErrors() === true);
+     assert(Array.isArray(response));
+     assert(response[0].error);
+     assert(response[0].error.code == -32001);
+
+     assert(createCallbackCalled === 1);
+     assert(commitEventCalled === 0);
+     ++commitEventCalled;
+     done();
+   });
+
+    $(document).dbCreate(pjson1, function(doc, err) {
+      assert(!doc && err);
+      assert(err.code == -32001);
+      assert(commitEventCalled === 0);
+      assert(createCallbackCalled === 0);
+      ++createCallbackCalled;
+    });
+ });
 
   var modifiedprop = ["modified property value"]
   var expected = [{
@@ -52,26 +76,57 @@ describe('db_tests', function() {
   it('should do one dbUpdate', function(done) {
       var mod = pjson1;
       mod.prop1 = modifiedprop;
-      $(document).dbUpdate(mod, function(resp) {
-          console.log('dbUpdate', arguments); //expect the object
+      $(document).dbUpdate(mod, function(resp, err) {
+          assert(resp && !err);
           assert.deepEqual(mod.prop1, resp.prop1);
           verifyQuery({_id: pjson1._id}, expected, done);
       });
   });
 
   it('should do client-side rollback', function(done) {
+      //test dbdata custom event, should only be called once per transaction
+      //callbacks should fire in this order: dbUpdate, dbRollback, dbdata event
+      var updateCallbackCalled = 0; //should be called first
+      var rollbackCallbackCalled = 0; //second
+      var rollbackEventCalled = 0;  //third
+
+      $(document).one('dbdata', function(event, response, request) {
+        ++rollbackEventCalled;
+        assert(event.type == 'dbdata');
+        assert(response.hasErrors() === true);
+        assert(response.error && response.error.code == -32001)
+        assert(updateCallbackCalled === 1, "updateCallbackCalled should have been called");
+        assert(rollbackCallbackCalled === 1, "rollbackCallbackCalled should have been called");
+        assert(rollbackEventCalled === 1, "custom trigger should have only been called once");
+      });
       var mod = pjson1;
       mod.prop1 = ['whatever'];
       $(document).dbBegin().dbUpdate(mod, function(resp, err) {
-        //assert(!resp && err)
-        console.log('client-side rollback', arguments); //expect the object
-        verifyQuery({_id: pjson1._id}, expected, done);
-      }).dbRollback(function() {console.log('dbrollback', arguments); });
+        assert(!resp && err);
+        assert(err.code == -32001); //client-side rollback
+        updateCallbackCalled++;
+        assert(rollbackCallbackCalled === 0, "commit callback should not have been called yet");
+        assert(rollbackEventCalled === 0, "custom trigger should not have been called yet");
+        assert(updateCallbackCalled === 1, "db callback should have only been called once");
+
+        verifyQuery({_id: pjson1._id}, expected, function() {
+          assert(updateCallbackCalled === 1, "updateCallbackCalled should have been called");
+          assert(rollbackCallbackCalled === 1, "rollbackCallbackCalled should have been called");
+          assert(rollbackEventCalled === 1, "rollback event should have only been called once not " + rollbackEventCalled);
+          done();
+        });
+      }).dbRollback(function(response, requests) {
+        assert(response.hasErrors() === true);
+        rollbackCallbackCalled++;
+        assert(updateCallbackCalled === 1, "dbCallback should have been called");
+        assert(rollbackEventCalled === 0, "custom trigger should not have been called yet");
+        assert(rollbackCallbackCalled === 1, "commit callback should have only been called once");
+      });
   });
 
   it('should delete an object', function(done) {
-      $(document).dbDestroy(pjson1, function(resp) {
-        console.log('dbDestroy', arguments); //expect the object??
+      $(document).dbDestroy(pjson1, function(resp, err) {
+        assert(resp && !err);
         assert.deepEqual(resp, {"_id":"@DbTest1@1","prop1":[], __t:"DbTest1"});
         verifyQuery({_id: pjson1._id}, [], done);
       });
@@ -85,24 +140,26 @@ it("should invoke callbacks and triggers in the correct order", function(done){
   var customTriggerCalled = 0;  //third
 
   var customTriggerFunc = function(event, data) {
-    console.log('custom trigger', arguments);
     customTriggerCalled++;
+    assert(event.type == 'dbdata');
+    assert(data.hasErrors() === false);
     assert(dbCallbackCalled === 1, "dbCallback should have been called");
     assert(commitCallbackCalled === 1, "commitCallback should have been called");
     assert(customTriggerCalled === 1, "custom trigger should have only been called once");
     done();
   }
-  $(document).bind('dbdata-*', customTriggerFunc);
+  $(document).bind('dbdata', customTriggerFunc);
 
   $(document).dbBegin().dbQuery({__t:"DbTest1"},
-     function(data) {
-        console.log('dbquery', arguments, data); //expect empty array
+     function(data, err) {
+        assert(data && !err);
+        assert(Array.isArray(data) && data.length === 0);
         dbCallbackCalled++;
         assert(commitCallbackCalled === 0, "commit callback should not have been called yet");
         assert(customTriggerCalled === 0, "custom trigger should not have been called yet");
         assert(dbCallbackCalled === 1, "db callback should have only been called once");
-    }).dbCommit(function(event, response) {
-      console.log('dbcommit', arguments);
+    }).dbCommit(function(response) {
+      assert(response.hasErrors() === false);
       commitCallbackCalled++;
       assert(dbCallbackCalled === 1, "dbCallback should have been called");
       assert(customTriggerCalled === 0, "custom trigger should not have been called yet");

@@ -68,18 +68,18 @@ Txn.prototype = {
         });
 
         if (callback) { //bind callback to data event
-            $(elem).one('dbdata.'+this.txnId, function(event, responses) {
+            $(elem).one('dbdata-'+this.txnId, function(event, responses) {
                 if (responses.error) { //error object, not an array of responses
-                  callback(responses);
+                  callback.call(elem, null, responses.error);
                   return;
                 }
                 for (var i=0; i < responses.length; i++) {
                     var response = responses[i];
                     if (response.id == requestId) {
                         if (response.error)
-                            callback.call(elem, response);
+                            callback.call(elem, null, response.error);
                         else
-                            callback.call(elem, response.result);
+                            callback.call(elem, response.result, null);
                     }
                 }
             });
@@ -96,10 +96,10 @@ Txn.prototype = {
     commit : function(callback, elem) {
         var elem = elem || document;
         var txnId = this.txnId;
-        if (callback) { //callback signature: function(event, responses, requests)
-            $(elem).one('dbdata.'+txnId, callback);
+        if (callback) { //callback signature: function(responses, requests)
+            $(elem).one('dbdata-'+txnId, function()
+              { callback.apply(this, Array.prototype.slice.call(arguments,1) ); });
         }
-
         var comment = this.txnComment;
         var request = this.requests;
         //var clientErrorMsg = this.clientErrorMsg;
@@ -109,18 +109,27 @@ Txn.prototype = {
             //depending on server-side implementation
            // konsole.log("datarequest", data, textStatus, 'dbdata.'+txnId, comment);
             if (textStatus == 'success') {
-                $(elem).trigger('dbdata.'+txnId, [data, request, comment]);
-                $(elem).trigger('dbdata-*', [data, request, comment]);
+                data.hasErrors = function() {
+                  if (this.error) return true;
+                  for (var i=0; i < this.length; i++) {
+                    if (this[i].error)
+                      return true;
+                  }
+                  return false;
+                };
+                $(elem).trigger('dbdata-'+txnId, [data, request, comment]);
+                $(elem).trigger('dbdata', [data, request, comment]);
             } else {
                 //when textStatus != 'success', data param will be a XMLHttpRequest obj
                 var errorObj = {"jsonrpc": "2.0", "id": null,
                   "error": {"code": -32000,
                         "message": data.statusText || textStatus,
                         'data' : data.responseText
-                  }
+                  },
+                  hasErrors: function() { return true;}
                 };
-                $(elem).trigger('dbdata.'+txnId, [errorObj, request, comment]);
-                $(elem).trigger('dbdata-*', [errorObj, request, comment]);
+                $(elem).trigger('dbdata-'+txnId, [errorObj, request, comment]);
+                $(elem).trigger('dbdata', [errorObj, request, comment]);
             }
          };
 
@@ -249,7 +258,7 @@ txn.commit();
                   else
                     $.extend(obj[0], override);
                 }
-                konsole.log('about to', action, 'obj', obj);
+                //konsole.log('about to', action, 'obj', obj);
                 return txn.execute(action, obj, callback, this);
             }).get();
          }
@@ -317,12 +326,15 @@ txn.commit();
               "error": {"code": -32001,
                   "message": "client-side rollback",
                   'data' : null
-                }
+                },
+              hasErrors: function() { return true;}
             };
-            if (callback)
-              this.one('dbdata.'+txn.txnId, callback);
-            this.trigger('dbdata.'+txn.txnId, [errorObj, txn.requests, txn.txnComment]);
-            this.trigger('dbdata-*', [errorObj, txn.requests, txn.txnComment]);
+            if (callback) { //callback signature: function(responses, requests)
+                this.one('dbdata-'+txn.txnId, function()
+                { callback.apply(this, Array.prototype.slice.call(arguments,1) ); });
+            }
+            this.trigger('dbdata-'+txn.txnId, [errorObj, txn.requests, txn.txnComment]);
+            this.trigger('dbdata', [errorObj, txn.requests, txn.txnComment]);
         } else {
             konsole.log('warning: rollback with no txn');
         }
