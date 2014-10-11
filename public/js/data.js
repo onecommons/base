@@ -109,14 +109,16 @@ Txn.prototype = {
             //depending on server-side implementation
            // konsole.log("datarequest", data, textStatus, 'dbdata.'+txnId, comment);
             if (textStatus == 'success') {
-                data.hasErrors = function() {
-                  if (this.error) return true;
+                data.getErrors = function() {
+                  if (this.error) return [this.error];
+                  var errors = [];
                   for (var i=0; i < this.length; i++) {
                     if (this[i].error)
-                      return true;
+                      errors.push(this[i].error);
                   }
-                  return false;
+                  return errors;
                 };
+                data.hasErrors = function() { return this.getErrors().length > 0;}
                 $(elem).trigger('dbdata-'+txnId, [data, request, comment]);
                 $(elem).trigger('dbdata', [data, request, comment]);
             } else {
@@ -126,7 +128,8 @@ Txn.prototype = {
                         "message": data.statusText || textStatus,
                         'data' : data.responseText
                   },
-                  hasErrors: function() { return true;}
+                  hasErrors: function() { return true;},
+                  getErrors: function() { return [this.error];}
                 };
                 $(elem).trigger('dbdata-'+txnId, [errorObj, request, comment]);
                 $(elem).trigger('dbdata', [errorObj, request, comment]);
@@ -327,7 +330,8 @@ txn.commit();
                   "message": "client-side rollback",
                   'data' : null
                 },
-              hasErrors: function() { return true;}
+              hasErrors: function() { return true;},
+              getErrors: function() { return [this.error];}
             };
             if (callback) { //callback signature: function(responses, requests)
                 this.one('dbdata-'+txn.txnId, function()
