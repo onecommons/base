@@ -5,12 +5,15 @@ var assert = require('chai').assert;
 var express = require('express');
 var util = require('util');
 var EventEmitter = require("events").EventEmitter;
-
 var Browser = require("zombie");
+
+/*
+Note: you can run these test in a real browser interactively by running `node test/lib/app.js`
+*/
 describe('zombietest', function() {
   var app;
   before(function(done) {
-    app = require('./fixtures/app')();
+    app = require('./lib/app')();
     app.testresults = new EventEmitter();
     app.addBrowserTests();
     app.post('/testresult', function (req, res) {

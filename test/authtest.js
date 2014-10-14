@@ -21,7 +21,7 @@ function extractCookie(cookie) {
 }
 
 function setupApp(cb, options) {
-  var app = require('./fixtures/app')(options);
+  var app = require('./lib/app')(options);
   app.addTestUser();
   app.start(null, function(server){
       cb(app, request.agent(app.getUrl()));

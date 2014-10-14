@@ -40,7 +40,7 @@ var app;
 
 describe('dataform', function() {
   before(function(done) {
-    app = require('./fixtures/app')();
+    app = require('./lib/app')();
     app.get('/dataformtest.html', function (req, res) {
       res.render('dataformtest.html', {
           df : require("../lib/dataForm").dataform(),
