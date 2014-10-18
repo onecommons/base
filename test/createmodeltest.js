@@ -59,16 +59,18 @@ describe('createModel', function(){
     });
 
     it('should make a model and instance based on a schema', function(done) {
-
         var Test = createModel("Test", s);
         var t = new Test();
         assert(Test.check);
         assert(t.check);
-        t.save(function() {
-            Test.findOne(function(err,doc) {
-                assert.instanceOf(doc, Test);
-                done();
-            })
+        //test saveP() method
+        var p = t.saveP().then(function(doc) {
+          assert(doc);
+          assert.instanceOf(doc, Test);
+          Test.findOne(function(err,doc2) {
+              assert.instanceOf(doc2, Test);
+              done();
+          });
         });
     });
 
