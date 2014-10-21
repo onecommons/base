@@ -1,6 +1,6 @@
 if (process.env.BASESRC) {
   var path = require('path');
-  module.exports = require(path.join(process.env.BASESRC, 'lib/app'));
+  module.exports = require(path.join(path.resolve(process.env.BASESRC), 'lib/app'));
 } else {
   module.exports = require('./lib/app');
 }
