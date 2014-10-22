@@ -5,10 +5,8 @@ var about           = require('./about'); //XXX delete from app
 var jswig           = require('./jswig');
 var blogpost        = require('./blogpost'); //XXX delete from app
 var login           = require('./login');
-var profile         = require('./profile');
 var directory       = require('./directory'); //XXX delete from app
 var datarequest     = require('./datarequest');
-var payments        = require('./payments');
 
 module.exports = function(app, passport) {
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>

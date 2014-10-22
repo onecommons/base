@@ -38,6 +38,8 @@ describe('Authentication', function() {
 
   // create a test user for login
   before(function(done) {
+    var okreq = function(req,res) { res.status(200).send("ok"); };
+
     setupApp(function(_app, _agent) {
       app = _app;
       agent1 = _agent;
@@ -52,9 +54,9 @@ describe('Authentication', function() {
         }
       },
       routes: {
-      protected: [utils.requirePermission('admin'), function(req,res) {
-        res.status(200).send("ok");
-      }]}
+        protected: [utils.requirePermission('admin'), okreq],
+        requirerecent: [utils.isRecentlyLoggedIn, okreq]
+      }
     });
   });
 
@@ -201,15 +203,15 @@ describe('Authentication', function() {
     });
 
     it('should allow access to recent login restricted pages after login', function(done) {
-       agent.get('/profile/transactions') //route is protected by isRecentlyLoggedIn
+       agent.get('/requirerecent') //route is protected by isRecentlyLoggedIn
                     .redirects(0)
-                    .expect(/html/)
+                    .expect(/ok/)
                     .expect(200, done);
     });
 
     it('should not allow access to recent login restricted pages after timeout', function(done) {
       setTimeout(function() {
-       agent.get('/profile/transactions') //route is protected by isRecentlyLoggedIn
+       agent.get('/requirerecent') //route is protected by isRecentlyLoggedIn
              .expect(302)
              .expect('Location', '/login')
              .end(done);
