@@ -1,6 +1,6 @@
-if (process.env.BASESRC) {
+if (process.env.SRC_base) {
   var path = require('path');
-  module.exports = require(path.join(path.resolve(process.env.BASESRC), 'lib/app'));
+  module.exports = require(path.join(path.resolve(process.env.SRC_base), 'lib/app'));
 } else {
   module.exports = require('./lib/app');
 }
