@@ -61,6 +61,7 @@ describe('createModel', function(){
     it('should make a model and instance based on a schema', function(done) {
         var Test = createModel("Test", s);
         var t = new Test();
+        assert.equal(Test.collection.collection.collectionName, "Test");
         assert(Test.check);
         assert(t.check);
         //test saveP() method
@@ -76,6 +77,7 @@ describe('createModel', function(){
 
      it('should make a model and instance without a schema', function(done) {
         var Test3 = createModel("Test3", {prop2: String});
+        assert.equal(Test3.collection.collection.collectionName, "Test3");
         var t = new Test3();
         t.setPrinciple({roles:['admin']}); //test access control
         t.save(function(err) {
