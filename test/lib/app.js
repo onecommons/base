@@ -57,6 +57,7 @@ function createApp(options) {
     views: __dirname + '/../views',
     public: __dirname + '/../public'
   }));
+  app.get('/testerrorpage', function(req, res, next) { next(new Error('test error')); });
   //console.log('test public dir', main.dirname + '/test/public');
   //app.use(express.static(main.dirname + '/test/public'));
   app.addTestUser = function() {

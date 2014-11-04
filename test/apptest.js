@@ -26,6 +26,9 @@ describe('app', function() {
       }
     });
     app = base.app; //tests that app singleton is set
+    app.get('/testview/*', function(req, res) {
+      res.render(req.params[0], {});
+    });
   });
 
   after(function(done){
@@ -62,19 +65,20 @@ describe('app', function() {
   });
 
   describe('views', function() {
-    var about = require('../routes/about');
+    before(function(){
+      app.suppressErrorHandlerConsole = true;
+    })
+
+    after(function(){
+      app.suppressErrorHandlerConsole = false;
+    })
+
     var testapp = function(viewurl, expected, done) {
       var r = request(app.getUrl()).get(viewurl).expect(expected);
       if (typeof expected !== 'number')
         r.expect(200);
       r.end(done);
     };
-
-    before(function() {
-      app.get('/testview/*', function(req, res) {
-        res.render(req.params[0], {});
-      });
-    });
 
     [
       ['test-only-in-base', /base/],

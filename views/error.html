@@ -1,0 +1,17 @@
+{% extends 'layouts/layout.html' %}
+
+{% block content %}
+<div class="container">
+<h1><em>{{statusCode}}</em> - {{message}}</h1>
+{%if error %}
+<h2>{{error}}</h2>
+{%endif%}
+{%if debug && errorstack && errorstack.length %}
+<ul id="stacktrace">
+  {%for line in errorstack %}
+  <li>{{line}}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+</div>
+{% endblock %}

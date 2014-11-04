@@ -98,7 +98,7 @@ describe('zombietest', function() {
              msg += data.failures[i].error;
          }
       }
-      msg += stats.failures + " test(s) in " + file + " failed";
+      msg += stats.failures + " test(s) in binder_tests.html failed";
     });
 
     var url = app.getUrl();
