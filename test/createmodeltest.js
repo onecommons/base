@@ -93,24 +93,35 @@ describe('createModel', function(){
     it('should make a base and a derivative model', function(done) {
         var Testbase = createModel("Testbase",{prop2: String});
         var Testd = createModel("Testd",
-            {prop3: String, prop4: String},  Testbase);
+            {prop3: String, prop4: String, ref: {type:String, ref:"Testbase"}},  Testbase);
 
         var base = new Testbase();
-            base.save();
-
-        var derived = new Testd();
-        derived.prop4 = "This is prop4";
-        derived.save(function() {
-          Testbase.findOne({_id: base._id}, function(err, doc) {
-            assert.instanceOf(doc, Testbase);
-            Testbase.findOne({_id: derived._id}, function(err,doc2){
-                assert.equal(doc2.prop4, "This is prop4");
-                assert.instanceOf(doc2,Testd);
+        base.saveP().then(function(basedoc){
+          var derived = new Testd();
+          derived.prop4 = "This is prop4";
+          derived.ref = basedoc._id;
+          derived.save(function() {
+            Testbase.findOne({_id: base._id}, function(err, doc) {
+              assert.instanceOf(doc, Testbase);
+              //test that we can populate a derived ref that isn't present in base
+              Testbase.find({}).populate('ref').exec(function(err,docs){
+                var derivedseen = false;
+                docs.forEach(function(doc2) {
+                  if (doc2._id == derived._id) {
+                    derivedseen = true;
+                    assert.equal(doc2.prop4, "This is prop4");
+                    assert.equal(doc2.ref._id, basedoc._id);
+                    assert.instanceOf(doc2,Testd);
+                  } else {
+                    assert(!doc2.ref);
+                  }
+                });
+                assert(derivedseen);
                 done();
+              });
             });
           });
-        });
-
+      }).catch(done);
    });
 
 
