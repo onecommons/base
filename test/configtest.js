@@ -1,5 +1,7 @@
 var assert = require('assert'),
-  configloader = require('../lib/config');
+  configloader = require('../lib/config'),
+  Promise = require('promise'),
+  utils = require('../lib/utils');
 
 describe("config", function() {
   it("should merge global overrides", function() {
@@ -25,4 +27,20 @@ describe("config", function() {
     assert(!config.overrideonly);
   });
 
+});
+
+describe("utils", function() {
+  it("safeAllPromises", function(done) {
+    utils.safeAllPromises([
+      1,
+      Promise.reject(new Error('rejected')),
+      3
+    ]).then(function(results) {
+        assert(results.length == 3);
+        assert(results[0] === 1);
+        assert(results[1] instanceof Error);
+        assert(results[2] === 3);
+        done()
+      },done);
+  })
 });
