@@ -64,7 +64,6 @@ describe('dataform', function() {
   var body = null;
 
   it('should render stuff', function(done) {
-      console.log('requesting');
       var url = app.getUrl();
       assert(url);
       request(url).get('/dataformtest.html')

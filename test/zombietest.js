@@ -21,11 +21,10 @@ describe('zombietest', function() {
       res.send( '"OK"', 200 );
     });
 
-    app.start(function(next) {
+    app.start(function() {
         //note: may or may not exits, if it doesn't err will be set
-        mongoose.connection.db.dropCollection('dbtest1', next);
-    },
-    function(server){
+        mongoose.connection.db.dropCollection('dbtest1');
+    }, function(server){
         console.log('test app started'); done();
     });
   });

@@ -39,16 +39,16 @@ function addBrowserTests() {
   });
 }
 
-function addUserStartupListener(next) {
-  main.models.User.remove({_id: "@User@123"}
-  ,function(){
+function addUserStartupListener() {
+  return main.models.User.remove({_id: "@User@123"}).exec()
+    .then(function(){
       theUser = new main.models.User();
       theUser.displayName = "Test User";
       theUser.local.email = "test@onecommons.org";
       theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test
       theUser.local.verified = true, //not necessary because test config sets requireEmailVerification = false
       theUser._id = "@User@123";
-      theUser.save(next);
+      return theUser.saveP();
     });
 }
 
@@ -62,8 +62,8 @@ function createApp(options) {
   //app.use(express.static(main.dirname + '/test/public'));
   app.addTestUser = function() {
     app.addBeforeStartListener(addUserStartupListener);
-    app.addBeforeStopListener(function(next) {
-      main.models.User.remove({_id: "@User@123"}, next);
+    app.addBeforeStopListener(function() {
+      return main.models.User.remove({_id: "@User@123"}).exec();
     }, true);
   }
   app.addBrowserTests = addBrowserTests;
