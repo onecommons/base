@@ -10,7 +10,7 @@ var userSchema = mongoose.Schema({
     displayName       : String,
     avatarUrl         : String,
     local            : {
-        email        : String,
+        email        : {type:String, unique:true},
         password     : String,
         verified     : {type: Boolean, default:false},
         accountLocked: {type: Boolean, default:false},

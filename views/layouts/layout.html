@@ -45,7 +45,7 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
-                {% if req.isAuthenticated() == false %}
+                {% if user %}
                 <li><a href="{{routes.signup}}"><span class="glyphicon glyphicon-user"></span>Sign Up</a></li>
                 <li><a href="{{routes.login}}"><span class="glyphicon glyphicon-user"></span>Login</a></li>
                 {% else %}
