@@ -9,7 +9,7 @@ var utils = require('../lib/utils.js');
 module.exports.login = function(app) {
   return function(req, res) {
     // render the page and pass in any flash data if it exists
-    res.render('login.html', { message: req.flash('loginMessage'),
+    res.render('login.html', {
       remembermeEnabled: !!app.config.persistentSessionSeconds
     });
   }
@@ -19,7 +19,7 @@ module.exports.loginPost = function(passport) {
   return passport.authenticate('local-login', {
     successReturnToOrRedirect: '/profile',
     failureRedirect: '/login',   // back to login on error
-    failureFlash: true
+    failureFlash: {type:'login.danger'}
   });
 }
 
@@ -33,7 +33,7 @@ module.exports.logout = function(req, res) {
 //
 module.exports.signup = function(req, res) {
   // render the page and pass in any flash data if it exists
-  res.render('signup.html', { message: req.flash('signupMessage') });
+  res.render('signup.html', {});
 }
 
 module.exports.signupPost = function(passport) {
@@ -43,7 +43,7 @@ module.exports.signupPost = function(passport) {
   return passport.authenticate('local-signup', {
     successRedirect: successRedirect,
     failureRedirect: '/signup',  // back to signup on error
-    failureFlash: true
+    failureFlash: {type:'signup.danger'}
   });
 }
 
