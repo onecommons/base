@@ -39,6 +39,7 @@ describe('Authentication', function() {
   // create a test user for login
   before(function(done) {
     var okreq = function(req,res) { res.status(200).send("ok"); };
+    var nostackdump = function(req, res, next) { req.suppressErrorHandlerConsole=true; next();}
 
     setupApp(function(_app, _agent) {
       app = _app;
@@ -54,7 +55,7 @@ describe('Authentication', function() {
         }
       },
       routes: {
-        protected: [utils.requirePermission('admin'), okreq],
+        protected: [nostackdump, utils.requirePermission('admin'), okreq],
         requirerecent: [utils.isRecentlyLoggedIn, okreq]
       }
     });
