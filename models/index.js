@@ -12,7 +12,6 @@ exports.schemas = schemas = {};
 //require('./post'),
 //require('./comment'),
 require('./user'),
-require('./file'),
 ].forEach(_.partial(utils.exportModel, module.exports));
 
 function _extractTypeFromId(id) {
