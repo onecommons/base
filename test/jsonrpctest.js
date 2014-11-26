@@ -42,7 +42,20 @@ describe('jsonrpc', function(){
               });
             }
           });
-        }
+        },
+        handle_file: function (json, respond, promisesSofar, rpcSession) {
+          return rpcSession.getFileRequest(json.name).then(function(fileinfo) {
+            return new Promise(function(resolve, reject){
+              var buffers = [];
+              fileinfo.file.on('data', function(d) {
+                buffers.push(d);
+              }).on('end', function() {
+                resolve({name: fileinfo.filename,
+                  contents: Buffer.concat(buffers).toString() })
+              });
+           })
+         });
+       },
       }));
 
     it('should route an async jsonrpc method', function(done){
@@ -142,6 +155,36 @@ describe('jsonrpc', function(){
       .send({"jsonrpc":"2.0","method":"dependant_method","id":11})
       .expect('should never get a response', done);
     });
+
+    /* note: we need to use an old version of supertest for this to work
+    /http://visionmedia.github.io/superagent/#multipart-requests
+    //trying to avoid using part() like this:
+      .set('Content-Type', 'multipart/form-data; boundary=--83ff53821b7c')
+      .send(
+    '--83ff53821b7c\r\nContent-Disposition: form-data; name="jsonrpc"\r\n\r\n'
+    + json + '\r\n--83ff53821b7c\r\n'
+    + 'Content-Disposition: form-data; name="dummy"; filename="dummy.txt"\r\nContent-Type: text/plain\r\n\r\nblah blah\r\n--83ff53821b7c--\r\n'
+    )
+  doesn't work either
+  */
+    it('should handle multipart requests', function(done){
+      var json = JSON.stringify(
+        [{"jsonrpc":"2.0","method":"handle_file", params:{name:'dummy'}, "id":1}]
+      );
+      var req = request(app).post('/')
+      .field('jsonrpc', json)
+
+      part = req.part()
+        .set('Content-Disposition', 'form-data; name="dummy"; filename="dummy.txt"')
+        .set('Content-Type', 'text/plain');
+      part.write('some dummy data');
+      part.end();
+
+     req.expect(
+        '[{"jsonrpc":"2.0","id":1,"result":{"name":"dummy.txt","contents":"some dummy data"}}]'
+        , done);
+
+      }); //it
 
   });
 

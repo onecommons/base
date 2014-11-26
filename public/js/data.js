@@ -26,6 +26,7 @@ var Txn = function(url) {
   this.requests = [];
   this.txnId = ++Txn.prototype.idcounter;
   this.txnComment = '';
+  this.fileuploads = [];
   if (url)
     this.url = url;
   //this.pendingChanges = {};
@@ -89,6 +90,41 @@ Txn.prototype = {
             this.commit();
 
         return requestId;
+   },
+
+   doUpload: function(ajaxCallback){
+     var formData = new FormData();
+     var This = this;
+     this.fileuploads.forEach(function(fileInputElement) {
+       if (fileInputElement.files && fileInputElement.files.length
+           && fileInputElement.getAttribute('data-dbmethod')) {
+         This.requests.unshift({ //put these first
+           jsonrpc : '2.0',
+           method : fileInputElement.getAttribute('data-dbmethod'),
+           params : { 'name' : fileInputElement.name }
+           //treat as notification by ommitting the id //id: This.requests.length+1
+         })
+       }
+     });
+     var requests = JSON.stringify(this.requests);
+     this.requests = [];
+     formData.append('jsonrpc', requests);
+     this.fileuploads.forEach(function(fileInputElement) {
+       if (fileInputElement.files && fileInputElement.files.length) {
+         formData.append(fileInputElement.name, fileInputElement.files[0]);
+       }
+     });
+     this.fileuploads = [];
+     $.ajax({
+       type: 'POST',
+       url: this.url,
+       contentType: false,
+       data: formData,
+       processData: false,
+       success: ajaxCallback,
+       error: ajaxCallback,
+       dataType: "json"
+     });
    },
 
     /*
@@ -156,9 +192,12 @@ Txn.prototype = {
                 });
                 this.txnComment = '';
             }
-            var requests = JSON.stringify(this.requests);
-            this.requests = [];
-            $.ajax({
+            if (this.fileuploads.length && FormData) {
+              this.doUpload(ajaxCallback);
+            } else {
+              var requests = JSON.stringify(this.requests);
+              this.requests = [];
+              $.ajax({
               type: 'POST',
               url: this.url,
               data: requests,
@@ -168,6 +207,7 @@ Txn.prototype = {
               error: ajaxCallback,
               dataType: "json"
             });
+          }
         }
   }
 };
@@ -261,6 +301,10 @@ txn.commit();
                   else
                     $.extend(obj[0], override);
                 }
+                $(this).find('[data-dbmethod]').each(function() {
+                  if (this.files && this.files.length)
+                    txn.fileuploads.push(this);
+                })
                 //konsole.log('about to', action, 'obj', obj);
                 return txn.execute(action, obj, callback, this);
             }).get();
@@ -862,7 +906,7 @@ Binder.FormBinder.prototype = {
           accessor.set( element.name, v );
         }
       }
-    } else {
+    } else if ( element.type != 'file') {
         value = this._parse( element.name, element.value, element );
         if( accessor.isIndexed(element.name) ) {
           var current = accessor.get( element.name ) ||  [];
