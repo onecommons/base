@@ -2,6 +2,6 @@
 var datastore = require('../lib/datastore');
 var jsonrpc   = require('../lib/jsonrpc');
 
-module.exports = jsonrpc.router.bind(
-  new datastore.RequestHandler(new datastore.MongooseDatastore())
-);
+var methods = new datastore.RequestHandler(new datastore.MongooseDatastore());
+module.exports = jsonrpc.router.bind(methods);
+module.exports.methods = methods;
