@@ -44,8 +44,8 @@ module.exports = function(app, passport) {
 
     jswig:            ['jswig/*', jswig(app)],
 
-    files: [utils.requirePermission('admin'), files.showFiles],
+    files:            [utils.requirePermission('admin'), files.showFiles],
 
-    file: ['file/:id/:name', utils.requirePermission('admin'), files.viewFile]
+    file:             ['file/:id/:name', utils.requirePermission('admin'), files.viewFile]
   };
 }

@@ -14,12 +14,12 @@ module.exports = {
     models.File.findOne({_id: req.params.id }).exec().then(function(doc) {
       if (!doc)
         return next();
-        var buf = doc.contents;
-        res.writeHead(buf.length ? 200 : 204, {
+      var buf = doc.contents;
+      res.writeHead(buf.length ? 200 : 204, {
           'Content-Length': String(buf.length),
           'Content-Type': doc.mimetype
-        });
-        res.end(buf);
-      }, next);
+      });
+      res.end(buf);
+    }, next);
   }
 }
