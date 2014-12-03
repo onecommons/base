@@ -24,7 +24,7 @@ function setupApp(cb, options) {
   var app = require('./lib/app')(options);
   app.addTestUser();
   app.start(null, function(server){
-      cb(app, request.agent(app.getUrl()));
+      cb(app, request.agent(app.getInternalUrl()));
   });
 }
 
@@ -66,7 +66,7 @@ describe('Authentication', function() {
 
   describe('local login', function(){
     it('should fail a nonexistent username', function(done) {
-      request(app.getUrl())
+      request(app.getInternalUrl())
       .post('/login')
       .type('form')
       .redirects(0)
@@ -77,7 +77,7 @@ describe('Authentication', function() {
     });
 
     it('should fail an incorrect password', function(done) {
-      request(app.getUrl())
+      request(app.getInternalUrl())
       .post('/login')
       .type('form')
       .redirects(0)
@@ -88,7 +88,7 @@ describe('Authentication', function() {
     });
 
     it('should accept a correct username & password', function(done) {
-      request(app.getUrl())
+      request(app.getInternalUrl())
       .post('/login')
       .type('form')
       .redirects(0)
@@ -228,7 +228,7 @@ describe('Authentication', function() {
 
     it('should allow access to protected route to admin user', function(done) {
       assert(app.config.defaultAdmin, 'no default admin configured');
-      var adminAgent = request.agent(app.getUrl());
+      var adminAgent = request.agent(app.getInternalUrl());
       adminAgent.post('/login')
       .type('form')
       .redirects(0)
@@ -287,7 +287,7 @@ describe('Session timeouts', function() {
   this.timeout(3000);
 
   it('temporary sessions should timeout after timeout', function(done) {
-    var agent1 = request.agent(app.getUrl());
+    var agent1 = request.agent(app.getInternalUrl());
     var sessioncookie = null;
     agent1.get('/setSessionValue').expect('set-cookie', /connect\.sid/).expect('ok').expect(200)
     .then(function(res) {
@@ -307,7 +307,7 @@ describe('Session timeouts', function() {
 
   it("login with rememberme", function(done) {
     var sessioncookie = null;
-    var agent1 = request.agent(app.getUrl());
+    var agent1 = request.agent(app.getInternalUrl());
     agent1.post('/login')
     .type('form')
     .redirects(0)
@@ -334,7 +334,7 @@ describe('Session timeouts', function() {
    }).then(function(res){
       //create a new request to ensure the same session cookie is sent despite the expire time
       var cookie = extractCookie(sessioncookie);
-      request(app.getUrl()).get('/getSessionValue').set('Cookie', cookie).expect('undefined')
+      request(app.getInternalUrl()).get('/getSessionValue').set('Cookie', cookie).expect('undefined')
         .expect(200).expect('set-cookie', /connect\.sid/).end(function(err, res) {
           //session id should have changed (and cookie won't have Expires)
           if (err) throw err;
@@ -346,7 +346,7 @@ describe('Session timeouts', function() {
 
   //login in with rememberme login then again without it, the session cookie shouldn't have expires
 it("login without rememberme should remove persistent cookie", function(done) {
-  var agent1 = request.agent(app.getUrl());
+  var agent1 = request.agent(app.getInternalUrl());
   agent1.post('/login')
   .type('form')
   .redirects(0)

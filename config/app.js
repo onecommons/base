@@ -1,7 +1,9 @@
 module.exports = {
     dburl: "mongodb://127.0.0.1:27017/ocdemo",
     port: 3000,
+    address: 'localhost',
     cacheviews: false,
+    //appurl: 'http://yourapp.com'
     //cookie_secret: 'your secret here',
     //sessionfactory: function(sessionconfig, app, session) { sessionconfig.store: new FileStore();},
     persistentSessionSeconds: 0, //"remember me" login option, to enable set to e.g:  60 * 60 * 24 * 30 (1 month)

@@ -64,7 +64,7 @@ describe('zombietest', function() {
           msg += stats.failures + " test(s) in " + file + " failed";
         });
 
-        var url = app.getUrl();
+        var url = app.getInternalUrl();
         assert(url);
         browser.visit(url+'/browsertest/'+file+'?xhr', function() {
           if (browser.errors.length)
@@ -100,7 +100,7 @@ describe('zombietest', function() {
       msg += stats.failures + " test(s) in binder_tests.html failed";
     });
 
-    var url = app.getUrl();
+    var url = app.getInternalUrl();
     assert(url);
     browser.visit(url+'/tests/binder_tests.html?xhr', function() {
       if (browser.errors.length)

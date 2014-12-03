@@ -64,7 +64,7 @@ describe('dataform', function() {
   var body = null;
 
   it('should render stuff', function(done) {
-      var url = app.getUrl();
+      var url = app.getInternalUrl();
       assert(url);
       request(url).get('/dataformtest.html')
       .expect(/<h2>Dataform test<\/h2>/)

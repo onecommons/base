@@ -3,7 +3,7 @@
 module.exports = {
 
     "from": "help@onecommons.org",
-    "appname": "OneCommons baseapp",
+
     // nodemailer config vars
     // see http://www.nodemailer.com/docs/transports
     "mailer": {
@@ -17,6 +17,11 @@ module.exports = {
             }
         }
         */
+    },
+
+    "templateVars" : {
+      "appname": "baseapp"
+      /*, appurl: 'http://yourapp.com/' (defaults to app.getExternalUrl())*/
     },
 
     "templates": {

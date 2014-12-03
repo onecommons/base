@@ -43,7 +43,7 @@ describe('app', function() {
   });
 
   it("should use existing path if path isn't specified in an updated route", function(done) {
-    request(app.getUrl())
+    request(app.getInternalUrl())
     .get('/')
     .expect(/derived/)
     .expect(200)
@@ -74,7 +74,7 @@ describe('app', function() {
     })
 
     var testapp = function(viewurl, expected, done) {
-      var r = request(app.getUrl()).get(viewurl).expect(expected);
+      var r = request(app.getInternalUrl()).get(viewurl).expect(expected);
       if (typeof expected !== 'number')
         r.expect(200);
       r.end(done);
