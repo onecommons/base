@@ -25,7 +25,7 @@
         {% set alertclass='alert-' + loop.key %}
           {% for alert in type %}
             {{startDismissableAlert(alertclass)}}
-              <p>{{alert}}</p>
+              <p>{% autoescape false %}{{alert}}{% endautoescape %}</p>
             </div>
           {% endfor %}
       {% endfor %}

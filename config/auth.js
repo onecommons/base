@@ -10,7 +10,6 @@ module.exports = {
     accountLockedTime: 60 * 5, // seconds
 
     requireEmailVerification: false,
-    confirmationTokenValidHours: 24,
     resetTokenValidMinutes: 30
 
     // 'facebookAuth' : {
