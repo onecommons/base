@@ -4,23 +4,40 @@
 #}
 {% macro startDismissableAlert(alertclass) %}<div class="alert {{alertclass}} alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>{% endmacro %}
 
-{% macro showSubmitResult(containerSelector) %}
-    var containerSelector = "{{containerSelector}}" || '#messages';
-    $(document).bind('dbdata', function(event, response) {
+{% macro alertScripts(containerSelector) %}
+<script>
+  function setAlert(alertclass, message, selector) {
+    $(selector || '#alerts').empty().append('<div class="row">'+
+    '{{startDismissableAlert("alertclass")|addslashes}}'.replace("alertclass", alertclass)
+    + message + '</div></div>'
+    )
+  }
+
+  $(document).bind('dbdata', function(event, response) {
       var alertClass =  response.hasErrors() ? 'alert-danger' : 'alert-success';
       var message = response.hasErrors() ? "An error has occurred." : "Saved!";
-      $(containerSelector).empty().append(
-        '{{startDismissableAlert("alertclass")|addslashes}}'.replace("alertclass", alertClass)
-        + message + '</div>'
-      )
-    });
+      setAlert(alertClass, message, "{{containerSelector}}");
+  });
+
+  $(document).ready(function(){
+    $('.send-resend').click(function() {
+      $.post('{{routes.verificationResend}}').always(function(data, textStatus) {
+        if (textStatus != 'success' || data.error)
+        setAlert('alert-danger', 'Error sending confirmation email',"{{containerSelector}}");
+        else
+        setAlert('alert-success', 'Confirmation email Sent', "{{containerSelector}}");
+      })
+    })
+  });
+</script>
 {% endmacro %}
 
 {% macro displayAlertMessages(scope) %}
+<div id="alerts">
     {% if popAlertMessages %}
     {% set alerts = popAlertMessages( ['danger', 'warning', 'success', 'info'], scope) %}
     {% if alerts %}
-    <div class="row" id="alerts">
+    <div class="row">
       {% for type in alerts %}
         {% set alertclass='alert-' + loop.key %}
           {% for alert in type %}
@@ -32,4 +49,5 @@
     </div>
     {% endif %}
     {% endif %}
+</div>
 {% endmacro %}

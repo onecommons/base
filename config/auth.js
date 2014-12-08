@@ -9,8 +9,11 @@ module.exports = {
     failedLoginAttempts: 5,
     accountLockedTime: 60 * 5, // seconds
 
-    requireEmailVerification: false,
+    requireEmailVerification: false, //'silent', 'nag', 'require'
     resetTokenValidMinutes: 30
+
+    //signupCompleteRedirect: '/profile',
+    //loginRedirect: '/profile',
 
     // 'facebookAuth' : {
     //     'clientID'      : 'your-app-id',

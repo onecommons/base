@@ -20,27 +20,32 @@ module.exports = function(app, passport) {
 
     logout:           login.logout,
 
-    signup:           { get:  login.signup,
+    signup:           { get:  utils.renderer('signup.html'),
                         post: [ login.signupPost(passport)]},
 
-    verification:     login.verification,
+    //verification required page
+    verification:     ['verification-required',
+                        utils.renderer('verification-required.html')],
 
+    //verification link in email
     verificationToken: [ 'verification/:token', login.verificationToken ],
 
+    //re-send verification method
     verificationResend: { path: 'verification-resend',
-                          get: login.resendVerification,
-                          post: login.resendVerificationPost(app) },
+                          post: login.resendVerification },
 
+    //send forgot password email page and form handler
     forgot:           { get: login.forgot,
                         post: login.forgotPost(app) },
 
+    //password reset page and form handler
     forgotToken:      { path: 'forgot/:token',
                         get:  login.forgotToken,
                         post: login.forgotTokenPost },
 
     datarequest:      { post: [utils.isLoggedIn, datarequest]},
 
-    profile:          [ utils.isLoggedIn, login.profile],
+    profile:          [ utils.isLoggedIn, utils.renderer('profile.html')],
 
     jswig:            ['jswig/*', jswig(app)],
 
