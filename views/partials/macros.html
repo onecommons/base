@@ -33,7 +33,7 @@
 {% endmacro %}
 
 {% macro displayAlertMessages(scope) %}
-<div id="alerts">
+<div id="alerts" class="container">
     {% if popAlertMessages %}
     {% set alerts = popAlertMessages( ['danger', 'warning', 'success', 'info'], scope) %}
     {% if alerts %}
