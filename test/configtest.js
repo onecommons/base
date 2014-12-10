@@ -42,5 +42,23 @@ describe("utils", function() {
         assert(results[2] === 3);
         done()
       },done);
+  });
+
+  it("popAlertMessages", function() {
+    var flashfunc = function(type) {
+      var msgs = {
+        danger: ['msg', 'duplicated'],
+        "s1.danger": ['msg2', 'duplicated'],
+        "s2.danger": ['msg3'],
+        "s1.success": ['another'],
+        success: ['duplicated'],
+      }
+      return msgs[type];
+    }
+    var alerts = utils.popAlertMessages(flashfunc, ['danger', 'success'], ['s1', '']);
+    assert.deepEqual(alerts, {
+      danger: [ 'msg2', 'duplicated', 'msg' ],
+      success: [ 'another', 'duplicated' ]
+    });
   })
 });
