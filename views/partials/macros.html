@@ -6,10 +6,13 @@
 
 {% macro alertScripts(containerSelector) %}
 <script>
-  function setAlert(alertclass, message, selector) {
-    $(selector || '#alerts').empty().append('<div class="row">'+
-    '{{startDismissableAlert("alertclass")|addslashes}}'.replace("alertclass", alertclass)
-    + message + '</div></div>'
+  function setAlert(alertclass, message, selector, append) {
+    var container = $(selector || '#alerts');
+    if (!append)
+      container.empty();
+    container.append('<div class="row">'+
+      '{{startDismissableAlert("alertclass")|addslashes}}'.replace("alertclass", alertclass)
+      + message + '</div></div>'
     )
   }
 
@@ -19,15 +22,28 @@
       setAlert(alertClass, message, "{{containerSelector}}");
   });
 
-  $(document).ready(function(){
-    $('.send-resend').click(function() {
-      $.post('{{routes.verificationResend}}').always(function(data, textStatus) {
-        if (textStatus != 'success' || data.error)
-        setAlert('alert-danger', 'Error sending confirmation email',"{{containerSelector}}");
+  function simpleJsonPost(path, data, msgs) {
+    $.post(path, data).always(function(data, textStatus) {
+      function getMessage(key) {
+        if (typeof msgs[key] === 'function')
+          return msgs[key](data);
         else
-        setAlert('alert-success', 'Confirmation email Sent', "{{containerSelector}}");
-      })
+          return msgs[key];
+      }
+      if (textStatus != 'success' || data.error) {
+        setAlert('alert-danger', getMessage('error') || "Unexpected Error", "{{containerSelector}}");
+      } else {
+        setAlert('alert-success', getMessage('success') || "Success", "{{containerSelector}}");
+      }
     })
+    return false;
+  }
+
+  $(document).ready(function(){
+    $('.send-resend').click(function() { return simpleJsonPost('{{routes.verificationResend}}', null, {
+      success: 'Confirmation email Sent',
+      error: 'Error sending confirmation email'
+    }); })
   });
 </script>
 {% endmacro %}
