@@ -43,6 +43,10 @@ module.exports = function(app, passport) {
                         get:  login.forgotToken,
                         post: login.forgotTokenPost },
 
+    changePassword:   { path: 'change-password',
+                        get: [utils.isRecentlyLoggedIn, utils.renderer('change-password.html')],
+                        post: [utils.isRecentlyLoggedIn, login.changePassword] },
+
     datarequest:      { post: [utils.isLoggedIn, datarequest]},
 
     profile:          [ utils.isLoggedIn, utils.renderer('profile.html')],

@@ -14,6 +14,8 @@ module.exports = {
 
     //signupCompleteRedirect: '/profile',
     //loginRedirect: '/profile',
+    //passwordResetRedirect: '/profile',
+    //verificationRedirect: '/profile',
 
     // 'facebookAuth' : {
     //     'clientID'      : 'your-app-id',

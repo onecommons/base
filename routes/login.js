@@ -51,7 +51,8 @@ module.exports.verificationToken = function(req, res, next) {
    } else {
      req.flash('success', "Thank you, your email has been verified.")
    }
-   var redirectUrl = req.session.returnTo || '/profile';
+   var redirectUrl = req.session.returnTo
+    || req.app.passport.config.verificationRedirect || '/profile';
    delete req.session.returnTo;
    return res.redirect(redirectUrl);
   });
@@ -84,7 +85,6 @@ module.exports.forgot = function(req, res) {
   var sentTo = tmp.length > 0 ? tmp[0] : null;
 
   res.render('forgot.html', {
-    message: req.flash('message'),
     sentTo: sentTo
   });
 }
@@ -92,7 +92,8 @@ module.exports.forgot = function(req, res) {
 module.exports.forgotPost = function(app) {
   return function(req, res, next) {
     var sendErr = function(msg) {
-      res.render('forgot.html', { message:msg });
+      req.flash('danger', msg);
+      res.render('forgot.html');
     }
 
     var address = req.param('email');
@@ -101,8 +102,10 @@ module.exports.forgotPost = function(app) {
     }
 
     u.User.findOne({"local.email":address}, function(err, user) {
-      // XXX be careful what we reveal here! possible security issues
-      if (err || !user) {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
         return sendErr("Can't find a user with that email address");
       }
 
@@ -126,30 +129,65 @@ module.exports.forgotToken = function(req, res) {
 
   auth.userForResetToken(token, function(err, user) {
     if (err) {
-      res.render('forgot.html', { message:err });
+      if (typeof err === 'string') { //user error
+        req.flash("danger", err);
+        res.render('forgot.html');
+      } else {
+        next(err); //unexpected error
+      }
     } else {
-      console.log("got user:"+ user);
       res.render('reset.html');
     }
   });
 }
 
-module.exports.forgotTokenPost = function(req, res) {
-  console.log("forgotTokenPost");
-
+module.exports.forgotTokenPost = function(req, res, next) {
   var token = req.params.token;
-  console.log("got forgotTokenPost:" + token);
   var p1 = req.param('pass1');
   var p2 = req.param('pass2');
 
   auth.resetPasswordWithToken(token, p1, p2, function(err, user) {
     if (err) {
-      res.render('reset.html', {message:err})
+      if (typeof err === 'string') { //user error
+        req.flash("danger", err);
+        res.render('reset.html');
+      } else {
+        next(err); //unexpected error
+      }
     } else {
-      req.flash("info", "Password reset");
-      // XXX where to redirect after reset? login again with new pw?
-      res.redirect('/profile');
+      req.flash("success", "Password reset");
+      res.redirect(req.app.passport.config.passwordResetRedirect || '/profile');
     }
-
   });
+}
+
+module.exports.changePassword = function(req, res, next) {
+  try {
+    var p1 = req.param('pass1');
+    var p2 = req.param('pass2');
+    auth.changePassword(req.user, p1, p2, function(err) {
+      var accept = ~(req.headers.accept || '').indexOf('html');
+      if (err) {
+        if (typeof err === 'string') { //user error
+          if (accept) { //form post
+            req.flash('danger', err);
+            res.render('change-password.html');
+          } else {
+            res.json({error:err});
+          }
+        } else {
+          return next(err); //unexpected error
+        }
+      } else {
+        if (accept) { //form post
+          req.flash('success', "Password Changed");
+          res.redirect('/profile');
+        } else {
+          res.json({success:true});
+        }
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
 }

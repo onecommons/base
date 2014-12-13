@@ -7,10 +7,6 @@
 
 	<h1><span class="fa fa-sign-in"></span> Forgotten Password</h1>
 
-	{% if message.length > 0 %}
-		<div class="alert alert-danger">{{message}}</div>
-	{% endif %}
-
 	{% if sentTo %}
 
 	<p>We've sent a password reset link to {{sentTo}}.</p>
