@@ -2,6 +2,7 @@ var mongoose = require("mongoose");
 var createModel = require('../lib/createmodel');
 var assert = require('chai').assert;
 var _ = require('underscore');
+var Promise = require('promise');
 
 function runAccessTest(test, model, i, done) {
   var doc = new model();
@@ -150,7 +151,54 @@ describe('createModel', function(){
                });
            });
         });
-    });
+  });
+
+  it('should allow documents to dynamically change type', function(done) {
+    var Test4 = createModel("Test4", {prop1: Boolean});
+    var Test4Derive1 = createModel("Test4Derive1", {}, Test4);
+    var Test4Derive2 = createModel("Test4Derive2", {}, Test4);
+    var t3 = new Test4();
+    var t3d1 = new Test4Derive1();
+    var t3d2 = new Test4Derive2();
+    Promise.all([t3.saveP(), t3d1.saveP(),t3d2.saveP()])
+    .then(function() {
+      return Test4.findById(t3.id).exec().then(function(doc){
+        assert(doc);
+      })
+    })
+    .then(function() {
+      return Test4Derive1.findById(t3.id).exec().then(function(doc){
+        assert(!doc);
+      })
+    })
+    .then(function() {
+      return Test4Derive1.findById(t3d1.id).exec().then(function(doc){
+        assert(doc);
+      })
+    })
+    .then(function(){
+      return Test4Derive2.findById(t3d1.id).exec().then(function(doc){
+        assert(!doc);
+      })
+    })
+    .then(function() {
+      return Test4Derive1.update({_id: t3d1.id}, {$set: { __t: 'Test4Derive2' }}).exec();
+    }) //test that type changed
+    .then(function(result) {
+      assert(result === 1);
+      //no longer found here
+      return Test4Derive1.findById(t3d1.id).exec().then(function(doc){
+        assert(!doc);
+      })
+    })
+    .then(function() {
+      //now found here
+      return Test4Derive2.findById(t3d1.id).exec().then(function(doc){
+        assert(doc);
+      })
+    })
+    .then(done,done);
+  });
 
   [
   [{"write:prop1": "admin",
