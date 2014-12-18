@@ -47,6 +47,9 @@ module.exports = function(app, passport) {
                         get: [utils.isRecentlyLoggedIn, utils.renderer('change-password.html')],
                         post: [utils.isRecentlyLoggedIn, login.changePassword] },
 
+    disableAccount:   { path: 'disable-account',
+                        post: [utils.isRecentlyLoggedIn, login.disableAccount] },
+
     datarequest:      { post: [utils.isLoggedIn, datarequest]},
 
     profile:          [ utils.isLoggedIn, utils.renderer('profile.html')],

@@ -3,6 +3,7 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 var createSchema = require('../lib/createmodel').createSchema;
+var accountSchema = require("./account");
 
 // define the schema for our user model
 var userSchema = mongoose.Schema({
@@ -10,7 +11,7 @@ var userSchema = mongoose.Schema({
     displayName       : String,
     avatarUrl         : String,
     local            : {
-        email        : {type:String, unique:true},
+        email        : {type:String, lowercase: true, unique: true, sparse: true },
         password     : String,
         verified     : {type: Boolean, default:false},
         accountLocked: {type: Boolean, default:false},
@@ -21,21 +22,21 @@ var userSchema = mongoose.Schema({
         resetTokenExpires  : Date
      },
     facebook         : {
-        id           : String,
+        id           : {type:String, unique: true, sparse: true },
         token        : String,
-        email        : String,
+        email        : {type:String, lowercase: true},
         name         : String
     },
     twitter          : {
-        id           : String,
+        id           : {type:String, unique: true, sparse: true },
         token        : String,
         displayName  : String,
         username     : String
     },
     google           : {
-        id           : String,
+        id           : {type:String, unique: true, sparse: true },
         token        : String,
-        email        : String,
+        email        : {type:String, lowercase: true},
         name         : String
     }
 
@@ -52,22 +53,19 @@ userSchema.methods.validPassword = function(password) {
     return bcrypt.compareSync(password, this.local.password);
 };
 
-
-userSchema.methods.setupPaymentPlan = function(params){
-    // edit paymentPlan fields from given params.
-
-}
-
-userSchema.methods.doPaymentPlanDebit = function(){
-    // setup new FT record.
-    // ft.doBPDebit()
-    // save updated FT.
-    // update reference to FT in user.payplan.lastCharge.
-}
-
+/*
+Implement disabling accounts by changing dynamically changing the type.
+This approach enables any User query to exclude disabled users by default
+while at same time preventing new accounts from re-using unique login identifiers
+*/
+userSchema.methods.disable = function() {
+  //change type from User to DisabledAccount
+  return module.exports.getModel().update({_id: this.id},
+    {$set: { __t: 'DisabledAccount' }}).exec();
+};
 
 // create the model for users and expose it to our app
-module.exports = createSchema('User', userSchema, null, {
+module.exports = createSchema('User', userSchema, accountSchema, {
     'write:displayName|write:avatarUrl':
       {'': 'admin',
        'id': 'user'

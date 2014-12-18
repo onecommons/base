@@ -207,3 +207,15 @@ module.exports.changePassword = function(req, res, next) {
     next(err);
   }
 }
+
+module.exports.disableAccount = function(req, res, next) {
+  try {
+    req.user.disable().then(function() {
+      req.flash('warning', 'Your account has been disabled.');
+      req.logout();
+      res.redirect('/');
+    }, next);
+  } catch (err) {
+    next(err);
+  }
+}
