@@ -8,7 +8,7 @@ module.exports = {
     failedLoginsWarning: 3,
     failedLoginAttempts: 5,
     accountLockedTime: 60 * 5, // seconds
-
+    sendWelcomeEmail: true,
     requireEmailVerification: false, //'silent', 'nag', 'require'
     resetTokenValidMinutes: 30
 
