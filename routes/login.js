@@ -16,11 +16,27 @@ module.exports.login = function(app) {
 }
 
 module.exports.loginPost = function(passport) {
-  return passport.authenticate('local-login', {
-    successReturnToOrRedirect: passport.config.loginRedirect || '/profile',
-    failureRedirect: '/login',   // back to login on error
-    failureFlash: {type:'login.danger'}
-  });
+  return [
+    passport.authenticate('local-login', {
+      failureRedirect: '/login',   // back to login on error
+      failureFlash: {type:'login.danger'}
+    }),
+  //replace passport's successReturnToOrRedirect option with one that
+  //preserves the http method so that we can return to a redirected POST.
+    function(req, res) {
+      var url = passport.config.loginRedirect || '/profile';
+      var statusCode = 302; //303 is more accurate but express redirect() defaults
+      //to 302 so stick to that for consistency
+      if (req.session && req.session.returnTo) {
+        if (req.session.returnToMethod == req.method) {
+          statusCode = 307;
+        }
+        url = req.session.returnTo;
+        delete req.session.returnTo;
+      }
+      return res.redirect(statusCode, url);
+    }
+  ]
 }
 
 module.exports.logout = function(req, res) {
