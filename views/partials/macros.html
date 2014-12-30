@@ -22,8 +22,11 @@
       setAlert(alertClass, message, "{{containerSelector}}");
   });
 
-  function simpleJsonPost(path, data, msgs) {
+  function simpleJsonPost(path, data, msgs, ondone) {
     $.post(path, data).always(function(data, textStatus) {
+      if (ondone) {
+        ondone(data, textStatus);
+      }
       function getMessage(key) {
         if (typeof msgs[key] === 'function')
           return msgs[key](data);

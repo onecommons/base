@@ -396,7 +396,7 @@ txn.commit();
       return swig.run($.templates[templatename], model, templatename);
     }
     ,dbRender: function(model, templatename) {
-      this.html(this.dbRenderToString());
+      this.html(this.dbRenderToString(model, templatename));
       return this;
     }
     ,dbModel: function() {
