@@ -163,22 +163,22 @@ describe('createModel', function(){
     Promise.all([t3.saveP(), t3d1.saveP(),t3d2.saveP()])
     .then(function() {
       return Test4.findById(t3.id).exec().then(function(doc){
-        assert(doc);
+        assert(doc); //base model finds base instance
       })
     })
     .then(function() {
       return Test4Derive1.findById(t3.id).exec().then(function(doc){
-        assert(!doc);
+        assert(!doc); //1st derived model doesn't find base instance
       })
     })
     .then(function() {
       return Test4Derive1.findById(t3d1.id).exec().then(function(doc){
-        assert(doc);
+        assert(doc); //1st derived model finds 1st derived instance
       })
     })
     .then(function(){
       return Test4Derive2.findById(t3d1.id).exec().then(function(doc){
-        assert(!doc);
+        assert(!doc); //2nd derived model doesn't finds 1st derived instance
       })
     })
     .then(function() {
@@ -188,16 +188,31 @@ describe('createModel', function(){
       assert(result === 1);
       //no longer found here
       return Test4Derive1.findById(t3d1.id).exec().then(function(doc){
-        assert(!doc);
+        assert(!doc); //1st derived model doesn't finds 1st derived instance anymore
       })
     })
     .then(function() {
       //now found here
       return Test4Derive2.findById(t3d1.id).exec().then(function(doc){
-        assert(doc);
+        assert(doc); //2nd derived model now finds 1st derived instance
       })
     })
     .then(done,done);
+  });
+
+  it('should expose createdOn property', function(done) {
+    var Test = createModel("TestCreatedOn", s);
+    var t = new Test();
+    assert.equal(t.createdOn, null); //no id assigned yet
+    var t2 = new Test();
+    t2._id = '@Test@1'; //assign an id that not based on a ObjectId.
+    assert.equal(t2.createdOn, null);
+    var now = new Date();
+    now.setMilliseconds(0); //ObjectId.getTimestamp() has second granuality
+    t.saveP().then(function(doc) {
+      assert(doc);
+      assert.equal(t.createdOn.getTime(), now.getTime());
+    }).then(done,done);
   });
 
   [
