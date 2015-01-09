@@ -41,7 +41,7 @@ module.exports = function(app, passport) {
     //password reset page and form handler
     forgotToken:      { path: 'forgot/:token',
                         get:  login.forgotToken,
-                        post: login.forgotTokenPost },
+                        post: login.forgotTokenPost(app) },
 
     changePassword:   { path: 'change-password',
                         get: [utils.isRecentlyLoggedIn, utils.renderer('change-password.html')],

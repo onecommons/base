@@ -322,5 +322,7 @@ it('should handle extending access control denied', function(done) {
 
   //XXX test Any/mixed
   //XXX test default values
+  //XXX test virtual properties
+  //XXX methods? statics?
 
 }); // describe...

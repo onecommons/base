@@ -152,28 +152,17 @@ module.exports.forgotToken = function(req, res) {
         next(err); //unexpected error
       }
     } else {
-      res.render('reset.html');
+      res.render('reset.html', {token: token});
     }
   });
 }
 
-module.exports.forgotTokenPost = function(req, res, next) {
-  var token = req.params.token;
-  var p1 = req.param('pass1');
-  var p2 = req.param('pass2');
-
-  auth.resetPasswordWithToken(token, p1, p2, function(err, user) {
-    if (err) {
-      if (typeof err === 'string') { //user error
-        req.flash("danger", err);
-        res.render('reset.html');
-      } else {
-        next(err); //unexpected error
-      }
-    } else {
-      req.flash("success", "Password reset");
-      res.redirect(req.app.passport.config.passwordResetRedirect || '/profile');
-    }
+module.exports.forgotTokenPost = function(app) {
+  return app.passport.authenticate('local-passwordreset', {
+    successRedirect: app.passport.config.passwordResetRedirect || '/profile',
+    successFlash: "Your password was reset",
+    failureRedirect: '#',
+    failureFlash: {type:'danger'}
   });
 }
 
