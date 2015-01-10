@@ -1,12 +1,12 @@
 <!-- session/authentication debugging -->
-{% if req %}
+{% if debug.req %}
   <hr>
   <div>
-    <em>sessionid:</em>{{req.session.id}}<br>
-    <em>session:</em>{{req.session|json}}<br>
+    <em>sessionid:</em>{{debug.req.session.id}}<br>
+    <em>session:</em>{{debug.req.session|json}}<br>
     <!-- expires in {{ req.session.cookie.maxAge / 1000 }} seconds<br>     -->
-    {% if req.isAuthenticated() %}
-    <em>user:</em>{{req.user|json}}
+    {% if debug.req.isAuthenticated() %}
+    <em>user:</em>{{debug.req.user|json}}
     {% else %}
     <i>not logged in</i>
     {% endif %}
