@@ -1,0 +1,127 @@
+{% extends 'layouts/layout.html' %}
+
+{% block head %}
+<link href="//cdn.datatables.net/plug-ins/f2c75b7247b/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet">
+<link href="//cdn.datatables.net/fixedheader/2.1.2/css/dataTables.fixedHeader.css" rel="stylesheet">
+<link href="//cdn.datatables.net/colvis/1.1.1/css/dataTables.colVis.css" rel="stylesheet">
+<link href="//cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<style>
+colgroup, tbody { border: solid thin; }
+td { max-width: 10em; white-space: nowrap; text-overflow: ellipsis;  overflow: hidden;}
+
+td.details-control {
+    cursor: pointer;
+}
+td.details-control:before {
+  top: 50%;
+  left: 50%;
+  height: 16px;
+  width: 16px;
+  display: block;
+  color: white;
+  border: 2px solid white;
+  border-radius: 16px;
+  text-align: center;
+  line-height: 14px;
+  box-shadow: 0 0 3px #444;
+  box-sizing: content-box;
+  content: '+';
+  background-color: #31b131;
+}
+tr.shown td.details-control:before {
+  content: '-';
+  background-color: #d33333;
+}
+
+button.ColVis_Button {
+  width: 20em;
+}
+
+ul.ColVis_collection {
+  width: 20em;
+}
+
+</style>
+<table id="crud" class="table table-striped table-bordered display compact" cellspacing="0" width="100%">
+  <thead>
+    {%for row in headers %}
+    <tr>
+      {%for cell in row %}
+      <th data-path={{cell.path}} {%if cell.rowspan > 1 %}rowspan="{{cell.rowspan}}"{%endif%} {%if cell.colspan > 1 %}colspan="{{cell.colspan}}"{%endif%}>{{cell.name}}</th>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </thead>
+
+  {% for cell in colgroups %}
+    <colgroup span={{cell.colspan}}>
+  {% endfor %}
+
+    <tbody>
+    {%for obj in objs %}
+      <tr>
+      {%for cell in footer %}
+        <td data-toggle="tooltip">{{obj.get(cell.path)||''}}</td>
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+{#
+    <tfoot>
+      <tr>
+        {%for cell in footer %}
+        <th>{{cell.name}}</th>
+        {% endfor %}
+      </tr>
+    </tfoot>
+#}
+</table>
+{% endblock %}
+
+{% block jsfooter %}
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/plug-ins/f2c75b7247b/integration/bootstrap/3/dataTables.bootstrap.js"></script>
+<script src="//cdn.datatables.net/fixedheader/2.1.2/js/dataTables.fixedHeader.min.js"></script>
+<script src="//cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.min.js"></script>
+<script src="//cdn.datatables.net/colvis/1.1.1/js/dataTables.colVis.min.js"></script>
+
+<script>
+  $(document).ready(function () {
+    var table = $('#crud').DataTable({
+      responsive: false,
+      dom: 'C<"clear">lfrtip',
+      colVis: {
+        label: function (index, title, th ) {
+          return $(th).data('path');
+        }
+      },
+      columnDefs: [
+        {
+            "targets": {{hiddenColumns|json}},
+            "visible": false
+        },
+        {
+          "targets": 0,
+          //"className":      'details-control',
+        },
+      ],
+          //"order": [[ 1, "desc" ]]
+    });
+    new $.fn.dataTable.FixedHeader( table );
+
+    $('[data-toggle="tooltip"]').tooltip({
+      placement: 'auto right',
+      delay: 500,
+      title: function() {
+        return $(this).text();
+      }
+    });
+  });
+</script>
+
+{% endblock %}

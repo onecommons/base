@@ -8,6 +8,7 @@ var login           = require('./login');
 var directory       = require('./directory'); //XXX delete from app
 var datarequest     = require('./datarequest');
 var files           = require('./files');
+var crud           = require('./crud');
 
 module.exports = function(app, passport) {
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>
@@ -56,8 +57,10 @@ module.exports = function(app, passport) {
 
     jswig:            ['jswig/*', jswig(app)],
 
-    files:            [utils.requirePermission('admin'), files.showFiles],
+    files:            ['/admin/files', utils.requirePermission('admin'), files.showFiles],
 
-    file:             ['file/:id/:name', utils.requirePermission('admin'), files.viewFile]
+    file:             ['/admin/file/:id/:name', utils.requirePermission('admin'), files.viewFile],
+
+    crud:             ['/admin/crud/:model', utils.requirePermission('admin'), crud],
   };
 }
