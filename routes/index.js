@@ -57,10 +57,10 @@ module.exports = function(app, passport) {
 
     jswig:            ['jswig/*', jswig(app)],
 
-    files:            ['/admin/files', utils.requirePermission('admin'), files.showFiles],
+    files:            ['admin/files', utils.requirePermission('admin'), files.showFiles],
 
-    file:             ['/admin/file/:id/:name', utils.requirePermission('admin'), files.viewFile],
+    file:             ['admin/file/:id/:name', utils.requirePermission('admin'), files.viewFile],
 
-    crud:             ['/admin/crud/:model', utils.requirePermission('admin'), crud],
+    crud:             ['admin/crud/:model', utils.requirePermission('admin'), crud],
   };
 }
