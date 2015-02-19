@@ -6,11 +6,18 @@ var utils = require('../lib/utils');
 /*
 TODO
 
-why does tooltip rearrange table?
-
-have details display columns offscreen
+* why does tooltip rearrange table?
+* turn object references into ajax calls that displays a card like UI
+* datatype formating (e.g. date)
+* have details display columns offscreen
 window.innerWidth < columnElement.getBoundingClientRect().right
 details needs to show path, suppress empty columns
+* save hidden colunm state (html5 pushstate?)
+* editor
+- fieldset based on schema tree
+- support enums
+- support object refs: autocomplete (how to display object "titles")
+
 */
 
 
@@ -57,10 +64,11 @@ function setRowspans(headers) {
   }
 }
 
-//XXX turn object references into ajax call that displays a card like UI
+module.exports.QUERYLIMIT = 10000;
 
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports = function(req, res, next) {
+  //
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
   var model = models[req.params.model];
@@ -79,7 +87,7 @@ module.exports = function(req, res, next) {
     headers:headers,
     footer:footer,
     colgroups:headers[0],
-    objs: model.find({}).exec()
+    objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
