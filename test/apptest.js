@@ -21,7 +21,7 @@ describe('app', function() {
       routes: {
         index: function(req, res) {
           assert(req.app);
-          res.send(200, "derived");
+          res.status(200).send("derived");
         }
       }
     });

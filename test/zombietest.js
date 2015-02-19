@@ -18,7 +18,7 @@ describe('zombietest', function() {
     app.addBrowserTests();
     app.post('/testresult', function (req, res) {
       app.testresults.emit('clienttestresults', req.body);
-      res.send( '"OK"', 200 );
+      res.status(200).send( '"OK"');
     });
 
     app.start(function() {

@@ -16,12 +16,12 @@ module.exports = function(app) {
 
   fs.exists(thePath, function(exists){
     if(!exists) {
-      res.send(404);
+      res.sendStatus(404);
       return;
     } else {
       fs.readFile(thePath, function (err, data) {
         if (err) {
-          next(err); 
+          next(err);
           return;
         }
         try {
@@ -33,7 +33,7 @@ module.exports = function(app) {
           // res.send('500', "Swig " + err);
           return;
         }
-        // console.log(tpl); 
+        // console.log(tpl);
         res.type('application/javascript');
         res.send(tpl);
       });
