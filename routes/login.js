@@ -41,6 +41,7 @@ module.exports.loginPost = function(passport) {
 
 module.exports.logout = function(req, res) {
   req.logout();
+  delete req.session.impersonated; //in case an admin was impersonating this user
   res.redirect('/');
 }
 

@@ -34,6 +34,12 @@ Run unit tests:
 NODE_ENV=test ./node_modules/.bin/mocha --reporter=list
 ```
 
+Code coverage:
+
+```
+NODE_ENV=test istanbul cover ./node_modules/.bin/_mocha --reporter=list
+```
+
 ## Debugging
 
 ```npm install -g node-inspector```
