@@ -45,11 +45,16 @@ module.exports = function(app, passport) {
                         post: login.forgotTokenPost(app) },
 
     changePassword:   { path: 'change-password',
-                        get: [utils.isRecentlyLoggedIn, utils.renderer('change-password.html')],
+                        get:  [utils.isRecentlyLoggedIn, utils.renderer('change-password.html')],
                         post: [utils.isRecentlyLoggedIn, login.changePassword] },
 
     disableAccount:   { path: 'disable-account',
                         post: [utils.isRecentlyLoggedIn, login.disableAccount] },
+
+    impersonate:      { path: 'admin/impersonate-user',
+                        get:  [utils.requirePermission('admin'), utils.renderer('impersonate.html')],
+                        post: [utils.requirePermission('admin'), login.impersonatePost(app)]
+                      },
 
     datarequest:      { post: [utils.isLoggedIn, datarequest]},
 

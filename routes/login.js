@@ -208,3 +208,12 @@ module.exports.disableAccount = function(req, res, next) {
     next(err);
   }
 }
+
+module.exports.impersonatePost = function(app) {
+  return app.passport.authenticate('local-impersonate', {
+    successRedirect: app.passport.config.impersonateRedirect || '/profile',
+    successFlash: "Impersonation successful. Logout to end impersonation.",
+    failureRedirect: '#',
+    failureFlash: {type:'danger'}
+  });
+}
