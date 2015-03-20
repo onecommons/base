@@ -62,3 +62,34 @@ describe("utils", function() {
     });
   })
 });
+
+describe("logs", function() {
+  var log = require('../lib/log');
+
+  var outputFunc;
+  before(function() {
+    outputFunc = log.logger.output;
+  });
+
+  //use FATAL because it isn't filtered about by test config settings
+  it("logs with formating", function(done) {
+    log.logger.output = function(msg) {
+      assert(msg.match("FATAL.*foo 1 bar"), msg);
+      done();
+    };
+    log.fatal('foo %s bar', 1);
+  });
+
+  it("logs error", function(done) {
+    log.logger.output = function(msg) {
+      assert(msg.match(/FATAL.*\[Error: test\] foo 1 bar/), msg);
+      done();
+    };
+    log.fatal(new Error('test'), 'foo %s bar', 1);
+  });
+
+  after(function() {
+    //restore original method
+    log.logger.output = outputFunc;
+  });
+});
