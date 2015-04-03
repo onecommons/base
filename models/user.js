@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 var createSchema = require('../lib/createmodel').createSchema;
 var accountSchema = require("./account");
+var validator = require('validator');
 
 // define the schema for our user model
 var userSchema = mongoose.Schema({
@@ -11,7 +12,9 @@ var userSchema = mongoose.Schema({
     displayName       : String,
     avatarUrl         : String,
     local            : {
-        email        : {type:String, lowercase: true, unique: true, sparse: true },
+        email        : {type:String, lowercase: true, unique: true, sparse: true,
+                          validate: [ validator.isEmail, 'invalid email' ]
+        },
         password     : String,
         verified     : {type: Boolean, default:false},
         accountLocked: {type: Boolean, default:false},

@@ -29,7 +29,8 @@
     "passport-local": "~0.1.6",
     "promise": "*",
     "swig": "~1.4.1",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "validator": "^3.36.0"
   },
   "devDependencies": {
     "mocha": "~1.15.1",
