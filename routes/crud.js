@@ -2,11 +2,11 @@ var mongoose = require('mongoose');
 var _ = require('underscore');
 var models = require('../models');
 var utils = require('../lib/utils');
+var moment = require('moment');
 
 /*
 TODO
 
-* why does tooltip rearrange table?
 * turn object references into ajax calls that displays a card like UI
 * datatype formating (e.g. date)
 * have details display columns offscreen
@@ -20,6 +20,19 @@ details needs to show path, suppress empty columns
 
 */
 
+/*
+{{macro display(obj)}}
+display
+  for prop in obj
+    if item is object
+      <div>
+       display(item)
+     </div>
+    else
+       <span>{{prop}}</span>: <span>{{format(obj[prop])}}</span>
+{#endmacro}}
+
+*/
 
 /*
 rowspan = total depth - (current depth-1) if cell has no children
@@ -66,9 +79,21 @@ function setRowspans(headers) {
 
 module.exports.QUERYLIMIT = 10000;
 
+function formatdata(data) {
+  if (!data && typeof data !== 'number') {
+    return '';
+  }
+  if (data instanceof Date) {
+    return moment(data).format()
+  }
+  //limit decimals
+  if (typeof data === 'number' && Math.round(data) != data)
+    return data.toFixed(4);
+  return data
+}
+
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports = function(req, res, next) {
-  //
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
   var model = models[req.params.model];
@@ -87,6 +112,7 @@ module.exports = function(req, res, next) {
     headers:headers,
     footer:footer,
     colgroups:headers[0],
+    formatdata: formatdata, 
     objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
     result.hiddenColumns = findEmptyColumns(footer, result.objs);

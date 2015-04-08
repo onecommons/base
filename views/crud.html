@@ -65,7 +65,7 @@ ul.ColVis_collection {
     {%for obj in objs %}
       <tr>
       {%for cell in footer %}
-        <td data-toggle="tooltip">{{obj.get(cell.path)||''}}</td>
+        <td data-toggle="tooltip" data-container="body">{{formatdata(obj.get(cell.path))}}</td>
       {% endfor %}
       </tr>
     {% endfor %}
