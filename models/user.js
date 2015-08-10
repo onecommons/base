@@ -64,7 +64,9 @@ while at same time preventing new accounts from re-using unique login identifier
 userSchema.methods.disable = function() {
   //change type from User to DisabledAccount
   return module.exports.getModel().update({_id: this.id},
-    {$set: { __t: 'DisabledAccount' }}).exec();
+    {$set: { __t: 'DisabledAccount',
+             disabledOn: new Date()
+    }}).exec();
 };
 
 // create the model for users and expose it to our app

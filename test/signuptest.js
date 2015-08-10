@@ -7,7 +7,9 @@ describe('signup', function() {
 
   before(function(done) {
     app = require('./lib/app')({
-      configOverrides: {}
+      configOverrides: {
+        auth: { sendWelcomeEmail: true }
+      }
     });
 
     var signupStrategy = app.passport._strategy('local-signup');
@@ -92,7 +94,8 @@ describe('signup', function() {
 
   it("should disable an account", function(done) {
     user.disable()
-    .then(function() { //test that you can't login any more
+    .then(function(updateresponse) { //test that you can't login any more
+      assert(updateresponse === 1)
       return new Promise(function(resolve, reject) {
         loginFunc(mockReq('Oops! Wrong email or password'), "test@email.com", "passw0rd", function(err, user) {
           assert(!err);
