@@ -284,7 +284,7 @@ describe('datastore', function(){
         .post('/')
         //.set('Content-Type', 'application/json') //unnecessary since its the default
         .send(
-          [{"jsonrpc":"2.0","method":"create","params":{"_id":id,"prop1":"adds a value to prop1"},"id":05968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
+          [{"jsonrpc":"2.0","method":"create","params":{"_id":id,"prop1":"adds a value to prop1"},"id":5968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
           )
         .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":{"__v":0,"_id":"@Test1@2","prop1":["adds a value to prop1"],"__t":"Test1"}},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]'
             .replace(/Test1/g, modelName), done);
@@ -398,7 +398,7 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
         .post('/')
         //.set('Content-Type', 'application/json') //unnecessary since its the default
         .send(
-          [{"jsonrpc":"2.0","method":"create","params":{"_id":"@2","prop1":"adds a value to prop1"},"id":05968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
+          [{"jsonrpc":"2.0","method":"create","params":{"_id":"@2","prop1":"adds a value to prop1"},"id":5968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
           )
         .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":[{"_id":"@2","prop1":"adds a value to prop1"}]},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]', done);
       });

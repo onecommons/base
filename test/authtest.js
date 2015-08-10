@@ -25,7 +25,7 @@ function setupApp(cb, options) {
   app.addTestUser();
   app.start(null, function(server){
       cb(app, request.agent(app.getInternalUrl()));
-  });
+  }).catch(function(err) { console.log('catch', err); });
 }
 
 function stopApp(app, done) {

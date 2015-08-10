@@ -20,13 +20,12 @@ describe('zombietest', function() {
       app.testresults.emit('clienttestresults', req.body);
       res.status(200).send( '"OK"');
     });
-
     app.start(function() {
         //note: may or may not exits, if it doesn't err will be set
         mongoose.connection.db.dropCollection('dbtest1');
     }, function(server){
         console.log('test app started'); done();
-    });
+    }).catch(done);
   });
 
   after(function(done){ app.stop(done);})

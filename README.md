@@ -31,7 +31,7 @@ edit app.js
 Run unit tests:
 
 ```
-NODE_ENV=test ./node_modules/.bin/mocha --reporter=list
+NODE_ENV=test ./node_modules/.bin/mocha --compilers js:babel/register --reporter=list
 ```
 
 Code coverage:

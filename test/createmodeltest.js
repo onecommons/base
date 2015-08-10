@@ -12,7 +12,7 @@ function runAccessTest(test, model, i, done) {
   });*/
   doc.setPrinciple(createModel.getAccessControlPolicy().defaultPrinciple || { roles:['user']})
   var prop = test[1];
-  failed = false
+  var failed = false
   try {
     if (prop)
       doc[prop] = true;

@@ -42,7 +42,7 @@ function addBrowserTests() {
 function addUserStartupListener() {
   return main.models.User.remove({_id: "@User@123"}).exec()
     .then(function(){
-      theUser = new main.models.User();
+      var theUser = new main.models.User();
       theUser.displayName = "Test User";
       theUser.local.email = "test@onecommons.org";
       theUser.local.password = "$2a$08$9VbBhF8kBcKIwLCk52O0Guqj60gb1G.hIoWznC806yhsAMb5wctg6"; // test

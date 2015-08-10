@@ -4,8 +4,10 @@ var Promise = require('promise');
 var mongoose = require('mongoose');
 var mongodb = require('mongodb');
 
-exports.models = models = {};
-exports.schemas = schemas = {};
+var models = {};
+exports.models = models;
+var schemas = {};
+exports.schemas = schemas;
 
 [
 //require('./item'),

@@ -174,7 +174,7 @@ describe('jsonrpc', function(){
       var req = request(app).post('/')
       .field('jsonrpc', json)
 
-      part = req.part()
+      var part = req.part()
         .set('Content-Disposition', 'form-data; name="dummy"; filename="dummy.txt"')
         .set('Content-Type', 'text/plain');
       part.write('some dummy data');
