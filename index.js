@@ -1,5 +1,4 @@
 //require("babel/register");
-//console.log('babel registered');
 if (process.env.SRC_base) {
   var path = require('path');
   module.exports = require(path.join(path.resolve(process.env.SRC_base), 'lib/app'));
