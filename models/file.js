@@ -14,7 +14,7 @@ var fileSchema = mongoose.Schema({
   tags: [String]
 });
 
-fileSchema.statics.saveFileObj = function(fileinfo, rpcSession) {
+fileSchema.statics.saveFileObj = function(fileinfo, ownerid) {
   var self = this;
   return new Promise(function(resolve, reject) {
       var buffers = [];
@@ -31,8 +31,8 @@ fileSchema.statics.saveFileObj = function(fileinfo, rpcSession) {
           file.size = file.contents.length;
           if (fileinfo.tags)
             file.tags = fileinfo.tags;
-          if (rpcSession && rpcSession.httpRequest && rpcSession.httpRequest.user) {
-            file.owner = rpcSession.httpRequest.user.id;
+          if (ownerid) {
+            file.owner = ownerid;
           }
           file.saveP().then(resolve, reject);
         }catch (err) {

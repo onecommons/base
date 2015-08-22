@@ -98,10 +98,12 @@ Txn.prototype = {
      this.fileuploads.forEach(function(fileInputElement) {
        if (fileInputElement.files && fileInputElement.files.length
            && fileInputElement.getAttribute('data-dbmethod')) {
+         var params = { 'name' : fileInputElement.name };
+         params[_IDkey] = fileInputElement.db_Id;
          This.requests.unshift({ //put these first
            jsonrpc : '2.0',
            method : fileInputElement.getAttribute('data-dbmethod'),
-           params : { 'name' : fileInputElement.name }
+           params : params
            //treat as notification by ommitting the id //id: This.requests.length+1
          })
        }
@@ -302,8 +304,10 @@ txn.commit();
                     $.extend(obj[0], override);
                 }
                 $(this).find('[data-dbmethod]').each(function() {
-                  if (this.files && this.files.length)
+                  if (this.files && this.files.length) {
+                    this.db_Id = obj[_IDkey];
                     txn.fileuploads.push(this);
+                  }
                 })
                 //konsole.log('about to', action, 'obj', obj);
                 return txn.execute(action, obj, callback, this);
