@@ -103,7 +103,7 @@ describe('jsonrpc', function(){
       .post('/')
       //.set('Content-Type', 'application/json') //unnecessary since its the default
       .send({"jsonrpc":"2.0","method":"doesntexist","id":8})
-      .expect( '{"jsonrpc":"2.0","id":8,"error":{"code":-32601,"message":"Method not found"}}', done);
+      .expect( '{"jsonrpc":"2.0","id":8,"error":{"code":-32601,"message":"Method not found","data":"doesntexist"}}', done);
     });
 
     it('should handle custom errors correctly', function(done){
