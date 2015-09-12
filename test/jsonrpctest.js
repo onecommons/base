@@ -31,6 +31,12 @@ describe('jsonrpc', function(){
           else
             respond( jsonrpc.INTERNAL_ERROR );
         },
+        error_promise: function (params, respond) {
+          return Promise.reject(new jsonrpc.JsonRpcError(-32001, "User Error"))
+        },
+        error_promise2: function (params, respond) {
+          return Promise.reject("error")
+        },
         get_data: function (params, respond) {
           respond(["hello", 5]);
         },
@@ -112,6 +118,22 @@ describe('jsonrpc', function(){
       //.set('Content-Type', 'application/json') //unnecessary since its the default
       .send({"jsonrpc":"2.0","method":"error",  "params":["hi"], "id":8})
       .expect( '{"jsonrpc":"2.0","id":8,"error":{"code":-32001,"message":"User Error"}}', done);
+    });
+
+    it('should handle promise rejections correctly', function(done){
+      request(app)
+      .post('/')
+      //.set('Content-Type', 'application/json') //unnecessary since its the default
+      .send({"jsonrpc":"2.0","method":"error_promise",  "params":["hi"], "id":8})
+      .expect( '{"jsonrpc":"2.0","id":8,"error":{"code":-32001,"message":"User Error"}}', done);
+    });
+
+    it('should handle unspecified promise rejections correctly', function(done){
+      request(app)
+      .post('/')
+      //.set('Content-Type', 'application/json') //unnecessary since its the default
+      .send({"jsonrpc":"2.0","method":"error_promise2",  "params":["hi"], "id":8})
+      .expect( '{"jsonrpc":"2.0","id":8,"error":{"code":-32000,"message":"Application error","data":"error"}}', done);
     });
 
     it('should handle batch requests', function(done){
