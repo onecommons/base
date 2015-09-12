@@ -10,6 +10,7 @@
 	<p>Please enter your new password:</p>
 
 	<form action="" method="post">
+		{% if _csrf %}<input type=hidden name='_csrf' value="{{_csrf}}">{%endif%}
 		<input type='hidden' name='token' value='{{token}}'>
 		<div class="form-group">
 			<label>Password</label>

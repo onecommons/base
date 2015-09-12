@@ -16,6 +16,7 @@
 	<p>If you've forgotten your password, enter your email address to receive a password reset link</p>
 	<!-- LOGIN FORM -->
 	<form action="/forgot" method="post">
+		{% if _csrf %}<input type=hidden name='_csrf' value="{{_csrf}}">{%endif%}
 		<div class="form-group">
 			<label>Email</label>
 			<input type="text" class="form-control" name="email">
