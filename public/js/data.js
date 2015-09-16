@@ -61,12 +61,16 @@ Txn.prototype = {
         */
 
         //JSON-RPC 2.0 see http://groups.google.com/group/json-rpc/web/json-rpc-2-0
-        this.requests.push( {
-            jsonrpc : '2.0',
-            method : action,
-            params : data,
-            id : requestId
-        });
+        if (action) {
+          this.requests.push( {
+              jsonrpc : '2.0',
+              method : action,
+              params : data,
+              id : requestId
+          });
+        }
+        //action can be empty if just doing a file upload -- but we still want to
+        //generate a request id so callbacks work
 
         if (callback) { //bind callback to data event
             $(elem).one('dbdata-'+this.txnId, function(event, responses) {
@@ -99,12 +103,13 @@ Txn.prototype = {
        if (fileInputElement.files && fileInputElement.files.length
            && fileInputElement.getAttribute('data-dbmethod')) {
          var params = { 'name' : fileInputElement.name };
-         params[_IDkey] = fileInputElement.db_Id;
+         if (fileInputElement.db_Id !== undefined)
+          params[_IDkey] = fileInputElement.db_Id;
          This.requests.unshift({ //put these first
-           jsonrpc : '2.0',
+           jsonrpc: '2.0',
            method : fileInputElement.getAttribute('data-dbmethod'),
-           params : params
-           //treat as notification by ommitting the id //id: This.requests.length+1
+           params : params,
+           id     : fileInputElement.db_RequestId
          })
        }
      });
@@ -184,7 +189,7 @@ Txn.prototype = {
         */
         //XXX path should be configurable
         //konsole.log('requests', this.requests);
-        if (this.requests.length) {
+        if (this.requests.length || this.fileuploads.length) {
             if (this.txnComment) {
                 this.requests.push({
                     jsonrpc : '2.0',
@@ -194,7 +199,8 @@ Txn.prototype = {
                 });
                 this.txnComment = '';
             }
-            if (this.fileuploads.length && FormData) {
+            if (this.fileuploads.length) {
+              konsole.assert(FormData);
               this.doUpload(ajaxCallback);
             } else {
               var requests = JSON.stringify(this.requests);
@@ -271,8 +277,10 @@ txn.commit();
          if (!txn) {
              txn = this.data('currentTxn');
              if (!txn) {
-                 txn = new Txn($.db.url);
+                 txn = new Txn(args[1].url || $.db.url);
                  commitNow = true;
+             } else if (args[1].url) {
+               konsole.assert(txn.url ===  args[1].url);
              }
          }
          //konsole.log('execute', action, data, callback);
@@ -303,14 +311,16 @@ txn.commit();
                   else
                     $.extend(obj[0], override);
                 }
+                var requestid = txn.execute(action, obj, callback, this);
                 $(this).find('[data-dbmethod]').each(function() {
                   if (this.files && this.files.length) {
                     this.db_Id = obj[_IDkey];
+                    this.db_RequestId = requestid;
                     txn.fileuploads.push(this);
                   }
                 })
                 //konsole.log('about to', action, 'obj', obj);
-                return txn.execute(action, obj, callback, this);
+                return requestid;
             }).get();
          }
          if (comment) { //XXX this is all kind of hacky
@@ -405,6 +415,32 @@ txn.commit();
     }
     ,dbModel: function() {
       return this.data('_model');
+    }
+
+     /*
+     cmd [data] [callback] or cmd data [options] or cmd callback
+     */
+    ,dbExecute: function(cmd, a1, a2) {
+      if (jQuery.isFunction(a1)) { //callback only
+        konsole.assert(a2 === undefined);
+        a2 = a1;
+        a1 = null;
+      }
+
+      var split = cmd.split('#');
+      if (split.length > 1) {
+        url = split[0];
+        cmd = split[1];
+        if (jQuery.isFunction(a2)) {
+          var callback = a2;
+          a2 = {callback: callback};
+        } else if (!a2) {
+          a2 = {};
+        }
+        a2.url = url;
+      }
+
+      return this._executeTxn(cmd, a1,a2);
     }
    })
    $.db = { url : null, options : {} };

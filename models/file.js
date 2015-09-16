@@ -14,7 +14,7 @@ var fileSchema = mongoose.Schema({
   tags: [String]
 });
 
-fileSchema.statics.saveFileObj = function(fileinfo, ownerid) {
+fileSchema.statics.saveFileObj = function(fileinfo, ownerid, principle) {
   var self = this;
   return new Promise(function(resolve, reject) {
       var buffers = [];
@@ -34,6 +34,8 @@ fileSchema.statics.saveFileObj = function(fileinfo, ownerid) {
           if (ownerid) {
             file.owner = ownerid;
           }
+          if (principle)
+            file.setPrinciple(principle);
           file.saveP().then(resolve, reject);
         }catch (err) {
           reject(err);
