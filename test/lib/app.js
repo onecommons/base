@@ -27,16 +27,26 @@ function addBrowserTests() {
   }));
 
   this.get('/browsertest/:testname',
-  function(req, res, next) {
-    //need to set these for the passport strategy to work
-    req.query = {username:'dummy', password:'dummy'}
-    next();
-  }, this.passport.authenticate('testauto-login'),
-    function(req, res) {
-      res.render('browsertest.html', {
-          testName: req.params.testname
-      })
-  });
+    function(req, res, next) {
+      //need to set these for the passport strategy to work
+      req.query = {username:'dummy', password:'dummy'}
+      next();
+    }, this.passport.authenticate('testauto-login'),
+      function(req, res) {
+        res.render('browsertest.html', {
+            testName: req.params.testname
+        })
+    });
+
+  this.get('/dbuploadtest',
+    function(req, res, next) {
+      //need to set these for the passport strategy to work
+      req.query = {username:'dummy', password:'dummy'}
+      next();
+    }, this.passport.authenticate('testauto-login'),
+      function(req, res) {
+        res.render('dbuploadtest.html',{})
+    });
 }
 
 function addUserStartupListener() {
@@ -85,7 +95,9 @@ function() {
 if (require.main === module) {
   var app = createApp();
   app.addBrowserTests();
-  app.start(function(next) {
-    mongoose.connection.db.dropCollection('dbtest1', next);
+  app.start(function() {
+    return mongoose.connection.db.dropCollection('DbTest1');
+  }, function(server){
+      log.info('test app listening on %s:%d',server.address().address,server.address().port);
   });
 }

@@ -78,15 +78,27 @@ Txn.prototype = {
                   callback.call(elem, null, responses.error);
                   return;
                 }
+
+                var resultResponse = null;
+                var errorResponse = null;
                 for (var i=0; i < responses.length; i++) {
                     var response = responses[i];
                     if (response.id == requestId) {
-                        if (response.error)
-                            callback.call(elem, null, response.error);
-                        else
-                            callback.call(elem, response.result, null);
+                      if (response.error) {
+                          errorResponse = response.error;
+                      } else {
+                          resultResponse = response.result;
+                      }
                     }
                 }
+
+                //in the case of file upload there can be multiple responses
+                //with the same id, we only want to invoke the callback once
+                //In the callback, we always want to report errors
+                //and give priority to the main request, whose response will
+                //always come after the upload response.
+                if (resultResponse || errorResponse)
+                  callback.call(elem, resultResponse, errorResponse);
             });
         }
 
@@ -118,7 +130,8 @@ Txn.prototype = {
      formData.append('jsonrpc', requests);
      this.fileuploads.forEach(function(fileInputElement) {
        if (fileInputElement.files && fileInputElement.files.length) {
-         formData.append(fileInputElement.name, fileInputElement.files[0]);
+         formData.append(fileInputElement.name, fileInputElement.files[0],
+                                              fileInputElement.files[0].name);
        }
      });
      this.fileuploads = [];
@@ -426,7 +439,7 @@ txn.commit();
         a2 = a1;
         a1 = null;
       }
-
+      konsole.assert(typeof cmd == 'string', "first argument of dbExecute should be a string")
       var split = cmd.split('#');
       if (split.length > 1) {
         url = split[0];

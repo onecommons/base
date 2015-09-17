@@ -1,0 +1,105 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Browser Mocha Test</title>
+  <link rel="stylesheet" href="/mocha.css" />
+</head>
+<body>
+  <h3>Browser Mocha Test [ {{ testName }} ]</h3>
+  <div class="log"></div>
+  <div id="mocha"></div>
+
+  <script src="/jquery-1.10.2.js"></script>
+  <script src="/chai.js"></script>
+  <script src="/promise-3.2.0.js"></script>
+  <script src="/mocha.js"></script>
+
+  <script>
+  chai.config.includeStack = true;
+  var assert = chai.assert;
+  var expect = chai.expect;
+  mocha.ui('bdd');
+  function runTests() {
+    //console.log('running tests');
+    mocha.reporter(location.search.slice(1)||'html').run()
+  }
+  </script>
+
+   <script src="/js/data.js"></script>
+
+   <script>
+   describe('upload tests', function() {
+
+   /*
+   file control requires a data-dbmethod
+   */
+   it('should upload file as part of an update', function(done) {
+     $('#f1').dbCreate(function(resp, err) {
+       assert(!err, 'unexpected error:' + JSON.stringify(err));
+       assert(resp, 'missing expected response');
+       done();
+     });
+   });
+
+   it('should upload as a stand-alone request', function(done) {
+     //empty string to avoid an additional request
+     $('#f2').dbExecute('', function(resp, err) {
+       assert(!err, 'unexpected error:' + JSON.stringify(err));
+       assert(resp, 'missing expected response');
+       done()
+     });
+   });
+
+   it('should report upload errors when part of an update', function(done) {
+     $('#f3').dbCreate(function(resp, err) {
+         //create succeeded but upload failed, has both response and error
+        assert(resp, 'missing expected response');
+        assert(err, 'missing expected error');
+        done();
+     });
+   });
+
+   it('should report upload errors in a stand-alone request', function(done) {
+     $('#f4').dbExecute('', function(resp, err) {
+       assert(!resp, 'unexpected response:'+ JSON.stringify(resp));
+       assert(err, 'missing expected error');
+       done()
+     });
+   });
+
+   }); //describe
+   </script>
+
+   <form id=f1>
+     <input type=hidden name=__t value='DbTest1'>
+     <input type=hidden name=prop1 value=string>
+     <input type=file name=testfile data-dbmethod='succeed'>
+   </form>
+
+   <form id=f2>
+     <input type=file name=testfile data-dbmethod='succeed'>
+   </form>
+
+  <form id=f3>
+    <input type=hidden name=__t value='DbTest1'>
+    <input type=hidden name=prop1 value=string>
+    <input type=file name=testfile data-dbmethod='fail'>
+  </form>
+
+  <form id=f4>
+    <input type=file name=testfile data-dbmethod='fail'>
+  </form>
+
+  <button type=submit onclick="runTests()">Run tests<button>
+
+
+  <script>
+  $(document).ready(function() {
+    // mocha.checkLeaks();
+    mocha.globals(['jQuery']);
+  });
+  </script>
+
+
+</body>
+</html>

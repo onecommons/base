@@ -77,7 +77,7 @@ describe('db_tests', function() {
       var mod = pjson1;
       mod.prop1 = modifiedprop;
       $(document).dbUpdate(mod, function(resp, err) {
-          assert(resp && !err);
+          assert(resp && !err, "expected resp && !err");
           assert.deepEqual(mod.prop1, resp.prop1);
           verifyQuery({_id: pjson1._id}, expected, done);
       });
@@ -92,9 +92,9 @@ describe('db_tests', function() {
 
       $(document).one('dbdata', function(event, response, request) {
         ++rollbackEventCalled;
-        assert(event.type == 'dbdata');
-        assert(response.hasErrors() === true);
-        assert(response.error && response.error.code == -32001)
+        assert(event.type == 'dbdata',"expected event.type == 'dbdata'");
+        assert(response.hasErrors() === true, "expected response.hasErrors() === true");
+        assert(response.error && response.error.code == -32001, "expected response.error.code == -32001")
         assert(updateCallbackCalled === 1, "updateCallbackCalled should have been called");
         assert(rollbackCallbackCalled === 1, "rollbackCallbackCalled should have been called");
         assert(rollbackEventCalled === 1, "custom trigger should have only been called once");
@@ -102,8 +102,8 @@ describe('db_tests', function() {
       var mod = pjson1;
       mod.prop1 = ['whatever'];
       $(document).dbBegin().dbUpdate(mod, function(resp, err) {
-        assert(!resp && err);
-        assert(err.code == -32001); //client-side rollback
+        assert(!resp && err, "expected !resp && err");
+        assert(err.code == -32001, "expected err.code == -32001"); //client-side rollback
         updateCallbackCalled++;
         assert(rollbackCallbackCalled === 0, "commit callback should not have been called yet");
         assert(rollbackEventCalled === 0, "custom trigger should not have been called yet");
@@ -116,7 +116,7 @@ describe('db_tests', function() {
           done();
         });
       }).dbRollback(function(response, requests) {
-        assert(response.hasErrors() === true);
+        assert(response.hasErrors() === true, "expected response.hasErrors() === true");
         rollbackCallbackCalled++;
         assert(updateCallbackCalled === 1, "dbCallback should have been called");
         assert(rollbackEventCalled === 0, "custom trigger should not have been called yet");
@@ -141,8 +141,8 @@ it("should invoke callbacks and triggers in the correct order", function(done){
 
   var customTriggerFunc = function(event, data) {
     customTriggerCalled++;
-    assert(event.type == 'dbdata');
-    assert(data.hasErrors() === false);
+    assert(event.type == 'dbdata',"expected event.type == 'dbdata'");
+    assert(data.hasErrors() === false, "expected data.hasErrors() === false");
     assert(dbCallbackCalled === 1, "dbCallback should have been called");
     assert(commitCallbackCalled === 1, "commitCallback should have been called");
     assert(customTriggerCalled === 1, "custom trigger should have only been called once");
@@ -152,14 +152,14 @@ it("should invoke callbacks and triggers in the correct order", function(done){
 
   $(document).dbBegin().dbQuery({__t:"DbTest1"},
      function(data, err) {
-        assert(data && !err);
-        assert(Array.isArray(data) && data.length === 0);
+        assert(data && !err, "expected data && !err");
+        assert(Array.isArray(data) && data.length === 0, "expected Array.isArray(data) && data.length === 0, not " + JSON.stringify(data));
         dbCallbackCalled++;
         assert(commitCallbackCalled === 0, "commit callback should not have been called yet");
         assert(customTriggerCalled === 0, "custom trigger should not have been called yet");
         assert(dbCallbackCalled === 1, "db callback should have only been called once");
     }).dbCommit(function(response) {
-      assert(response.hasErrors() === false);
+      assert(response.hasErrors() === false, "expected response.hasErrors() === false");
       commitCallbackCalled++;
       assert(dbCallbackCalled === 1, "dbCallback should have been called");
       assert(customTriggerCalled === 0, "custom trigger should not have been called yet");
