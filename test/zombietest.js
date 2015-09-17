@@ -12,6 +12,7 @@ var express = require('express');
 var util = require('util');
 var EventEmitter = require("events").EventEmitter;
 var Browser = require("zombie");
+var File = require('fs');
 
 function createTest(app, path, done) {
   var stats = null;
@@ -20,6 +21,12 @@ function createTest(app, path, done) {
   browser.on("console", function(level, message) {
     console.log('from zombie browser console:', level, message);
   });
+  /* monkey patch dom
+  browser.on("loading", function(document) {
+    console.log("patching", document.defaultView.FormData.append);
+    document.defaultView.FormData.prototype.append = FormData_append;
+  });
+  */
   app.testresults.once('clienttestresults', function(data) {
     stats = data.stats;
     console.log(path + " tests: " + stats.tests + " passes: " + stats.passes +
@@ -116,22 +123,18 @@ if (Browser.VERSION.charAt(0) > "3") {
       var jsonrpcRouter = require('../routes/datarequest');
 
       jsonrpcRouter.methods.succeed = async function(json, respond, promisesSofar, rpcSession) {
-        return {filefieldname: json.name};
-        /*
-        XXX can't run these tests because zombie/lib/fetch's FormData.append doesn't support
-        file uploads (see TODO comment there and uploadedFile() in zombie/dom/forms for how it could be fixed)
         try {
-          assert(json.name == "testfile");
+          assert(json.name == "testfile", "unexpected name: "+json.name);
           let fileinfo = await rpcSession.getFileRequest(json.name);
-          assert(fileinfo.filename == 'sometext.txt');
+          assert(fileinfo.filename == 'sometext.txt', "unexpected filename: "+ fileinfo.filename);
           let contents = await getFileContents(fileinfo);
-          assert(contents == 'some text');
+          assert(contents == 'some text\n', "unexpected contents: " + contents);
           return {filefieldname: json.name};
          } catch (e) {
            //note: this will generate error sent to client, won't get caught by mocha
            assert(false, "unexpected error in fileupload method: " + e);
-         }
-         */
+        }
+
       };
 
       jsonrpcRouter.methods.fail = function(json, respond, promisesSofar, rpcSession) {
@@ -141,11 +144,20 @@ if (Browser.VERSION.charAt(0) > "3") {
 
       let [browser, url, cb] = createTest(app,"/dbuploadtest");
       await browser.visit(url);
-      const filename = `${__dirname}/fixtures/sometext.txt`;
+      const filepath = `${__dirname}/fixtures/sometext.txt`;
       //attach files to all the file input controls
       var fields = browser.queryAll('form')
       for (let field of fields) {
-        browser.attach('#'+field.id + " input[type=file]", filename);
+        var selector = '#'+field.id + " input[type=file]";
+        browser.attach(selector, filepath);
+        field = browser.field(selector);
+        var file = field.files[field.files.length-1];
+        assert(file);
+        //to get FormData.append to work properly we need to add these:
+        file.read = function() {
+          return File.readFileSync(filepath);
+        };
+        file.valueOf = function() { return this.name; }
       }
       await browser.pressButton('Run tests');
       cb();
