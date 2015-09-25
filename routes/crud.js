@@ -78,6 +78,7 @@ function setRowspans(headers) {
 }
 
 module.exports.QUERYLIMIT = 10000;
+module.exports.MAX_FIELD_LEN = 512;
 
 function formatdata(data) {
   if (!data && typeof data !== 'number') {
@@ -89,7 +90,8 @@ function formatdata(data) {
   //limit decimals
   if (typeof data === 'number' && Math.round(data) != data)
     return data.toFixed(4);
-  return data
+
+  return data.toString().slice(0, exports.MAX_FIELD_LEN)
 }
 
 //XXX unit test with schema with double nested properties and periods in the names
@@ -112,7 +114,7 @@ module.exports = function(req, res, next) {
     headers:headers,
     footer:footer,
     colgroups:headers[0],
-    formatdata: formatdata, 
+    formatdata: formatdata,
     objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
