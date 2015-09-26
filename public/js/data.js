@@ -81,9 +81,11 @@ Txn.prototype = {
 
                 var resultResponse = null;
                 var errorResponse = null;
+                var found = false;
                 for (var i=0; i < responses.length; i++) {
                     var response = responses[i];
                     if (response.id == requestId) {
+                      found = true;
                       if (response.error) {
                           errorResponse = response.error;
                       } else {
@@ -97,7 +99,7 @@ Txn.prototype = {
                 //In the callback, we always want to report errors
                 //and give priority to the main request, whose response will
                 //always come after the upload response.
-                if (resultResponse || errorResponse)
+                if (found)
                   callback.call(elem, resultResponse, errorResponse);
             });
         }
