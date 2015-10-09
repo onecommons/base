@@ -110,7 +110,7 @@ Txn.prototype = {
         return requestId;
    },
 
-   doUpload: function(ajaxCallback){
+   doUpload: function(ajaxCallback, elem){
      var formData = new FormData();
      var This = this;
      this.fileuploads.forEach(function(fileInputElement) {
@@ -145,7 +145,12 @@ Txn.prototype = {
        processData: false,
        success: ajaxCallback,
        error: ajaxCallback,
-       dataType: "json"
+       dataType: "json",
+       xhr: function() {
+         var xhr = new window.XMLHttpRequest();
+         $(elem).trigger('ajaxXHRSetup', xhr, this);
+         return xhr;
+       }
      });
    },
 
@@ -216,19 +221,24 @@ Txn.prototype = {
             }
             if (this.fileuploads.length) {
               konsole.assert(FormData);
-              this.doUpload(ajaxCallback);
+              this.doUpload(ajaxCallback, elem);
             } else {
               var requests = JSON.stringify(this.requests);
               this.requests = [];
               $.ajax({
-              type: 'POST',
-              url: this.url,
-              data: requests,
-              processData: false,
-              contentType: 'application/json',
-              success: ajaxCallback,
-              error: ajaxCallback,
-              dataType: "json"
+                type: 'POST',
+                url: this.url,
+                data: requests,
+                processData: false,
+                contentType: 'application/json',
+                success: ajaxCallback,
+                error: ajaxCallback,
+                dataType: "json",
+                xhr: function() {
+                  var xhr = new window.XMLHttpRequest();
+                  $(elem).trigger('ajaxXHRSetup', xhr, this);
+                  return xhr;
+                }
             });
           }
         }
