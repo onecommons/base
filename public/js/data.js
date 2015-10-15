@@ -110,6 +110,14 @@ Txn.prototype = {
         return requestId;
    },
 
+   _addFileInput: function(fileinput, obj, requestid) {
+     if (fileinput.files && fileinput.files.length) {
+       fileinput.db_Id = obj[_IDkey];
+       fileinput.db_RequestId = requestid;
+       this.fileuploads.push(fileinput);
+     }
+   },
+
    doUpload: function(ajaxCallback, elem){
      var formData = new FormData();
      var This = this;
@@ -148,7 +156,7 @@ Txn.prototype = {
        dataType: "json",
        xhr: function() {
          var xhr = new window.XMLHttpRequest();
-         $(elem).trigger('ajaxXHRSetup', xhr, this);
+         $(elem).trigger('ajaxXHRSetup', [xhr, this]);
          return xhr;
        }
      });
@@ -236,7 +244,7 @@ Txn.prototype = {
                 dataType: "json",
                 xhr: function() {
                   var xhr = new window.XMLHttpRequest();
-                  $(elem).trigger('ajaxXHRSetup', xhr, this);
+                  $(elem).trigger('ajaxXHRSetup', [xhr, this]);
                   return xhr;
                 }
             });
@@ -297,7 +305,8 @@ txn.commit();
          var action = args.shift();
          args = deduceArgs(args);
          var txn = args[1].txn, data = args[0], callback = args[1].callback,
-            comment = args[1].comment, override = args[1].override;
+            comment = args[1].comment, override = args[1].override,
+            fileinput = args[1].fileinput;
          var commitNow = false;
          if (!txn) {
              txn = this.data('currentTxn');
@@ -327,7 +336,10 @@ txn.commit();
                 data[_IDkey] = this.attr('itemid');
             }
             requestIds = [txn.execute(action, data, callback, this.length ? this[0] : null)];
+            if (fileinput)
+             txn._addFileInput(fileinput, data, requestIds[0]);
          } else {
+            konsole.assert(!fileinput);
             requestIds = this.map(function() {
                 var obj = bindElement(this);
                 if (override) {
@@ -338,12 +350,8 @@ txn.commit();
                 }
                 var requestid = txn.execute(action, obj, callback, this);
                 $(this).find('[data-dbmethod]').each(function() {
-                  if (this.files && this.files.length) {
-                    this.db_Id = obj[_IDkey];
-                    this.db_RequestId = requestid;
-                    txn.fileuploads.push(this);
-                  }
-                })
+                  txn._addFileInput(fileinput, obj, requestid);
+                });
                 //konsole.log('about to', action, 'obj', obj);
                 return requestid;
             }).get();
@@ -390,8 +398,8 @@ txn.commit();
      dbDestroy : function(a1, a2, a3) {
         return this._executeTxn('destroy', a1, a2);
      },
-     dbBegin : function() {
-        this.data('currentTxn', new Txn($.db.url));
+     dbBegin : function(url) {
+        this.data('currentTxn', new Txn(url || $.db.url));
         return this;
      },
      dbCommit : function(callback) {
