@@ -64,6 +64,24 @@ describe('app', function() {
 
   });
 
+  describe('email', function() {
+    it('should send emails', function(done) {
+      app.email.sendMessage('to@foo.com', 'subject', 'email.html',
+        {test: 'var'}).then(function(response) {
+          try {
+            response.message.should.match(/Subject: subject/);
+            response.message.should.match(/\r\ntest var\r\n/);
+            response.envelope.to[0].should.equal('to@foo.com');
+            response.envelope.from.should.equal('help@onecommons.org');
+          } catch (err) {
+            done(err);
+            return;
+          }
+          done();
+        }, done);
+    });
+  });
+
   describe('views', function() {
     before(function(){
       app.suppressErrorHandlerConsole = true;
