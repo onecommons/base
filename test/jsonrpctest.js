@@ -1,12 +1,23 @@
 var express = require('express')
   , request = require('supertest')
   , Promise = require('promise')
+  , assert  = require('assert')
   , jsonrpc = require('../lib/jsonrpc');
 var bodyParser = require('body-parser');
 
 describe('jsonrpc', function(){
+  var logger = null;
   var app = express();
   app.use(bodyParser.json());
+  app.use(function(req,res, next) {
+    if (logger)
+      req.log = logger;
+    next();
+  });
+
+  afterEach(function() {
+    logger = null;
+  });
 
   describe('.router', function(){
       app.post('/', jsonrpc.router.bind({
@@ -21,6 +32,14 @@ describe('jsonrpc', function(){
         },
         ping_promise: function (params) {
           return Promise.resolve(["hello", params]);
+        },
+        ping_confused: function (params, respond) {
+          respond(["hello", params]);
+          return ["unexpected", params];
+        },
+        ping_moreconfused: function (params, respond) {
+          respond(["hello", params]);
+          return Promise.resolve(["unexpected", params]);
         },
         ping_number: function (params, respond) {
           respond(params[0]);
@@ -86,6 +105,42 @@ describe('jsonrpc', function(){
       //.set('Content-Type', 'application/json') //unnecessary since its the default
       .send({"jsonrpc":"2.0","method":"ping_promise","id":8})
       .expect('{"jsonrpc":"2.0","id":8,"result":["hello",null]}', done);
+    });
+
+    it('should report an error if jsonrpc method responds sync and async', function(done){
+      var actualMsg = '';
+      logger = {
+        error: function(msg) {
+          actualMsg = msg;
+        }
+      };
+
+      request(app)
+      .post('/')
+      //.set('Content-Type', 'application/json') //unnecessary since its the default
+      .send({"jsonrpc":"2.0","method":"ping_confused","id":8})
+      .expect('{"jsonrpc":"2.0","id":8,"result":["hello",null]}', function(err) {
+        assert.equal(actualMsg, "jsonrpc response called more than once:");
+        done(err);
+      });
+    });
+
+    it('should report an error if jsonrpc method responds promise and async', function(done){
+      var actualMsg = '';
+      logger = {
+        error: function(msg) {
+          actualMsg = msg;
+        }
+      };
+
+      request(app)
+      .post('/')
+      //.set('Content-Type', 'application/json') //unnecessary since its the default
+      .send({"jsonrpc":"2.0","method":"ping_moreconfused","id":8})
+      .expect('{"jsonrpc":"2.0","id":8,"result":["hello",null]}', function(err) {
+        assert.equal(actualMsg, "jsonrpc promise resolved after response sent:");
+        done(err);
+      });
     });
 
     it('should route a handle false-y looking params correctly', function(done){
