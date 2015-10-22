@@ -350,7 +350,7 @@ txn.commit();
                 }
                 var requestid = txn.execute(action, obj, callback, this);
                 $(this).find('[data-dbmethod]').each(function() {
-                  txn._addFileInput(fileinput, obj, requestid);
+                  txn._addFileInput(this, obj, requestid);
                 });
                 //konsole.log('about to', action, 'obj', obj);
                 return requestid;
