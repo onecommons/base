@@ -9,6 +9,11 @@ var utils = require('../lib/utils.js');
 module.exports.login = function(app) {
   return function(req, res) {
     // render the page and pass in any flash data if it exists
+    if (req.query.r) {
+      if (req.session)
+        req.session.returnTo = req.query.r;
+      req.flash('login.danger', 'You need to login to access this page.');
+    }
     res.render('login.html', {
       remembermeEnabled: !!app.config.persistentSessionSeconds
     });
