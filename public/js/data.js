@@ -74,9 +74,9 @@ Txn.prototype = {
 
         if (callback) { //bind callback to data event
             $(elem).one('dbdata-'+this.txnId, function(event, responses) {
-                if (responses.error) { //error object, not an array of responses
-                  callback.call(elem, null, responses.error);
-                  return;
+                if (responses.error) { //an error object, not an array of responses
+                  // note: if callback returns false event bubbling is stopped
+                  return callback.call(elem, null, responses.error);
                 }
 
                 var resultResponse = null;
@@ -99,8 +99,10 @@ Txn.prototype = {
                 //In the callback, we always want to report errors
                 //and give priority to the main request, whose response will
                 //always come after the upload response.
-                if (found)
-                  callback.call(elem, resultResponse, errorResponse);
+                if (found) {
+                  // note: if callback returns false event bubbling is stopped
+                  return callback.call(elem, resultResponse, errorResponse);
+                }
             });
         }
 
