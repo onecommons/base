@@ -33,6 +33,17 @@ describe("config", function() {
     assert(!config.overrideonly);
   });
 
+  it("should merge default and node_env/local", function() {
+    //if there isn't a NODE_ENV/config/config.js it should use config/config.js
+    //test that config/email.js and test/config/email.local.js merge
+    var loadConfig = configloader(); //use default paths
+    assert(process.env.NODE_ENV==='test'); //NODE_ENV=test will always be defined
+    var config = loadConfig("email");
+    assert.strictEqual(config.templates.signup.templateName, 'test');
+    assert.strictEqual(config.templates.signup.templatePath, null);
+    assert.strictEqual(config.templates.signup.subject, "Welcome to {{appname}}!");
+  });
+
   it("should merge with environment variables", function() {
     var loadConfig = configloader(); //use default paths
     assert(process.env.NODE_ENV==='test'); //NODE_ENV=test will always be defined
