@@ -8,5 +8,7 @@ module.exports = {
         level: 'fatal'
       }
     },
-    request_logger: 'none'
-}
+    requests: {
+      logging: 'none'
+    }
+};
