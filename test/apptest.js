@@ -75,8 +75,8 @@ describe('app', function() {
       app.email.sendMessage('to@foo.com', template.subject,
         template.templatePath, template.templateVars).then(function(response) {
           try {
-            response.message.should.match(/Subject: subject/);
-            response.message.should.match(/\r\ntest var\r\n/);
+            response.response.toString().should.match(/Subject: subject/);
+            response.response.toString().should.match(/\r\ntest var\n/);
             response.envelope.to[0].should.equal('to@foo.com');
             response.envelope.from.should.equal('help@onecommons.org');
           } catch (err) {
@@ -92,8 +92,8 @@ describe('app', function() {
         local: {email: "to@foo.com"}
       }).then(function(response) {
           try {
-            response.message.should.match(/Subject: subject/);
-            response.message.should.match(/\r\ntest var\r\n/);
+            response.response.toString().should.match(/Subject: subject/);
+            response.response.toString().should.match(/\r\ntest var\n/);
             response.envelope.to[0].should.equal('to@foo.com');
             response.envelope.from.should.equal('help@onecommons.org');
           } catch (err) {
