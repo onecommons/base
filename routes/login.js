@@ -146,16 +146,16 @@ module.exports.forgotPost = function(app) {
   };
 }
 
-module.exports.forgotToken = function(req, res) {
+module.exports.forgotToken = function(req, res, next) {
   var token = req.params.token;
 
   auth.userForResetToken(token, function(err, user) {
     if (err) {
-      if (typeof err === 'string') { //user error
+      if (typeof err === 'string') { // user error
         req.flash("danger", err);
         res.render('forgot.html');
       } else {
-        next(err); //unexpected error
+        next(err); // unexpected error
       }
     } else {
       res.render('reset.html', {token: token});
