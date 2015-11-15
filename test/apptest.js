@@ -4,6 +4,8 @@ var assert = require('chai').assert;
 require('should');
 var request = require('supertest');
 
+var models = require('../models');
+
 describe('app singleton', function() {
   it("should throw if it is accessed before app creation", function() {
     assert.throws( function() {var app = base.app;} );
@@ -29,6 +31,11 @@ describe('app', function() {
     app.get('/testview/*', function(req, res) {
       res.render(req.params[0], {});
     });
+    app.get('/dummy.txt', function(req, res) {
+      res.setHeader('Content-Disposition', 'attachment; filename=dummy.txt');
+      res.setHeader('Content-Type', 'text/plain');
+      res.send('some text\n');
+    });
   });
 
   after(function(done){
@@ -48,6 +55,14 @@ describe('app', function() {
     .expect(/derived/)
     .expect(200)
     .end(done);
+  });
+
+  it("should download a file", async function() {
+    var url = app.getInternalUrl() + '/dummy.txt';
+    var fileObj = await models.File.saveUrl(url);
+    assert(fileObj);
+    assert(fileObj.name === 'dummy.txt', "unexpected filename: " + fileObj.name);
+    assert(fileObj.contents == 'some text\n', "unexpected contents: " + fileObj.contents);
   });
 
   describe('config', function() {

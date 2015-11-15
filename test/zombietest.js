@@ -13,6 +13,7 @@ var util = require('util');
 var EventEmitter = require("events").EventEmitter;
 var Browser = require("zombie");
 var File = require('fs');
+var models = require('../models');
 
 function createTest(app, path, done) {
   var stats = null;
@@ -126,9 +127,11 @@ if (Browser.VERSION.charAt(0) > "3") {
         try {
           assert(json.name == "testfile", "unexpected name: "+json.name);
           let fileinfo = await rpcSession.getFileRequest(json.name);
-          assert(fileinfo.filename == 'sometext.txt', "unexpected filename: "+ fileinfo.filename);
-          let contents = await getFileContents(fileinfo);
-          assert(contents == 'some text\n', "unexpected contents: " + contents);
+          // XXX need to cleanup from db
+          var fileObj = await models.File.saveFileObj(fileinfo);
+          assert(fileObj);
+          assert(fileObj.name == 'sometext.txt', "unexpected filename: "+ fileObj.name);;
+          assert(fileObj.contents == 'some text\n', "unexpected contents: " + fileObj.contents);
           return {filefieldname: json.name};
          } catch (e) {
            //note: this will generate error sent to client, won't get caught by mocha
