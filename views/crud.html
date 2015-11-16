@@ -5,7 +5,7 @@
 <link href="//cdn.datatables.net/fixedheader/2.1.2/css/dataTables.fixedHeader.css" rel="stylesheet">
 <link href="//cdn.datatables.net/colvis/1.1.1/css/dataTables.colVis.css" rel="stylesheet">
 <link href="//cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css" rel="stylesheet">
-
+<link href="//cdn.datatables.net/buttons/1.1.0/css/buttons.dataTables.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block admincontent %}
@@ -89,12 +89,14 @@ ul.ColVis_collection {
 <script src="//cdn.datatables.net/fixedheader/2.1.2/js/dataTables.fixedHeader.min.js"></script>
 <script src="//cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.min.js"></script>
 <script src="//cdn.datatables.net/colvis/1.1.1/js/dataTables.colVis.min.js"></script>
-
+<script src="//cdn.datatables.net/buttons/1.1.0/js/dataTables.buttons.min.js"></script>
+<script src="//cdn.datatables.net/buttons/1.1.0/js/buttons.html5.min.js"></script>
 <script>
   $(document).ready(function () {
     var table = $('#crud').DataTable({
       responsive: false,
-      dom: 'C<"clear">lfrtip',
+      dom: 'BC<"clear">lfrtip',
+      buttons: [ 'copy', 'csv' ],
       colVis: {
         label: function (index, title, th ) {
           return $(th).data('path');
