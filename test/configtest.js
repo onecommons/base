@@ -47,23 +47,23 @@ describe("config", function() {
   it("should merge with environment variables", function() {
     var loadConfig = configloader(); //use default paths
     assert(process.env.NODE_ENV==='test'); //NODE_ENV=test will always be defined
-    process.env.CONFIGTEST_INBOTH = 'env';
-    process.env.CONFIGTEST_ENVONLY = true;
-    process.env['CONFIGTEST_NESTED.D'] = true;
-    process.env['CONFIGTEST_NESTED.A'] = null;
-    process.env['CONFIGTEST_N1.N2.A'] = 1;
-    process.env['CONFIGTEST_N1.N2'] = '{"B":2}';
+    process.env.CONFIGTEST_inboth = 'env';
+    process.env.CONFIGTEST_envonly = true;
+    process.env['CONFIGTEST_nested__d'] = true;
+    process.env['CONFIGTEST_nested__a'] = null;
+    process.env['CONFIGTEST_N1__N2__a'] = 1;
+    process.env['CONFIGTEST_N1__N2'] = '{"B":2}';
     process.env['CONFIGTEST_N3'] = 1;
-    process.env['CONFIGTEST_N3.A'] = 2;
+    process.env['CONFIGTEST_N3__a'] = 2;
 
     var config = loadConfig("configtest");
     assert.strictEqual(config.defaultonly, true);
     assert.strictEqual(config.envonly, true);
     assert.equal(config.inboth, "env");
     assert.deepEqual(config.nested, {a:null, b:true, d:true});
-    assert.deepEqual(config.n1, {n2:{a:1, B:2}});
+    assert.deepEqual(config.N1, {N2:{a:1, B:2}});
     // CONFIGTEST_N3.A is ignored, CONFIGTEST_N3 is unchanged:
-    assert.deepEqual(config.n3, 1);
+    assert.deepEqual(config.N3, 1);
     assert(!config.overrideonly);
   });
 
