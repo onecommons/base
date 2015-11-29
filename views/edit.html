@@ -1,0 +1,53 @@
+{% extends 'layouts/layout-admin.html' %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/selectize/css/selectize.css" />
+<link rel="stylesheet" type="text/css" href="/selectize/css/selectize.bootstrap3.css" />
+{% endblock %}
+
+{% block admincontent %}
+<div class="">
+
+{{df.form(obj, {class:"form-horizontal", role:"form"})}}
+{% for schemafield in paths %}
+<div class='row'>
+<div class="form-group{% if required == "required" %} required{% endif %}">
+	<label class="col-sm-3 control-label" for="{{ loop.key }}">
+    {% if isDbId(df.getVal(loop.key)) %}
+      <a href='/admin/edit/{{df.getVal(loop.key)}}' target=_blank>{{ loop.key }}</a>
+    {% else %}{{ loop.key }}{% endif %}
+</label>
+	<div class="col-sm-6">
+  {% if schemafield.caster %}
+     {{ df.select(loop.key, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
+  {% else %}
+     {{ df.input(loop.key, { class:'form-control', guessInputType: true}) }}
+  {% endif %}
+  </div>
+</div>
+</div>
+{% endfor %}
+
+<button type="submit" id="submit-account-data" name="submit-account-data" class="btn btn-default btn-two mt-20">Submit</button>
+{{df.form_end()}}
+</div>
+{% endblock %}
+
+{% block jsfooter %}
+<script type="text/javascript" src="/js/data.js"></script>
+<script type="text/javascript" src="/selectize/js/standalone/selectize.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+  {{df.formhandler()}}
+
+  $('.dbform select').selectize({
+  plugins: ['remove_button'],
+  create: false,
+ });
+
+});
+$(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
+    jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');
+ });
+</script>
+{% endblock %}

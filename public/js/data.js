@@ -120,6 +120,28 @@ Txn.prototype = {
      }
    },
 
+  _send: function(data, ajaxCallback, elem, contentType, timeout) {
+    var options = {
+      type: 'POST',
+      url: this.url,
+      data: data,
+      processData: false,
+      contentType: contentType,
+      success: ajaxCallback,
+      error: ajaxCallback,
+      dataType: "json",
+      xhr: function() {
+        var xhr = new window.XMLHttpRequest();
+        // 'this' will be the settings object
+        $(elem).trigger('ajaxXHRSetup', [xhr, this]);
+        return xhr;
+      }
+    };
+    if (typeof timeout === 'number')
+      options.timeout = timeout;
+    $.ajax(options);
+  },
+
    doUpload: function(ajaxCallback, elem){
      var formData = new FormData();
      var This = this;
@@ -147,21 +169,7 @@ Txn.prototype = {
        }
      });
      this.fileuploads = [];
-     $.ajax({
-       type: 'POST',
-       url: this.url,
-       contentType: false,
-       data: formData,
-       processData: false,
-       success: ajaxCallback,
-       error: ajaxCallback,
-       dataType: "json",
-       xhr: function() {
-         var xhr = new window.XMLHttpRequest();
-         $(elem).trigger('ajaxXHRSetup', [xhr, this]);
-         return xhr;
-       }
-     });
+     this._send(formData, ajaxCallback, elem, false);
    },
 
     /*
@@ -235,21 +243,7 @@ Txn.prototype = {
             } else {
               var requests = JSON.stringify(this.requests);
               this.requests = [];
-              $.ajax({
-                type: 'POST',
-                url: this.url,
-                data: requests,
-                processData: false,
-                contentType: 'application/json',
-                success: ajaxCallback,
-                error: ajaxCallback,
-                dataType: "json",
-                xhr: function() {
-                  var xhr = new window.XMLHttpRequest();
-                  $(elem).trigger('ajaxXHRSetup', [xhr, this]);
-                  return xhr;
-                }
-            });
+              this._send(requests, ajaxCallback, elem, 'application/json');
           }
         }
   }

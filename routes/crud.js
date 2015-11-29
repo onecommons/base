@@ -3,6 +3,26 @@ var _ = require('underscore');
 var models = require('../models');
 var utils = require('../lib/utils');
 var moment = require('moment');
+var getModelFromId = require('../lib/datastore').getModelFromId;
+
+function isDbId(data) {
+  return data && data.match && data.match(/@\w+@[0-9a-f]+/);
+}
+
+module.exports.edit = function(req, res, next) {
+  var objId = req.params.id;
+  var model = getModelFromId(objId);
+
+  utils.resolvePromises({
+    obj: model.findById(objId).exec(),
+    paths: _.omit(model.schema.paths,'_id', '__t', '__v'),
+    isDbId: isDbId
+  }).then(function(result) {
+    res.render('edit.html', result);
+  }).catch(next); //pass err to next
+
+}
+
 
 /*
 TODO
@@ -87,19 +107,29 @@ function formatdata(data) {
   if (data instanceof Date) {
     return moment(data).format()
   }
+
+  if (isDbId(data)) {
+    return "<a href='/admin/edit/" + data + "' target=_blank>" + data + "</a>";
+  }
+  /*
+  if (Array.isArray(data)) {
+    return "<input class='array' value='" + data.toString() + "'>";
+  }
+  */
   //limit decimals
   if (typeof data === 'number' && Math.round(data) != data)
     return data.toFixed(4);
 
-  return data.toString().slice(0, exports.MAX_FIELD_LEN)
+  return data.toString().slice(0, exports.MAX_FIELD_LEN).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 }
 
 //XXX unit test with schema with double nested properties and periods in the names
-module.exports = function(req, res, next) {
+module.exports.table = function(req, res, next) {
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
   var model = models[req.params.model];
   //XXX if (!model) { unknown}
+  //console.dir(model.schema.paths.roles);
 
   Object.keys(model.schema.tree).forEach(function(name) {
     if (name == 'id' || name == '_id')
@@ -117,6 +147,7 @@ module.exports = function(req, res, next) {
     formatdata: formatdata,
     objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
+    console.dir(result.objs[0].schema);
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next
@@ -126,7 +157,8 @@ module.exports = function(req, res, next) {
       return 0;
     var colspan = 1;
     var nested = model.schema.nested[path];
-    //console.log(path, nested)
+    //console.log(path, 'nested', nested);
+    //console.dir(model.schema.paths[path]);
     if (nested) {
       //count the leaves of this branch
       colspan = Object.keys(schema).reduce(function(memo, key){

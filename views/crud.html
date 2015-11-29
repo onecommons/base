@@ -2,9 +2,9 @@
 
 {% block head %}
 <link href="//cdn.datatables.net/plug-ins/f2c75b7247b/integration/bootstrap/3/dataTables.bootstrap.css" rel="stylesheet">
-<link href="//cdn.datatables.net/fixedheader/2.1.2/css/dataTables.fixedHeader.css" rel="stylesheet">
+<link href="//cdn.datatables.net/fixedheader/3.1.0/css/fixedHeader.dataTables.min.css" rel="stylesheet">
 <link href="//cdn.datatables.net/colvis/1.1.1/css/dataTables.colVis.css" rel="stylesheet">
-<link href="//cdn.datatables.net/responsive/1.0.4/css/dataTables.responsive.css" rel="stylesheet">
+<link href="//cdn.datatables.net/responsive/2.0.0/css/responsive.dataTables.min.css" rel="stylesheet">
 <link href="//cdn.datatables.net/buttons/1.1.0/css/buttons.dataTables.min.css" rel="stylesheet">
 {% endblock %}
 
@@ -63,7 +63,7 @@ ul.ColVis_collection {
 
     <tbody>
     {%for obj in objs %}
-      <tr>
+      <tr id="{{obj._id}}">
       {%for cell in footer %}
         <td data-toggle="tooltip" data-container="body">{{formatdata(obj.get(cell.path))}}</td>
       {% endfor %}
@@ -83,20 +83,21 @@ ul.ColVis_collection {
 {% endblock %}
 
 {% block jsfooter %}
-<!-- DataTables -->
-<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+<!-- DataTable -->
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/plug-ins/f2c75b7247b/integration/bootstrap/3/dataTables.bootstrap.js"></script>
-<script src="//cdn.datatables.net/fixedheader/2.1.2/js/dataTables.fixedHeader.min.js"></script>
-<script src="//cdn.datatables.net/responsive/1.0.4/js/dataTables.responsive.min.js"></script>
+<script src="//cdn.datatables.net/fixedheader/3.1.0/js/dataTables.fixedHeader.min.js"></script>
+<script src="//cdn.datatables.net/responsive/2.0.0/js/dataTables.responsive.min.js"></script>
 <script src="//cdn.datatables.net/colvis/1.1.1/js/dataTables.colVis.min.js"></script>
 <script src="//cdn.datatables.net/buttons/1.1.0/js/dataTables.buttons.min.js"></script>
 <script src="//cdn.datatables.net/buttons/1.1.0/js/buttons.html5.min.js"></script>
 <script>
   $(document).ready(function () {
-    var table = $('#crud').DataTable({
-      responsive: false,
+    var tableSelector = '#crud';
+    var table = $(tableSelector).DataTable({
+      responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
-      buttons: [ 'copy', 'csv' ],
+      buttons: [ 'copy', 'csv'],
       colVis: {
         label: function (index, title, th ) {
           return $(th).data('path');
@@ -116,12 +117,19 @@ ul.ColVis_collection {
     });
     new $.fn.dataTable.FixedHeader( table );
 
-    $('[data-toggle="tooltip"]').tooltip({
-      placement: 'auto right',
-      delay: 500,
-      title: function() {
-        return $(this).text();
-      }
+    function enableTooltips() {
+      $('[data-toggle="tooltip"]').tooltip({
+        placement: 'auto right',
+        delay: 500,
+        title: function() {
+          return $(this).text();
+        }
+      });
+    }
+    enableTooltips();
+    // datatable doesn't render all the pages upfront so we need to add the tooltips as they are rendered
+    $(tableSelector).on( 'draw.dt', function () {
+      enableTooltips();
     });
   });
 </script>

@@ -66,7 +66,9 @@ module.exports = function(app, passport) {
 
     file:             ['admin/file/:id/:name', utils.requirePermission('admin'), files.viewFile],
 
-    crud:             ['admin/crud/:model', utils.requirePermission('admin'), crud],
+    crud:             ['admin/crud/:model', utils.requirePermission('admin'), crud.table],
+
+    edit:             ['admin/edit/:id', utils.requirePermission('admin'), crud.edit],
 
     error:   [ function() { throw Error('blah!');}]
   };
