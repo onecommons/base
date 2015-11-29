@@ -33,7 +33,7 @@
     "passport-local": "~0.1.6",
     "promise": "*",
     "request": "^2.65.0",
-    "swig": "~1.4.1",
+    "swig": "1.4.2",
     "underscore": "~1.6.0",
     "validator": "^3.36.0"
   },
