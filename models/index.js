@@ -31,23 +31,33 @@ function _extractTypeFromId(id) {
   }
 }
 
-/*
-* returns promise
-*/
-exports.findById = function(id){
+exports.getModelFromId = function(id){
   if (!id)
-    return Promise.resolve(null);
+    return null;
   try {
     var type = _extractTypeFromId(id);
   } catch (err) {}
   if (!type)
-    return Promise.reject(new mongoose.Error('bad id: ' + id));
+    throw new mongoose.Error('bad id: ' + id);
   var model = mongoose.models[type];
   if (!model) {
     model = exports.models[type];
     if (!model)
-      return Promise.reject(new mongoose.Error('missing model: ' + type));
-    model = mongoose.models[type];
+      throw new mongoose.Error('missing model: ' + type);
   }
-  return model.findOne({_id:id}).exec();
-}
+  return model;
+};
+
+/*
+* returns promise
+*/
+exports.findById = function(id) {
+  try {
+    var model = exports.getModelFromId(id);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+  if (!model)
+    return Promise.reject(new mongoose.Error('missing model: ' + type));
+  return model.findById(id).exec();
+};

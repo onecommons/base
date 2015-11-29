@@ -3,10 +3,11 @@ var _ = require('underscore');
 var models = require('../models');
 var utils = require('../lib/utils');
 var moment = require('moment');
-var getModelFromId = require('../lib/datastore').getModelFromId;
+var getModelFromId = require('../models').getModelFromId;
 
 function isDbId(data) {
-  return data && data.match && data.match(/@\w+@[0-9a-f]+/);
+  var match = data && data.match && data.match(/@(\w+)@[0-9a-f]+/);
+  return match && match[1];
 }
 
 module.exports.edit = function(req, res, next) {
@@ -16,7 +17,15 @@ module.exports.edit = function(req, res, next) {
   utils.resolvePromises({
     obj: model.findById(objId).exec(),
     paths: _.omit(model.schema.paths,'_id', '__t', '__v'),
-    isDbId: isDbId
+    isDbId: isDbId,
+    formatdata: formatdata,
+    readonlyField: function(schemafield, name) {
+      // XXX add support for editing date fields
+      return (schemafield.options && schemafield.options.type === Date);
+    },
+    includeField: function(schemafield, name) {
+      return schemafield.instance !== 'Buffer';
+    },
   }).then(function(result) {
     res.render('edit.html', result);
   }).catch(next); //pass err to next
@@ -27,7 +36,6 @@ module.exports.edit = function(req, res, next) {
 /*
 TODO
 
-* turn object references into ajax calls that displays a card like UI
 * datatype formating (e.g. date)
 * have details display columns offscreen
 window.innerWidth < columnElement.getBoundingClientRect().right
@@ -35,7 +43,6 @@ details needs to show path, suppress empty columns
 * save hidden colunm state (html5 pushstate?)
 * editor
 - fieldset based on schema tree
-- support enums
 - support object refs: autocomplete (how to display object "titles")
 
 */
@@ -51,7 +58,6 @@ display
     else
        <span>{{prop}}</span>: <span>{{format(obj[prop])}}</span>
 {#endmacro}}
-
 */
 
 /*
@@ -108,7 +114,8 @@ function formatdata(data) {
     return moment(data).format()
   }
 
-  if (isDbId(data)) {
+  var objtype = isDbId(data);
+  if (objtype) {
     return "<a href='/admin/edit/" + data + "' target=_blank>" + data + "</a>";
   }
   /*
@@ -147,7 +154,7 @@ module.exports.table = function(req, res, next) {
     formatdata: formatdata,
     objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
-    console.dir(result.objs[0].schema);
+    // console.dir(result.objs[0].schema);
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next

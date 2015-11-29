@@ -10,6 +10,7 @@
 
 {{df.form(obj, {class:"form-horizontal", role:"form"})}}
 {% for schemafield in paths %}
+{% if includeField(schemafield, loop.key) %}
 <div class='row'>
 <div class="form-group{% if required == "required" %} required{% endif %}">
 	<label class="col-sm-3 control-label" for="{{ loop.key }}">
@@ -18,7 +19,9 @@
     {% else %}{{ loop.key }}{% endif %}
 </label>
 	<div class="col-sm-6">
-  {% if schemafield.caster %}
+  {% if readonlyField(schemafield, loop.key) %}
+     {{formatdata(df.getVal(loop.key))}}
+  {% elseif schemafield.caster %}
      {{ df.select(loop.key, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
   {% else %}
      {{ df.input(loop.key, { class:'form-control', guessInputType: true}) }}
@@ -26,6 +29,7 @@
   </div>
 </div>
 </div>
+{% endif %}
 {% endfor %}
 
 <button type="submit" id="submit-account-data" name="submit-account-data" class="btn btn-default btn-two mt-20">Submit</button>
