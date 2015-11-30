@@ -12,7 +12,10 @@ var userSchema = mongoose.Schema({
     displayName       : String,
     avatarUrl         : String,
     local            : {
-        email        : {type:String, lowercase: true, unique: true, sparse: true,
+        email        : {  type:String, lowercase: true, unique: true, sparse: true,
+                          ui: {
+                            readonly: true
+                          },
                           validate: [ validator.isEmail, 'invalid email' ]
         },
         password     : String,

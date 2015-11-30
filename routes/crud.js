@@ -25,9 +25,15 @@ module.exports.edit = function(req, res, next) {
     formatdata: formatdata,
     getPaths: getPaths,
     readonlyField: function(schemafield, name) {
-      // XXX add support for editing date fields
-      return (schemafield.options && schemafield.options.type === Date)
-            || schemafield.instance === 'Buffer'
+      if (schemafield.instance === 'Buffer')
+        return true;
+
+      if (schemafield.options) {
+        return (schemafield.options.ui && schemafield.options.ui.readonly) 
+            // XXX add support for editing date fields
+            || schemafield.options.type === Date;
+      }
+      return false;
     },
     includeField: function(schemafield, name) {
       return true;
