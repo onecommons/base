@@ -14,7 +14,7 @@
   </label>
   	<div class="col-sm-6">
     {% if readonlyField(schemafield, path) %}
-       {{formatdata(df.getVal(path))}}
+       {{formatdata(df.getVal(path), obj)}}
     {% elseif schemafield.schema %}
        {% for val in df.getVal(path) %}
           <div class="well well-lg">

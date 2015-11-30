@@ -26,10 +26,11 @@ module.exports.edit = function(req, res, next) {
     getPaths: getPaths,
     readonlyField: function(schemafield, name) {
       // XXX add support for editing date fields
-      return (schemafield.options && schemafield.options.type === Date);
+      return (schemafield.options && schemafield.options.type === Date)
+            || schemafield.instance === 'Buffer'
     },
     includeField: function(schemafield, name) {
-      return schemafield.instance !== 'Buffer';
+      return true;
     },
   }).then(function(result) {
     res.render('edit.html', result);
@@ -111,12 +112,17 @@ function setRowspans(headers) {
 module.exports.QUERYLIMIT = 10000;
 module.exports.MAX_FIELD_LEN = 512;
 
-function formatdata(data) {
+function formatdata(data, obj) {
   if (!data && typeof data !== 'number') {
     return '';
   }
   if (data instanceof Date) {
     return moment(data).format()
+  }
+
+  if (data instanceof Buffer && isDbId(obj._id) == 'File') {
+    var url = '/admin/file/' + obj._id;
+    return "<a href='" + url + "'><object data='" +  url + "' ></object></a>"; //type='mimetype' typemustmatch
   }
 
   var objtype = isDbId(data);
