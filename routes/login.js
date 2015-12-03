@@ -36,7 +36,11 @@ module.exports.loginPost = function(passport) {
         if (req.session.returnToMethod == req.method) {
           statusCode = 307;
         }
-        url = req.session.returnTo;
+        if (req.query.h && req.session.returnTo.indexOf('#') == -1) {
+          url = req.session.returnTo + '#' + req.query.h;
+        } else {
+          url = req.session.returnTo;
+        }
         delete req.session.returnTo;
       }
       return res.redirect(statusCode, url);
