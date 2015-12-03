@@ -112,7 +112,8 @@ describe('jsonrpc', function(){
       logger = {
         error: function(msg) {
           actualMsg = msg;
-        }
+        },
+        info: function() {}
       };
 
       request(app)
@@ -130,7 +131,8 @@ describe('jsonrpc', function(){
       logger = {
         error: function(msg) {
           actualMsg = msg;
-        }
+        },
+        info: function() {}
       };
 
       request(app)
