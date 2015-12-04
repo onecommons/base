@@ -72,7 +72,10 @@ describe('datastore', function(){
       new mongoose.Schema({
         __t: String,
          _id: String,
-        prop1: []
+        prop1: [],
+        nested: {
+          foo: String
+        }
         },{strict: false}) //'throw'
     );
 
@@ -212,16 +215,43 @@ describe('datastore', function(){
       //console.log('lastid', lastid);
       var obj = {"_id": lastid,
         "prop-new3": "another new property",
-        "prop1": 3 //replaced value
+        "prop1": 3, //replaced value
+        nested: {
+          foo: 1
+        }
       };
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
       ds.replace(obj, checkAccessDenied(function(err, doc) {
         assert(!err, JSON.stringify(err));
         obj['__v'] = 4;
         obj['__t'] = modelName;
-        delete obj['prop-new2'];
+        // change because it was coerced into an array:
+        obj['prop1'] = [3];
+        assert.deepEqual(doc.toObject(), obj);
+        Test1.findOne({ _id: lastid}, function (err, doc) {
+          assert.deepEqual(doc.toObject(), obj);
+          done();
+        });
+      }, done), principle);
+    });
+
+    it('updates nested objects', function(done){
+      assert(ds);
+      //console.log('lastid', lastid);
+      var obj = {"_id": lastid,
+        nested: {
+          bar: 2
+        }
+      };
+      //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
+      ds.update(obj, checkAccessDenied(function(err, doc) {
+        assert(!err, JSON.stringify(err));
+        obj['__v'] = 4;
+        obj['__t'] = modelName;
+        // add the properties from the previous test:
         obj['prop-new3'] =  "another new property";
         obj['prop1'] = [3];
+        obj.nested.foo = 1;
         assert.deepEqual(doc.toObject(), obj);
         Test1.findOne({ _id: lastid}, function (err, doc) {
           assert.deepEqual(doc.toObject(), obj);
