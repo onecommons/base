@@ -4,7 +4,9 @@
 
 {% for schemafield in schemapaths %}
   {% set path = prefix + loop.key %}
-  {% if includeField(schemafield, path) %}
+  {% if loop.key == '_id' %}
+  <input type=hidden name='{{ path }}' value='{{ df.getVal(path) }}' />
+  {% elseif includeField(schemafield, path) %}
   <div class='row'>
   <div class="form-group{% if required == "required" %} required{% endif %}">
   	<label class="col-sm-3 control-label" for="{{ path }}">

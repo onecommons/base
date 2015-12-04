@@ -10,8 +10,8 @@ function isDbId(data) {
   return match && match[1];
 }
 
-function getPaths(schema) {
-  return _.omit(schema.paths,'_id', '__t', '__v');
+function getPaths(schema, more) {
+  return _.omit(schema.paths, '__t', '__v', more);
 }
 
 module.exports.edit = function(req, res, next) {
@@ -20,7 +20,7 @@ module.exports.edit = function(req, res, next) {
 
   utils.resolvePromises({
     obj: model.findById(objId).exec(),
-    paths: getPaths(model.schema),
+    paths: getPaths(model.schema, '_id'),
     isDbId: isDbId,
     formatdata: formatdata,
     getPaths: getPaths,
@@ -29,7 +29,7 @@ module.exports.edit = function(req, res, next) {
         return true;
 
       if (schemafield.options) {
-        return (schemafield.options.ui && schemafield.options.ui.readonly) 
+        return (schemafield.options.ui && schemafield.options.ui.readonly)
             // XXX add support for editing date fields
             || schemafield.options.type === Date;
       }
