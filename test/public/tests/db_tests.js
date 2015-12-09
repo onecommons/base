@@ -102,7 +102,6 @@ describe('db_tests', function() {
       var mod = pjson1;
       mod.prop1 = ['whatever'];
       $(document).dbBegin().dbUpdate(mod, function(resp, err) {
-        console.log('rollback update callback', resp, err);
         assert(!resp && err, "expected !resp && err");
         assert(err.code == -32001, "expected err.code == -32001"); //client-side rollback
         updateCallbackCalled++;
@@ -165,6 +164,15 @@ it("should invoke callbacks and triggers in the correct order", function(done){
       assert(dbCallbackCalled === 1, "dbCallback should have been called");
       assert(customTriggerCalled === 0, "custom trigger should not have been called yet");
       assert(commitCallbackCalled === 1, "commit callback should have only been called once");
+  });
+});
+
+it("should allow callback to stop event propagation", function(done){
+  $(document).dbQuery({__t:"DbTest1"},
+   function(data, err) {
+     // should not call customTriggerFunc
+     setTimeout(done, 10);
+     return false;
   });
 });
 

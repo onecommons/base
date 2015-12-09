@@ -178,8 +178,9 @@ Txn.prototype = {
         var elem = elem || document;
         var txnId = this.txnId;
         if (callback) { //callback signature: function(responses, requests)
-            $(elem).one('dbdata-'+txnId, function()
-              { callback.apply(this, Array.prototype.slice.call(arguments,1) ); });
+            $(elem).one('dbdata-'+txnId, function() {
+              return callback.apply(this, Array.prototype.slice.call(arguments,1) );
+            });
         }
         var comment = this.txnComment;
         var request = this.requests;
@@ -200,8 +201,9 @@ Txn.prototype = {
                   return errors;
                 };
                 data.hasErrors = function() { return this.getErrors().length > 0;}
-                $(elem).trigger('dbdata-'+txnId, [data, request, comment]);
-                $(elem).trigger('dbdata', [data, request, comment]);
+                if (false !== $(elem).triggerHandler('dbdata-'+txnId, [data, request, comment])) {
+                  $(elem).trigger('dbdata', [data, request, comment]);
+                }
             } else {
                 //when textStatus != 'success', data param will be a XMLHttpRequest obj
                 var errorObj = {"jsonrpc": "2.0", "id": null,
@@ -212,8 +214,9 @@ Txn.prototype = {
                   hasErrors: function() { return true;},
                   getErrors: function() { return [this.error];}
                 };
-                $(elem).trigger('dbdata-'+txnId, [errorObj, request, comment]);
-                $(elem).trigger('dbdata', [errorObj, request, comment]);
+                if (false !== $(elem).triggerHandler('dbdata-'+txnId, [errorObj, request, comment])) {
+                  $(elem).trigger('dbdata', [errorObj, request, comment]);
+                }
             }
          };
 
@@ -421,11 +424,13 @@ txn.commit();
               getErrors: function() { return [this.error];}
             };
             if (callback) { //callback signature: function(responses, requests)
-                this.one('dbdata-'+txn.txnId, function()
-                { callback.apply(this, Array.prototype.slice.call(arguments,1) ); });
+                this.one('dbdata-'+txn.txnId, function() {
+                  return callback.apply(this, Array.prototype.slice.call(arguments,1) );
+                });
             }
-            this.trigger('dbdata-'+txn.txnId, [errorObj, txn.requests, txn.txnComment]);
-            this.trigger('dbdata', [errorObj, txn.requests, txn.txnComment]);
+            if (false !== this.triggerHandler('dbdata-'+txn.txnId, [errorObj, txn.requests, txn.txnComment])) {
+              this.trigger('dbdata', [errorObj, txn.requests, txn.txnComment]);
+            }
         } else {
             konsole.log('warning: rollback with no txn');
         }
