@@ -44,14 +44,14 @@ describe('db_tests', function() {
    var commitEventCalled = 0;
 
    $(document).one('dbdata', function(event, response, request) {
-     assert(event.type == 'dbdata');
-     assert(response.hasErrors() === true);
-     assert(Array.isArray(response));
+     assert(event.type == 'dbdata', event.type);
+     assert(response.hasErrors() === true, response.hasErrors());
+     assert(Array.isArray(response), response);
      assert(response[0].error);
-     assert(response[0].error.code == -32001);
+     assert(response[0].error.code == -32001, response[0].error.code);
 
-     assert(createCallbackCalled === 1);
-     assert(commitEventCalled === 0);
+     assert(createCallbackCalled === 1, 'createCallbackCalled:' + createCallbackCalled);
+     assert(commitEventCalled === 0, 'commitEventCalled:' + commitEventCalled);
      ++commitEventCalled;
      done();
    });
@@ -59,8 +59,8 @@ describe('db_tests', function() {
     $(document).dbCreate(pjson1, function(doc, err) {
       assert(!doc && err);
       assert(err.code == -32001);
-      assert(commitEventCalled === 0);
-      assert(createCallbackCalled === 0);
+      assert(commitEventCalled === 0, 'commitEventCalled:' + commitEventCalled);
+      assert(createCallbackCalled === 0, 'createCallbackCalled:' + createCallbackCalled);
       ++createCallbackCalled;
     });
  });
@@ -102,6 +102,7 @@ describe('db_tests', function() {
       var mod = pjson1;
       mod.prop1 = ['whatever'];
       $(document).dbBegin().dbUpdate(mod, function(resp, err) {
+        console.log('rollback update callback', resp, err);
         assert(!resp && err, "expected !resp && err");
         assert(err.code == -32001, "expected err.code == -32001"); //client-side rollback
         updateCallbackCalled++;
@@ -116,7 +117,7 @@ describe('db_tests', function() {
           done();
         });
       }).dbRollback(function(response, requests) {
-        assert(response.hasErrors() === true, "expected response.hasErrors() === true");
+        assert(response.hasErrors() === true, "dbRollback expected response.hasErrors() === true");
         rollbackCallbackCalled++;
         assert(updateCallbackCalled === 1, "dbCallback should have been called");
         assert(rollbackEventCalled === 0, "custom trigger should not have been called yet");
