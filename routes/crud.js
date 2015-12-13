@@ -24,14 +24,18 @@ module.exports.edit = function(req, res, next) {
     isDbId: isDbId,
     formatdata: formatdata,
     getPaths: getPaths,
+    getInputType: function(schemafield) {
+      if (schemafield.options.type === Date) {
+        return 'datetime-local';
+      }
+      return 'text';
+    },
     readonlyField: function(schemafield, name) {
       if (schemafield.instance === 'Buffer')
         return true;
 
       if (schemafield.options) {
         return (schemafield.options.ui && schemafield.options.ui.readonly)
-            // XXX add support for editing date fields
-            || schemafield.options.type === Date;
       }
       return false;
     },
@@ -123,12 +127,13 @@ function formatdata(data, obj) {
     return '';
   }
   if (data instanceof Date) {
+    //XXX should be adjusted to displayTz
     return moment(data).format()
   }
 
   if (data instanceof Buffer && isDbId(obj._id) == 'File') {
     var url = '/admin/file/' + obj._id;
-    return "<a href='" + url + "'><object data='" +  url + "' ></object></a>"; //type='mimetype' typemustmatch
+    return "<object data='" +  url + "' ></object><br><a target='_blank' href='" + url + "'>View</a>"; //type='mimetype' typemustmatch
   }
 
   var objtype = isDbId(data);

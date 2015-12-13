@@ -861,6 +861,16 @@ Binder.TypeRegistry = {
       return value ? value : null;
     },
     empty: function() { return null; }
+  },
+  'date': {
+    format: function( value ) {
+      return value.toString();
+    },
+    parse: function( value ) {
+      console.log('dv', value);
+      return new Date(value).getTime();
+    },
+    empty: function() { return null; }
   }
 };
 
@@ -981,7 +991,11 @@ Binder.FormBinder.prototype = {
         }
       }
     } else if ( element.type != 'file') {
-        value = this._parse( element.name, element.value, element );
+        var tz = element.value && element.getAttribute('data-tz');
+        // add tz offset to value (assumes iso format) so date will parse to utc
+        // XXX support daylight savings time by using tz name instead of offset
+        var elementValue = element.value + (tz || '');
+        value = this._parse( element.name, elementValue, element );
         if( accessor.isIndexed(element.name) ) {
           var current = accessor.get( element.name ) ||  [];
           current.push(value);

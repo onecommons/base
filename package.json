@@ -21,7 +21,7 @@
     "less-middleware": "~1.0.3",
     "lodash.defaultsdeep": "^3.10.0",
     "mandrill-api": "^1.0.45",
-    "moment": "^2.6.0",
+    "moment": "^2.9.0",
     "mongodb": "*",
     "mongoose": "~3.8.17",
     "morgan": "~1.1.1",

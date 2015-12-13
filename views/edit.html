@@ -28,7 +28,7 @@
     {% elseif schemafield.caster %}
        {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
     {% else %}
-       {{ df.input(path, { class:'form-control', guessInputType: true}) }}
+       {{ df.input(path, { class:'form-control', type: getInputType(schemafield),  guessInputType: true}) }}
     {% endif %}
     </div>
   </div>
@@ -56,6 +56,17 @@
 {% block jsfooter %}
 <script type="text/javascript" src="/js/data.js"></script>
 <script type="text/javascript" src="/selectize/js/standalone/selectize.js"></script>
+<script type="text/javascript" src="/js-webshim/minified/polyfiller.js"></script>
+<script>
+    //https://github.com/aFarkas/webshim v1.15.10
+    //http://caniuse.com/#feat=input-datetime
+    // load and implement all unsupported features
+    webshim.setOptions("forms-ext", {
+      replaceUI: "auto",
+      types: "datetime-local",
+    });
+    webshims.polyfill('forms-ext');
+</script>
 <script type="text/javascript">
 $(document).ready(function () {
   {{df.formhandler()}}
