@@ -14,7 +14,8 @@ var userSchema = mongoose.Schema({
     local            : {
         email        : {  type:String, lowercase: true, unique: true, sparse: true,
                           ui: {
-                            readonly: true
+                            createonly: true,
+                            inputtype: 'email'
                           },
                           validate: [ validator.isEmail, 'invalid email' ]
         },

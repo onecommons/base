@@ -85,14 +85,24 @@ if (test.value === 'Hello World') {
 }
 </script>
 <script type="text/javascript">
+function createCallback(result, err) {
+  if (result && result._id && !err) {
+    window.location = '/admin/edit/' + result._id  + '?msg=Created!';
+  }
+}
+
 $(document).ready(function () {
-  {{df.formhandler()}}
+  {{df.formhandler(dbmethod, dbcallback)}}
 
   $('.dbform select').selectize({
   plugins: ['remove_button'],
   create: false,
  });
 
+ var msg = '{{query.msg}}';
+ if (msg) {
+   setAlert('alert-success', msg);
+ }
 });
 $(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
     jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');

@@ -70,6 +70,8 @@ module.exports = function(app, passport) {
 
     edit:             ['admin/edit/:id', utils.requirePermission('admin'), crud.edit],
 
+    create:             ['admin/create/:model', utils.requirePermission('admin'), crud.create],
+
     error:   [ function() { throw Error('blah!');}]
   };
 }

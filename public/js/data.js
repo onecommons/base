@@ -623,7 +623,6 @@ function bindElement(elem, rootOnly, forItemRef) {
        }
     });
 
-    //console.log('elems', elems)
     var refElems = (forItemRef && forItemRef.refElems) || [];
     elems.add(elem).filter('[itemref]').each(function(){
         var item = getItem(this);
@@ -867,7 +866,6 @@ Binder.TypeRegistry = {
       return value.toString();
     },
     parse: function( value ) {
-      console.log('dv', value);
       return new Date(value).getTime();
     },
     empty: function() { return null; }

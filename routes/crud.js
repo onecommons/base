@@ -14,19 +14,24 @@ function getPaths(schema, more) {
   return _.omit(schema.paths, '__t', '__v', more);
 }
 
-module.exports.edit = function(req, res, next) {
-  var objId = req.params.id;
-  var model = getModelFromId(objId);
-
+function render(method, callback, model, obj, req, res, next) {
+  var creating = method == 'dbCreate';
   utils.resolvePromises({
-    obj: model.findById(objId).exec(),
+    obj: obj,
     paths: getPaths(model.schema, '_id'),
     isDbId: isDbId,
     formatdata: formatdata,
+    dbmethod: method,
+    dbcallback: callback,
     getPaths: getPaths,
     getInputType: function(schemafield) {
-      if (schemafield.options.type === Date) {
-        return 'datetime-local';
+      if (schemafield.options) {
+        if (schemafield.options.ui && schemafield.options.ui.inputtype) {
+          return schemafield.options.ui.inputtype;
+        }
+        if (schemafield.options.type === Date) {
+          return 'datetime-local';
+        }
       }
       return 'text';
     },
@@ -34,8 +39,8 @@ module.exports.edit = function(req, res, next) {
       if (schemafield.instance === 'Buffer')
         return true;
 
-      if (schemafield.options) {
-        return (schemafield.options.ui && schemafield.options.ui.readonly)
+      if (schemafield.options && schemafield.options.ui) {
+        return schemafield.options.ui.readonly || (schemafield.options.ui.createonly && !creating);
       }
       return false;
     },
@@ -48,6 +53,18 @@ module.exports.edit = function(req, res, next) {
 
 }
 
+module.exports.create = function(req, res, next) {
+  var model = models[req.params.model];
+  var newObj = new model();
+  render('dbCreate', 'createCallback', model, newObj, req, res, next);
+}
+
+module.exports.edit = function(req, res, next) {
+  var objId = req.params.id;
+  var model = getModelFromId(objId);
+  var formhandler = "$(document).on('submit', '.dbform', function() { \n $(this).dbUpdate(); \n return false; });"
+  render('dbUpdate', '', model, model.findById(objId).exec(), req, res, next);
+}
 
 /*
 TODO
@@ -156,7 +173,8 @@ function formatdata(data, obj) {
 module.exports.table = function(req, res, next) {
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
-  var model = models[req.params.model];
+  var modelName = req.params.model;
+  var model = models[modelName];
   //XXX if (!model) { unknown}
   //console.dir(model.schema.paths.roles);
 
@@ -174,6 +192,7 @@ module.exports.table = function(req, res, next) {
     footer:footer,
     colgroups:headers[0],
     formatdata: formatdata,
+    modelName: modelName,
     objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
   }).then(function(result) {
     // console.dir(result.objs[0].schema);

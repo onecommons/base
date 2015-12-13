@@ -97,7 +97,14 @@ ul.ColVis_collection {
     var table = $(tableSelector).DataTable({
       responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
-      buttons: [ 'copy', 'csv'],
+      buttons: [ 'copy', 'csv',
+      {
+                  text: 'Create {{modelName}}',
+                  action: function ( e, dt, node, config ) {
+                      window.open('/admin/create/{{modelName}}', '_blank');
+                  }
+              }
+      ],
       colVis: {
         label: function (index, title, th ) {
           return $(th).data('path');
