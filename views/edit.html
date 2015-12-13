@@ -56,16 +56,33 @@
 {% block jsfooter %}
 <script type="text/javascript" src="/js/data.js"></script>
 <script type="text/javascript" src="/selectize/js/standalone/selectize.js"></script>
-<script type="text/javascript" src="/js-webshim/minified/polyfiller.js"></script>
 <script>
-    //https://github.com/aFarkas/webshim v1.15.10
-    //http://caniuse.com/#feat=input-datetime
-    // load and implement all unsupported features
-    webshim.setOptions("forms-ext", {
-      replaceUI: "auto",
-      types: "datetime-local",
-    });
-    webshims.polyfill('forms-ext');
+// polyfill datetime-local
+// webshim loads a bunch of stuff even on browsers that support datetime-local
+// so do our own feature detection and dynamically load it
+
+function polyfill() {
+  //https://github.com/aFarkas/webshim v1.15.10
+  //http://caniuse.com/#feat=input-datetime
+  // load and implement all unsupported features
+  webshim.setOptions("forms-ext", {
+    replaceUI: "auto",
+    types: "datetime-local",
+  });
+  webshims.polyfill('forms-ext');
+}
+
+var test = document.createElement('input');
+test.type = 'datetime-local';
+test.value = 'Hello World';
+if (test.value === 'Hello World') {
+  // input type not supported
+  var oScript = document.createElement("script");
+  oScript.type = "text/javascript";
+  oScript.onload = polyfill;
+  document.head.appendChild(oScript);
+  oScript.src = "/js-webshim/minified/polyfiller.js";
+}
 </script>
 <script type="text/javascript">
 $(document).ready(function () {
