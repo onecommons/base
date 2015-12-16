@@ -9,8 +9,8 @@ var validator = require('validator');
 // define the schema for our user model
 var userSchema = mongoose.Schema({
 
-    displayName       : String,
-    avatarUrl         : String,
+    displayName      : String,
+    avatar           : {type:String, ref:'File'},
     local            : {
         email        : {  type:String, lowercase: true, unique: true, sparse: true,
                           ui: {
@@ -75,7 +75,7 @@ userSchema.methods.disable = function() {
 
 // create the model for users and expose it to our app
 module.exports = createSchema('User', userSchema, accountSchema, {
-    'write:displayName|write:avatarUrl':
+    'write:displayName|write:avatar':
       {'': 'admin',
        'id': 'user'
       }

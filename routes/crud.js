@@ -62,7 +62,6 @@ module.exports.create = function(req, res, next) {
 module.exports.edit = function(req, res, next) {
   var objId = req.params.id;
   var model = getModelFromId(objId);
-  var formhandler = "$(document).on('submit', '.dbform', function() { \n $(this).dbUpdate(); \n return false; });"
   render('dbUpdate', '', model, model.findById(objId).exec(), req, res, next);
 }
 
