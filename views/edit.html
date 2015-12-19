@@ -29,6 +29,9 @@
        {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
     {% else %}
        {{ df.input(path, { class:'form-control', type: getInputType(schemafield),  guessInputType: true}) }}
+       {% if schemafield.options.ref === 'File' %}
+       <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button>
+       {% endif %}
     {% endif %}
     </div>
   </div>
@@ -44,6 +47,35 @@
 {% endblock %}
 
 {% block admincontent %}
+<!-- Modal -->
+<div class="modal fade" tabindex="-1" id="upload-file" role="dialog" aria-labelledby="upload-file-title" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="upload-file-title">Upload File</h4>
+      </div>
+      <div class="modal-body">
+
+        <form id="upload-file-form" role= "form">
+
+        <div class='imagechooser'>
+          <input class="form-control" type="file" name="upload" data-dbmethod='createfile' />
+          <canvas style="width:100%" height="10px"></canvas>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="submit" id='payment-plan-update' class="btn btn-primary btn-two">Upload</button>
+      </div>
+
+      </form>
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <div class="">
 {{df.form(obj, {class:"form-horizontal", role:"form"})}}
   {{renderfields(paths, '')}}
@@ -94,6 +126,25 @@ function createCallback(result, err) {
 $(document).ready(function () {
   {{df.formhandler(dbmethod, dbcallback)}}
 
+  $(document).on('submit', '#upload-file-form', function() {
+      var ref = $(this).data('ref');
+      $(this).dbExecute('/adminMethods#', function(resp, err) {
+        if (!err) {
+          $('#upload-file').modal('hide');
+          $(ref).val(resp._id);
+        }
+      });
+      return false;
+  });
+  $(document).on('change', '.imagechooser', function(e) {
+      handleImage(e, $(this).find('canvas').get(0))
+  });
+  $('#upload-file').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget) // Button that triggered the modal
+    var recipient = button.prev('input').get(0).name;
+    $(this).find('form').data('ref', 'input[name=\'' + recipient + '\']')
+  });
+
   $('.dbform select').selectize({
   plugins: ['remove_button'],
   create: false,
@@ -107,5 +158,21 @@ $(document).ready(function () {
 $(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
     jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');
  });
+ function handleImage(e, canvas) {
+    var reader = new FileReader();
+    var ctx = canvas.getContext('2d');
+    reader.onload = function(event){
+        var img = new Image();
+        img.onload = function(){
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img,0,0);
+        }
+        img.src = event.target.result;
+    }
+    var file = e.target.files[0];
+    var size = file.size; //XXX error if it's too big
+    reader.readAsDataURL(file);
+}
 </script>
 {% endblock %}

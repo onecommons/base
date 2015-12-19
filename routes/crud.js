@@ -4,6 +4,7 @@ var models = require('../models');
 var utils = require('../lib/utils');
 var moment = require('moment');
 var getModelFromId = require('../models').getModelFromId;
+var jsonrpc = require('../lib/jsonrpc');
 
 function isDbId(data) {
   var match = data && data.match && data.match(/@(\w+)@[0-9a-f]+/);
@@ -237,3 +238,23 @@ module.exports.table = function(req, res, next) {
   }
 
 }
+
+module.exports.adminMethods = {
+  createfile: function (json, respond, promisesSofar, rpcSession) {
+    var userid = rpcSession.httpRequest.user && rpcSession.httpRequest.user.id;
+    if (!userid) {
+      return respond(new jsonrpc.JsonRpcError(-32001, 'Permission Denied'));
+    }
+
+    return rpcSession.getFileRequest(json.name).then(
+      function(fileinfo){
+        if (json.propertyName) {
+          fileinfo.tags = [json.propertyName];
+        }
+        return models.File.saveFileObj(fileinfo, userid);
+    }).then(function(fileObj) {
+        // don't return the whole object with the file contents
+        return { _id: fileObj.id, tags: fileObj.tags};
+    });
+  }
+};

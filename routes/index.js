@@ -8,7 +8,8 @@ var login           = require('./login');
 var directory       = require('./directory'); //XXX delete from app
 var datarequest     = require('./datarequest');
 var files           = require('./files');
-var crud           = require('./crud');
+var crud            = require('./crud');
+var jsonrpc         = require('../lib/jsonrpc');
 
 module.exports = function(app, passport) {
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>
@@ -70,8 +71,8 @@ module.exports = function(app, passport) {
 
     edit:             ['admin/edit/:id', utils.requirePermission('admin'), crud.edit],
 
-    create:             ['admin/create/:model', utils.requirePermission('admin'), crud.create],
+    create:           ['admin/create/:model', utils.requirePermission('admin'), crud.create],
 
-    error:   [ function() { throw Error('blah!');}]
+    adminMethods:     { post: jsonrpc.router.bind(crud.adminMethods)},
   };
 }
