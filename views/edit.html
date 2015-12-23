@@ -28,7 +28,7 @@
     {% elseif schemafield.caster %}
        {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
     {% else %}
-       {{ df.input(path, { class:'form-control', type: getInputType(schemafield),  guessInputType: true}) }}
+       {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
        {% if schemafield.options.ref === 'File' %}
        <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button>
        {% endif %}

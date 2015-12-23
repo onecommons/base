@@ -45,6 +45,19 @@ function render(method, callback, model, obj, req, res, next) {
       }
       return false;
     },
+    getDefaultValue: function(schemafield, name) {
+      if (schemafield.options) {
+        if (schemafield.options.type) {
+          if (schemafield.options.type !== Date && typeof schemafield.options.type === 'function') {
+            return schemafield.options.type();
+          }
+        } else {
+          // "mixed" type, treat as json
+          return null;
+        }
+      }
+      return undefined;
+    },
     includeField: function(schemafield, name) {
       return true;
     },

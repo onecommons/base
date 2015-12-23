@@ -852,12 +852,12 @@ Binder.TypeRegistry = {
     },
     empty: function() { return null; }
   },
-  'null': { //if a null field is essentially treated as a string
+  'null': { //if a null field is essentially treated as a json but without "null"
     format: function( value ) {
       return '';
     },
     parse: function( value ) {
-      return value ? value : null;
+      return value ? JSON.parse(value) : null;
     },
     empty: function() { return null; }
   },
