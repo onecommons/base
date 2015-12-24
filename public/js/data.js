@@ -307,6 +307,9 @@ txn.commit();
             comment = args[1].comment, override = args[1].override,
             fileinput = args[1].fileinput;
          var commitNow = false;
+         // set changedOnly default to true unless action == replace
+         var changedOnly = typeof args[1].changedOnly !== 'undefined'
+                              ? args[1].changedOnly : action !== 'replace';
          if (!txn) {
              txn = this.data('currentTxn');
              if (!txn) {
@@ -316,6 +319,7 @@ txn.commit();
                konsole.assert(txn.url ===  args[1].url);
              }
          }
+      try {
          //konsole.log('execute', action, data, callback);
          var requestIds = [];
          if (data) {
@@ -340,13 +344,14 @@ txn.commit();
          } else {
             konsole.assert(!fileinput);
             requestIds = this.map(function() {
-                var obj = bindElement(this);
+                var obj = bindElement(this, false, undefined, changedOnly);
                 if (override) {
                   if (typeof override == 'function')
                     obj = override(obj);
                   else
                     $.extend(obj[0], override);
                 }
+
                 var requestid = txn.execute(action, obj, callback, this);
                 $(this).find('[data-dbmethod]').each(function() {
                   txn._addFileInput(this, obj, requestid);
@@ -362,14 +367,28 @@ txn.commit();
             else
                 txn.txnComment = comment;
          }
+       } catch (err) {
+         // invoke callback if it hasn't already been bound
+         // (if we have requestIds then it has)
+         var rollbackCB = null;
+         if (callback && !requestIds.length) {
+           var elem = this;
+           rollbackCB = function(response) {
+              // note: if callback returns false event bubbling is stopped
+              return callback.call(elem, null, response.error);
+           };
+         }
+         this.dbRollback(rollbackCB, err, txn);
+         return this;
+       }
          if (commitNow)
             txn.commit(null, this);
          return this;
      },
 
-     dbData : function(rootOnly) {
+     dbData : function(rootOnly, changedOnly) {
          return this.map(function() {
-             return bindElement(this, rootOnly);
+             return bindElement(this, rootOnly, undefined, changedOnly);
          });
      },
 
@@ -411,14 +430,14 @@ txn.commit();
         }
         return this;
      },
-     dbRollback : function(callback) {
-        var txn = this.data('currentTxn');
+     dbRollback : function(callback, err, txn_) {
+        var txn = this.data('currentTxn')|| txn_;
         if (txn) {
             this.removeData('currentTxn'); //do this now so callbacks aren't in this txn
             var errorObj = {"jsonrpc": "2.0", "id": null,
               "error": {"code": -32001,
                   "message": "client-side rollback",
-                  'data' : null
+                  'data' : err
                 },
               hasErrors: function() { return true;},
               getErrors: function() { return [this.error];}
@@ -493,10 +512,10 @@ function parseAttrPropValue(data) {
     }
 }
 
-function bindElement(elem, rootOnly, forItemRef) {
+function bindElement(elem, rootOnly, forItemRef, changedOnly) {
     if (elem.nodeName == 'FORM' &&
             !elem.hasAttribute('itemscope') && !elem.hasAttribute('itemid')) {
-        var binder = Binder.FormBinder.bind( elem );
+        var binder = Binder.FormBinder.bind( elem, undefined, changedOnly);
         return binder.serialize();
     }
 
@@ -630,7 +649,7 @@ function bindElement(elem, rootOnly, forItemRef) {
         $('#'+refs.join(',#')).each(function() {
             $(this).data('itemref', item);
             refElems.push(elem);
-            bindElement(this, false, {itemElems:itemElems, refElems:refElems});
+            bindElement(this, false, {itemElems:itemElems, refElems:refElems}, changedOnly);
         });
     });
 
@@ -638,7 +657,7 @@ function bindElement(elem, rootOnly, forItemRef) {
         var parent = $(this).parent().closest('[itemscope],[itemscope=],[itemid]');
         if (parent.length) {
             var item = getItem(parent.get(0));
-            var binder = Binder.FormBinder.bind(null, item);
+            var binder = Binder.FormBinder.bind(null, item, changedOnly);
             binder.serializeField(this);
         }
     });
@@ -817,7 +836,7 @@ Binder.TypeRegistry = {
       return String(value);
     },
     parse: function( value ) {
-      return value ? value : undefined;
+      return value ? value : '';
     },
     empty: function() { return ''; }
   },
@@ -848,16 +867,23 @@ Binder.TypeRegistry = {
       return JSON.stringify(value);
     },
     parse: function( value ) {
-      return value ? JSON.parse(value) : undefined;
+      return value ? JSON.parse(value) : null;
     },
     empty: function() { return null; }
   },
-  'null': { //if a null field is essentially treated as a json but without "null"
+  'null': { //if a null field is treated as a json or a string but without "null"
     format: function( value ) {
       return '';
     },
     parse: function( value ) {
-      return value ? JSON.parse(value) : null;
+      if (!value) {
+        return null;
+      }
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return value;
+      }
     },
     empty: function() { return null; }
   },
@@ -872,10 +898,11 @@ Binder.TypeRegistry = {
   }
 };
 
-Binder.FormBinder = function( form, accessor ) {
+Binder.FormBinder = function( form, accessor, changedOnly) {
   this.form = form;
   this.accessor = this._getAccessor( accessor );
   this.type_regexp = /type\[(.*)\]/;
+  this.changedOnly = changedOnly;
 };
 Binder.FormBinder.prototype = {
   _isSelected: function( value, options ) {
@@ -946,7 +973,7 @@ Binder.FormBinder.prototype = {
     return accessor.target;
   },
   serializeField: function( element, obj, seen) {
-    if (!element.name || (element.className && element.className.match(/excludefield/))) //added if (!element.name) check
+    if (!element.name || (element.className && element.className.match(/excludefield/)))
         return; //skip unnamed fields
     var accessor = this._getAccessor( obj );
     var value = undefined;
@@ -966,9 +993,10 @@ Binder.FormBinder.prototype = {
       } else {
         value = element.checked;
       }
-      if (element.checked)
+      // XXX if (this.changedOnly) ...defaultChecked...
+      if (element.checked) {
         accessor.set( element.name, value ); //will value push if property isIndexed()
-      else if (!seen) { //stateless call: true to remove the property value
+      } else if (!seen) { //stateless call: true to remove the property value
         var values = accessor.get( element.name );
         if (isArray) {
           values = Binder.Util.filter( values, function( item) { return item != value; } );
@@ -984,11 +1012,17 @@ Binder.FormBinder.prototype = {
         //if option specifies a type use that, otherwise use the select element
         var typeElement = option.className && option.className.match( this.type_regexp ) ? option : element;
         var v = this._parse( element.name, option.value, typeElement );
+        // XXX if (this.changedOnly) ...option.defaultSelected...
         if( option.selected ) {
           accessor.set( element.name, v );
         }
       }
     } else if ( element.type != 'file') {
+        if (this.changedOnly && element.type !== 'hidden'
+              && !element.hasAttribute('data-always')
+              && element.defaultValue === element.value) {
+          return;
+        }
         var tz = element.value && element.getAttribute('data-tz');
         // add tz offset to value (assumes iso format) so date will parse to utc
         // XXX support daylight savings time by using tz name instead of offset
@@ -1022,9 +1056,14 @@ Binder.FormBinder.prototype = {
       }
     } else {
       element.value = value || "";
+      // reset defaultValue if we only want to serialize changed fields
+      if (this.changedOnly) {
+        element.defaultValue = value;
+      }
     }
   }
 };
-Binder.FormBinder.bind = function( form, obj ) {
-  return new Binder.FormBinder( form, obj );
+
+Binder.FormBinder.bind = function( form, obj, changedOnly) {
+  return new Binder.FormBinder( form, obj, changedOnly);
 };

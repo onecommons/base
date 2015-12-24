@@ -67,6 +67,14 @@
      });
    });
 
+   it('should catch client-side errors', function(done) {
+     $('#f5').dbCreate(function(resp, err) {
+       assert(!resp, 'unexpected response:'+ JSON.stringify(resp));
+       assert(err, 'missing expected error');
+       done()
+     });
+   });
+
    }); //describe
    </script>
 
@@ -88,6 +96,11 @@
 
   <form id=f4>
     <input type=file name=testfile data-dbmethod='fail'>
+  </form>
+
+  <form id=f5 class='filefree'>
+    <input type=hidden name=__t value='DbTest1'>
+    <input type=text data-always class='type[json]' name=badvalue value='{]'>
   </form>
 
   <button type=submit onclick="runTests()">Run tests<button>

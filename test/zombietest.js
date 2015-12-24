@@ -149,7 +149,7 @@ if (Browser.VERSION.charAt(0) > "3") {
       await browser.visit(url);
       const filepath = `${__dirname}/fixtures/sometext.txt`;
       //attach files to all the file input controls
-      var fields = browser.queryAll('form')
+      var fields = browser.queryAll('form:not(.filefree)')
       for (let field of fields) {
         var selector = '#'+field.id + " input[type=file]";
         browser.attach(selector, filepath);

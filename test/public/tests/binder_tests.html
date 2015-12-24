@@ -340,7 +340,7 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
             ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
             $$( 'fEmail' ).value = "";
             binder.serializeField( $$('fEmail') );
-            Assert.isUndefined( obj.email );
+            Assert.strictEqual( obj.email, '');
         }
 
     },
