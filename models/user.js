@@ -10,6 +10,7 @@ var validator = require('validator');
 var userSchema = mongoose.Schema({
 
     displayName      : String,
+    fullName         : String,
     avatar           : {type:String, ref:'File'},
     local            : {
         email        : {  type:String, lowercase: true, unique: true, sparse: true,
