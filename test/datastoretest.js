@@ -1,3 +1,5 @@
+//var path = require('path');
+//global.MONGOOSE_DRIVER_PATH = path.resolve(path.join(__dirname, 'lib/mongoose-debug-driver/'));
 var should = require('should')
   , assert = require('assert')
   , mongodb = require('mongodb')
@@ -155,7 +157,7 @@ describe('datastore', function(){
       };
       //console.log(obj); //{"_id": "@@5334d39164dd7bdb9e03cc7c","prop-new": "another value"}
       ds.add(obj, checkAccessDenied(function(err, doc) {
-        assert(!err, JSON.stringify(err));
+        assert(!err, err);
         obj['__v'] = 1;
         obj['__t'] = modelName;
         assert.deepEqual(doc.toObject(), obj);
