@@ -1,49 +1,26 @@
 {% extends 'layouts/layout-admin.html' %}
 
-{% macro renderfields(schemapaths, prefix) %}
-
-{% for schemafield in schemapaths %}
-  {% set path = prefix + loop.key %}
-  {% if loop.key == '_id' %}
-  <input type=hidden name='{{ path }}' value='{{ df.getVal(path) }}' />
-  {% elseif includeField(schemafield, path) %}
-  <div class='row'>
-  <div class="form-group{% if required == "required" %} required{% endif %}">
-  	<label class="col-sm-3 control-label" for="{{ path }}">
-      {% if isDbId(df.getVal(path)) %}
-        <a href='/admin/edit/{{df.getVal(path)}}' target=_blank>{{ loop.key }}</a>
-      {% else %}{{ loop.key }}{% endif %}
-  </label>
-  	<div class="col-sm-6">
-    {% if readonlyField(schemafield, path) %}
-       {{formatdata(df.getVal(path), obj)}}
-    {% elseif schemafield.schema %}
-       {% for val in df.getVal(path) %}
-          <div class="well well-lg">
-          {{ renderfields(getPaths(schemafield.schema), path+'[' + loop.index0 + '].') }}
-          </div>
-       {% endfor %}
-    {% elseif schemafield.options.enum %}
-       {{ df.select(path, schemafield.options.enum, {setBindType:true, forceValue:true}) }}
-    {% elseif schemafield.caster %}
-       {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
-    {% else %}
-       {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
-       {% if schemafield.options.ref === 'File' %}
-       <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button>
-       {% endif %}
-    {% endif %}
-    </div>
-  </div>
-  </div>
-  {% endif %}
-{% endfor %}
-
-{% endmacro %}
-
 {% block head %}
+
+{% include 'partials/crudmacros.html' %}
+
 <link rel="stylesheet" type="text/css" href="/selectize/css/selectize.css" />
 <link rel="stylesheet" type="text/css" href="/selectize/css/selectize.bootstrap3.css" />
+<style>
+.removed {
+  background-color: lightgray;
+  color: white;
+}
+.undoremovebutton {
+  display: none;
+}
+.removed .undoremovebutton {
+  display: inline;
+}
+.removed .removebutton {
+  display: none;
+}
+</style>
 {% endblock %}
 
 {% block admincontent %}
@@ -76,7 +53,7 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<div class="">
+<div class="crud">
 {{df.form(obj, {class:"form-horizontal", role:"form"})}}
   {{renderfields(paths, '')}}
 
@@ -117,14 +94,67 @@ if (test.value === 'Hello World') {
 }
 </script>
 <script type="text/javascript">
-function createCallback(result, err) {
-  if (result && result._id && !err) {
-    window.location = '/admin/edit/' + result._id  + '?msg=Created!';
-  }
-}
-
 $(document).ready(function () {
-  {{df.formhandler(dbmethod, dbcallback)}}
+  $(document).on('submit', '.dbform', function() {
+    var data = $(this).dbData(false, true).get(0);
+    var keys = [];
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) {
+        keys.push(key);
+      }
+    }
+    $.each(keys, function(index, key) {
+       var val = data[key];
+       if ($.isArray(val)) {
+        data[key] = Binder.Util.filter(val, function(item) {
+          if (!item) return false;
+          // exclude items with __action property
+          var keep = item.__action != 'remove';
+          delete item.__action;
+          return keep;
+        });
+      }
+    });
+    $(this).{%if creating %}dbCreate{%else%}dbUpdate{%endif%}(data, function (result, err) {
+        if (result && result._id && !err) {
+          window.location = '/admin/edit/' + result._id  + '?msg={%if creating %}Created{%else%}Saved{%endif%}!';
+        }
+    });
+    return false;
+  });
+
+  $('.crud').on('click', '.addbutton', function(){
+    var container = $(this).parents('.form-group').find('.appended:last');
+    var path = container.data('crudpath');
+    var count = container.data('crudarraylength');
+    container.load( "/admin/addToArray/{{model}}/"+path+'/'+count{%if creating%}+'?creating=1'{%endif%},
+    function( response, status, xhr ) {
+      if ( status == "error" ) {
+        return;
+      }
+      //scroll to the new content
+      $('body').animate({
+          scrollTop: $(this).offset().top
+      }, 500);
+    });
+    return false;
+  });
+
+  //remove button: add 'remove' class and hidden field
+  $('.crud').on('click', '.removebutton', function() {
+    $(this).parents('.item:first').addClass('removed');
+    var name = $(this).data('crudpath') + '.__action';
+    var hidden = $('<input class="removedmarkerfield" type="hidden" value="remove">').attr('name', name);
+    $(this).after(hidden);
+    return false;
+ });
+
+ //undoremove button:   remove 'remove' class and hidden field
+ $('.crud').on('click', '.undoremovebutton', function() {
+   $(this).siblings('.removedmarkerfield').remove();
+   $(this).parents('.item:first').removeClass('removed');
+   return false;
+ });
 
   $(document).on('submit', '#upload-file-form', function() {
       var ref = $(this).data('ref');

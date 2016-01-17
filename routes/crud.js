@@ -15,16 +15,12 @@ function getPaths(schema, more) {
   return _.omit(schema.paths, '__t', '__v', more);
 }
 
-function render(method, callback, model, obj, req, res, next) {
-  var creating = method == 'dbCreate';
-  utils.resolvePromises({
-    obj: obj,
-    paths: getPaths(model.schema, '_id'),
+function getHelperFuncs(creating) {
+  return {
     isDbId: isDbId,
     formatdata: formatdata,
-    dbmethod: method,
-    dbcallback: callback,
     getPaths: getPaths,
+    creating: creating,
     getInputType: function(schemafield) {
       if (schemafield.options) {
         if (schemafield.options.ui && schemafield.options.ui.inputtype) {
@@ -61,23 +57,53 @@ function render(method, callback, model, obj, req, res, next) {
     includeField: function(schemafield, name) {
       return true;
     },
+  };
+}
+
+function render(creating, model, obj, req, res, next) {
+  utils.resolvePromises({
+    obj: obj,
+    paths: getPaths(model.schema, '_id'),
+    model: model.modelName
   }).then(function(result) {
+    _.extend(result, getHelperFuncs(creating));
     res.render('edit.html', result);
   }).catch(next); //pass err to next
-
 }
 
 module.exports.create = function(req, res, next) {
   var model = models[req.params.model];
   var newObj = new model();
-  render('dbCreate', 'createCallback', model, newObj, req, res, next);
-}
+  render(true, model, newObj, req, res, next);
+};
 
 module.exports.edit = function(req, res, next) {
   var objId = req.params.id;
   var model = getModelFromId(objId);
-  render('dbUpdate', '', model, model.findById(objId).exec(), req, res, next);
-}
+  render(false, model, model.findById(objId).exec(), req, res, next);
+};
+
+// /model/path/count
+module.exports.addToArray = function(req, res, next) {
+  var model = models[req.params.model];
+  var count = parseInt(req.params.count);
+  var path = req.params.objpath;
+  var newObj = new model();
+  var array = newObj.get(path);
+  // pad with count and add one
+  while (array.length < count+1) {
+    array.push({});
+  }
+
+  var vars = {
+   obj:    newObj,
+   paths:  getPaths(model.schema.paths[path].schema),
+   index: count,
+   path: path,
+  };
+  _.extend(vars, getHelperFuncs(req.query.creating));
+  res.render('addtoarray.html', vars);
+};
 
 /*
 TODO

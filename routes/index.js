@@ -3,7 +3,7 @@ var express         = require('express');
 
 var about           = require('./about'); //XXX delete from app
 var jswig           = require('./jswig');
-var blogpost        = require('./blogpost'); //XXX delete from app
+//var blogpost        = require('./blogpost'); //XXX delete from app
 var login           = require('./login');
 var directory       = require('./directory'); //XXX delete from app
 var datarequest     = require('./datarequest');
@@ -72,6 +72,8 @@ module.exports = function(app, passport) {
     edit:             ['admin/edit/:id', utils.requirePermission('admin'), crud.edit],
 
     create:           ['admin/create/:model', utils.requirePermission('admin'), crud.create],
+
+    addToArray:       ['admin/addToArray/:model/:objpath/:count', utils.requirePermission('admin'), crud.addToArray],
 
     adminMethods:     { post: jsonrpc.router.bind(crud.adminMethods)},
   };

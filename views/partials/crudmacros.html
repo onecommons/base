@@ -1,0 +1,49 @@
+{% macro renderfields(schemapaths, prefix) %}
+
+{% for schemafield in schemapaths %}
+  {% set path = prefix + loop.key %}
+  {% set val = df.getVal(path) %}
+  {% if loop.key == '_id' || loop.key == '__v' %}
+    {{df.hidden(path)}}
+  {% elseif includeField(schemafield, path) %}
+  <div class='row'>
+  <div class="form-group{% if required == "required" %} required{% endif %}">
+  	<label class="col-sm-3 control-label" for="{{ path }}">
+      {% if isDbId(val) %}
+        <a href='/admin/edit/{{val}}' target=_blank>{{ loop.key }}</a>
+      {% else %}{{ loop.key }}{% endif %}
+  </label>
+  	<div class="col-sm-6">
+    {% if readonlyField(schemafield, path) %}
+       {{formatdata(val, obj)}}
+    {% elseif schemafield.schema %}
+       <div><button class="button addbutton btn btn-default">
+  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+       </div>
+       {% for val in val %}
+          <div class="item well well-lg">
+            <button class="button removebutton btn btn-default"
+              data-crudpath="{{path+'[' + loop.index0 + ']'}}">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+            <button class="undoremovebutton button btn btn-info">Undo Remove</button>
+          {{ renderfields(getPaths(schemafield.schema), path+'[' + loop.index0 + '].') }}
+          </div>
+       {% endfor %}
+       <div class=appended data-crudpath='{{path}}' data-crudarraylength='{{(val && val.length) || 0}}' ></div>
+    {% elseif schemafield.options.enum %}
+       {{ df.select(path, schemafield.options.enum, {setBindType:true, forceValue:true}) }}
+    {% elseif schemafield.caster %}
+       {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
+    {% else %}
+       {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
+       {% if schemafield.options.ref === 'File' %}
+       <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button>
+       {% endif %}
+    {% endif %}
+    </div>
+  </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% endmacro %}

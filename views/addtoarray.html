@@ -1,0 +1,10 @@
+{% include 'partials/crudmacros.html' %}
+  <div class="item well well-lg">
+  <button class="removebutton button btn btn-default btn-lg"
+    data-crudpath="{{path+'[' + index + ']'}}">
+   <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+   <button class="undoremovebutton button btn btn-info">Undo Remove</button>
+   {{ df.opush(obj) && ''}}
+   {{ renderfields(paths, path + '[' + index + '].') }}
+ </div>
+ <div class=appended data-crudpath='{{path}}' data-crudarraylength='{{index+1}}' ></div>
