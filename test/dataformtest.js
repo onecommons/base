@@ -86,7 +86,7 @@ describe('dataform', function() {
   });
 
   it('should have correct number of tests', function(done) {
-    count.should.equal(29); //make sure the expected number of dom tests ran
+    count.should.equal(30); //make sure the expected number of dom tests ran
     done();//needs to be async to run after first test
   });
 });

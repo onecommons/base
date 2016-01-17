@@ -278,6 +278,11 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
           var binder = new Binder.FormBinder( document.getElementById( "testForm3" ), obj );
           binder.serialize();
           assertJsonEqual({"array":[1,2,3]}, obj);
+
+          var obj2 = {};
+          var binder = new Binder.FormBinder( document.getElementById( "testForm5" ), obj2 );
+          binder.serialize();
+          assertJsonEqual({array:[{a:'5'}, {a:'3'}]}, obj2);
         },
 
       testSerializeFormsCheckboxes : function() {
@@ -462,6 +467,12 @@ derived from http://code.google.com/p/js-binding/source/browse/trunk/test/binder
 <input type='radio'  name='number' class="type[number]" value='3' id='tfr3'>3</button>
 
 </form>
+
+<form id=testForm5>
+  <input type=text name='array[].a' value='5'>
+  <input type=text name='array[].a' value='3'>
+</form>
+
 
 <div class='save' id='microdata1'>
         <dl itemscope

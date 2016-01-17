@@ -748,7 +748,7 @@ Binder.Util = {
 
 Binder.PropertyAccessor =  function( obj ) {
   this.target = obj || {};
-  this.index_regexp = /(.*)\[(.*?)\]/;
+  this.index_regexp = /(.*)\[(.*?)\]$/;
 };
 Binder.PropertyAccessor.prototype = {
   _setProperty: function( obj, path, value ) {
@@ -809,7 +809,8 @@ Binder.PropertyAccessor.prototype = {
     }
   },
   isIndexed: function( property ) {
-    var match = property.match( this.index_regexp )
+    var match = property.match( this.index_regexp );
+    //has [] but not [x]
     return match && !match[2];
   },
   set: function(  property, value ) {
@@ -996,7 +997,8 @@ Binder.FormBinder.prototype = {
       // XXX if (this.changedOnly) ...defaultChecked...
       if (element.checked) {
         accessor.set( element.name, value ); //will value push if property isIndexed()
-      } else if (!seen) { //stateless call: true to remove the property value
+      } else if (!seen) {
+        // stateless call and not checked: remove this value from obj's array
         var values = accessor.get( element.name );
         if (isArray) {
           values = Binder.Util.filter( values, function( item) { return item != value; } );
