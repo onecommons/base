@@ -92,6 +92,12 @@ div.expect {
   </div>
 
   <div class= "testcase">
+    <h4>treat [] as index 0: </h4>
+     <div class= "test">{{df.input("array[]")}}</div>
+     <div class= "expect"><input type= "text" class= "type[number]" value= "0" name= "array[]" /></div>
+  </div>
+
+  <div class= "testcase">
     <h4>test list with index 1: </h4>
       <div class= "test">{{df.input("array[1]")}}</div>
      <div class= "expect"><input type= "text" class= "type[number]" value= "1" name= "array[1]" /></div>
