@@ -1,3 +1,5 @@
+//var path = require('path');
+//global.MONGOOSE_DRIVER_PATH = path.resolve(path.join(__dirname, 'lib/mongoose-debug-driver/'));
 var mongoose = require("mongoose");
 var createModel = require('../lib/createmodel');
 var assert = require('chai').assert;
@@ -185,7 +187,7 @@ describe('createModel', function(){
       return Test4Derive1.update({_id: t3d1.id}, {$set: { __t: 'Test4Derive2' }}).exec();
     }) //test that type changed
     .then(function(result) {
-      assert(result === 1);
+      assert.equal(result.nModified, 1);
       //no longer found here
       return Test4Derive1.findById(t3d1.id).exec().then(function(doc){
         assert(!doc); //1st derived model doesn't finds 1st derived instance anymore
