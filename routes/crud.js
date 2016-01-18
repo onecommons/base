@@ -232,7 +232,7 @@ module.exports.table = function(req, res, next) {
     colgroups:headers[0],
     formatdata: formatdata,
     modelName: modelName,
-    objs: model.find({}, null, { limit: exports.QUERYLIMIT }).exec()
+    objs: model.find({}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT).exec()
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
