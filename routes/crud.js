@@ -210,6 +210,14 @@ function formatdata(data, obj) {
 
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports.table = function(req, res, next) {
+  var modelName = req.params.model;
+  if (!modelName) {
+    var modelNames = Object.getOwnPropertyNames(models.models);
+    res.render('crudhome.html', {
+      modelNames: modelNames
+    });
+    return;
+  }
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
   var modelName = req.params.model;

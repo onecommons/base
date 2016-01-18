@@ -1,0 +1,9 @@
+{% extends 'layouts/layout-admin.html' %}
+
+{% block admincontent %}
+ {% for name in modelNames %}
+ <div>
+ <b>{{name}}</b>: <a href='/admin/crud/{{name}}'>List</a> <a href='/admin/create/{{name}}'>Create</a>
+ </div>
+ {% endfor %}
+{% endblock %}
