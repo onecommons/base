@@ -37,8 +37,11 @@
     {% else %}
        {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
        {% if schemafield.options.ref === 'File' %}
-       <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button>
+       <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button></br>
        {% endif %}
+    {% endif %}
+    {% if schemafield.options.ui.message && !readonlyField(schemafield, path) %}
+      <span>{{schemafield.options.ui.message}}</span>
     {% endif %}
     </div>
   </div>

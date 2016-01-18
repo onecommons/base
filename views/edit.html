@@ -20,6 +20,9 @@
 .removed .removebutton {
   display: none;
 }
+.crudtitle {
+  font-weight: bold;
+}
 </style>
 {% endblock %}
 
@@ -52,6 +55,14 @@
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<div>
+{%if creating %}
+<span class='crudtitle'>Create New {{model}}</span>
+{%else%}
+<span>Editing {{model}}</span>&nbsp;<a class='btn btn-default' href='/admin/create/{{model}}' target='_blank'>Create New {{model}}</a>
+{%endif%}
+</div>
 
 <div class="crud">
 {{df.form(obj, {class:"form-horizontal", role:"form"})}}
