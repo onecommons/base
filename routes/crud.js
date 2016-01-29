@@ -116,21 +116,8 @@ details needs to show path, suppress empty columns
 * editor
 - fieldset based on schema tree
 - support object refs: autocomplete (how to display object "titles")
-
 */
 
-/*
-{{macro display(obj)}}
-display
-  for prop in obj
-    if item is object
-      <div>
-       display(item)
-     </div>
-    else
-       <span>{{prop}}</span>: <span>{{format(obj[prop])}}</span>
-{#endmacro}}
-*/
 
 /*
 rowspan = total depth - (current depth-1) if cell has no children
@@ -205,8 +192,32 @@ function formatdata(data, obj) {
   if (typeof data === 'number' && Math.round(data) != data)
     return data.toFixed(4);
 
+  var title = data.title;
+  if (title) {
+    if (data._id) {
+      return "<a href='/admin/edit/" + data._id + "' target=_blank>" + data.title + "</a>";
+    } else {
+      return data.title;
+    }
+  }
   return data.toString().slice(0, exports.MAX_FIELD_LEN).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 }
+
+function find(model, refs) {
+  var query = model.find({}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
+  refs && refs.forEach(function(ref) {
+    //how to convert the object to the title? in formatdata()?
+    query.populate(ref.path, '_id ' + ref.titlefields);
+  });
+  return query.exec();
+}
+
+// function find(model, req) {
+//   model.aggregate({userid, last(orderdate), sum(orders)});
+// //http://stackoverflow.com/questions/25231022/mongoose-how-to-group-by-and-populate
+// //http://stackoverflow.com/questions/31825744/lean-inside-populate-in-mongoose
+//   //.populate('userid local.email').exec()
+// }
 
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports.table = function(req, res, next) {
@@ -225,6 +236,7 @@ module.exports.table = function(req, res, next) {
   //XXX if (!model) { unknown}
   //console.dir(model.schema.paths.roles);
 
+  var refs = [];
   Object.keys(model.schema.tree).forEach(function(name) {
     if (name == 'id' || name == '_id')
       return;
@@ -240,7 +252,7 @@ module.exports.table = function(req, res, next) {
     colgroups:headers[0],
     formatdata: formatdata,
     modelName: modelName,
-    objs: model.find({}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT).exec()
+    objs: find(model, refs)
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
@@ -259,6 +271,11 @@ module.exports.table = function(req, res, next) {
       colspan = Object.keys(schema).reduce(function(memo, key){
         return memo+addToHeader(key, path+'.'+key, schema[key], level+1)
       }, 0);
+    } else if (schema.ref){
+      var refmodel = models[schema.ref];
+      if (refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields) {
+        refs.push({path: path, titlefields: refmodel.schema.ui.titlefields});
+      }
     }
     var cell = {name:name, colspan:colspan, nested:nested, path:path};
     //console.log('name', name, 'nested', nested, 'colspan', colspan);

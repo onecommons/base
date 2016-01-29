@@ -50,6 +50,8 @@ var userSchema = mongoose.Schema({
 
 });
 
+userSchema.ui = { titlefields: 'local.email' };
+
 // methods ======================
 // generating a hash
 userSchema.statics.generateHash = function(password) {
