@@ -47,6 +47,10 @@ function addBrowserTests() {
       function(req, res) {
         res.render('dbuploadtest.html',{})
     });
+
+  this.get('/clienterrorloggingtest', function(req, res) {
+        res.render('clienterrorloggingtest.html',{})
+    });
 }
 
 function addUserStartupListener() {

@@ -11,6 +11,16 @@ var files           = require('./files');
 var crud            = require('./crud');
 var jsonrpc         = require('../lib/jsonrpc');
 
+var imgHex = '47494638396101000100800000dbdfef00000021f90401000000002c00000000010001000002024401003b';
+var imgBinary = new Buffer(imgHex, 'hex');
+
+function logClientError(req, res) {
+  req.query.ua = req.headers['user-agent'];
+  req.app.log.warn(req.query, 'unhandled browser error')
+  res.writeHead(200, {'Content-Type': 'image/gif' });
+  res.end(imgBinary, 'binary');
+}
+
 module.exports = function(app, passport) {
   //enables named routes, eg <a href='{{routes.profile}}'>my profile</a>
   return {
@@ -76,5 +86,7 @@ module.exports = function(app, passport) {
     addToArray:       ['admin/addToArray/:model/:objpath/:count', utils.requirePermission('admin'), crud.addToArray],
 
     adminMethods:     { post: jsonrpc.router.bind(crud.adminMethods)},
+
+    logclienterror:   logClientError,
   };
 }
