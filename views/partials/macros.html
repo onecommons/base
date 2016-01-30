@@ -70,3 +70,23 @@
     {% endif %}
 </div>
 {% endmacro %}
+
+{% macro logErrorsToServerJS %}
+{#
+  see https://danlimerick.wordpress.com/2014/01/18/how-to-catch-javascript-errors-with-window-onerror-even-on-chrome-and-firefox/
+#}
+window.addEventListener('error', function(e) {
+  var query = '{%if req_id %}req_id={{ req_id }}{% endif %}'
+    +'&message=' + encodeURIComponent(e.message)
+    +'&filename=' + encodeURIComponent(e.filename)
+    +'&lineno='+e.lineno;
+    if (typeof e.colno !== 'undefined') {
+       query += '&colno='+e.colno;
+    }
+    if (typeof e.error !== 'undefined') {
+      query += '&stack=' + encodeURIComponent(e.error.stack);
+    }
+  (new Image()).src = '{{routes.logclienterror}}?'+query;
+});
+
+{% endmacro %}
