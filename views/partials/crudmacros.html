@@ -1,5 +1,4 @@
 {% macro renderfields(schemapaths, prefix) %}
-
 {% for schemafield in schemapaths %}
   {% set path = prefix + loop.key %}
   {% set val = df.getVal(path) %}
@@ -15,7 +14,7 @@
   </label>
   	<div class="col-sm-6">
     {% if readonlyField(schemafield, path) %}
-       {{formatdata(val, obj)}}
+       <p class="form-control-static">{{formatdata(val, obj)}}</p>
     {% elseif schemafield.schema %}
        <div><button class="button addbutton btn btn-default">
   <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
@@ -33,7 +32,11 @@
     {% elseif schemafield.options.enum %}
        {{ df.select(path, schemafield.options.enum, {setBindType:true, forceValue:true}) }}
     {% elseif schemafield.caster %}
-       {{ df.select(path, schemafield.caster.enumValues, {setBindType:true, forceValue:true}) }}
+      {%if schemafield.caster.enumValues.length %}
+        {{ df.select(path, schemafield.caster.enumValues, {class: 'enumerate-only', setBindType:true, forceValue:true}) }}
+      {% else %}
+        {{ df.select(path, null, {class: 'allow-create',  setBindType:true, forceValue:true}) }}
+      {% endif %}
     {% else %}
        {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
        {% if schemafield.options.ref === 'File' %}
@@ -41,12 +44,11 @@
        {% endif %}
     {% endif %}
     {% if schemafield.options.ui.message && !readonlyField(schemafield, path) %}
-      <span>{{schemafield.options.ui.message}}</span>
+      <span class=help-block>{{schemafield.options.ui.message}}</span>
     {% endif %}
     </div>
   </div>
   </div>
   {% endif %}
 {% endfor %}
-
 {% endmacro %}

@@ -7,6 +7,22 @@
 <link rel="stylesheet" type="text/css" href="/selectize/css/selectize.css" />
 <link rel="stylesheet" type="text/css" href="/selectize/css/selectize.bootstrap3.css" />
 <style>
+fieldset.withborder {
+    border: 1px groove #ddd !important;
+    padding: 0 1.4em 1.4em 1.4em !important;
+    margin: 0 0 1.5em 0 !important;
+    -webkit-box-shadow:  0px 0px 0px 0px #000;
+            box-shadow:  0px 0px 0px 0px #000;
+}
+legend.withborder {
+     font-size: 1.2em !important;
+     font-weight: bold !important;
+     text-align: left !important;
+     width:auto;
+     padding:0 10px;
+     border-bottom:none;
+ }
+
 .removed {
   background-color: lightgray;
   color: white;
@@ -186,10 +202,20 @@ $(document).ready(function () {
     $(this).find('form').data('ref', 'input[name=\'' + recipient + '\']')
   });
 
-  $('.dbform select').selectize({
-  plugins: ['remove_button'],
-  create: false,
- });
+  $('.dbform select.allow-create').selectize({
+    plugins: ['remove_button'],
+    create: function(input) {
+        return {
+            value: input,
+            text: input
+        }
+    },
+  });
+
+  $('.dbform select.enumerate-only').selectize({
+    plugins: ['remove_button'],
+    create: false,
+  });
 
  var msg = '{{query.msg}}';
  if (msg) {
