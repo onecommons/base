@@ -103,7 +103,7 @@ function polyfill() {
   // load and implement all unsupported features
   webshim.setOptions("forms-ext", {
     replaceUI: "auto",
-    types: "datetime-local",
+    types: "datetime-local date time month",
   });
   webshims.polyfill('forms-ext');
 }
