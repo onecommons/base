@@ -38,7 +38,12 @@
         {{ df.select(path, null, {class: 'allow-create',  setBindType:true, forceValue:true}) }}
       {% endif %}
     {% else %}
-       {{ df.input(path, { class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
+      {% if schemafield.options.ref && schemafield.options.ref !== 'File' %}
+        {{ df.select(path, null, {class: 'object', 'data-model': schemafield.options.ref,
+          objectLabelKey: 'title', objectValueKey: '_id', setBindType:true, forceValue:true}) }}
+      {% else %}
+       {{ df.input(path, {class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
+      {% endif %}
        {% if schemafield.options.ref === 'File' %}
        <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button></br>
        {% endif %}

@@ -217,6 +217,20 @@ $(document).ready(function () {
     create: false,
   });
 
+  $('.dbform select.object').selectize({
+  // only one choice
+    sortField: 'text',
+    create: false,
+    preload: 'focus',
+    load: function(query, callback) {
+      var $input = this.$input;
+      $input.dbExecute('/adminMethods#modelAutocomplete', {model: $input.data('model')}, function(response) {
+        callback(response);
+        return false;
+      });
+    }
+  });
+
  var msg = '{{query.msg}}';
  if (msg) {
    setAlert('alert-success', msg);

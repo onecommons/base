@@ -71,6 +71,20 @@ function render(creating, model, obj, req, res, next) {
   }).catch(next); //pass err to next
 }
 
+function addRefs(schema, refs) {
+  Object.keys(schema.paths).forEach(function(path) {
+    var def = schema.paths[path];
+    if (def.schema) {
+      addRefs(def.schema, refs);
+    } else if (def.options.ref){
+      var ref = addRef(path, def.options.ref);
+      if (ref) {
+        refs.push(ref);
+      }
+    }
+  });
+}
+
 module.exports.create = function(req, res, next) {
   var model = models[req.params.model];
   var newObj = new model();
@@ -80,7 +94,12 @@ module.exports.create = function(req, res, next) {
 module.exports.edit = function(req, res, next) {
   var objId = req.params.id;
   var model = getModelFromId(objId);
-  render(false, model, model.findById(objId).exec(), req, res, next);
+  var refs = [];
+  addRefs(model.schema, refs);
+
+  render(false, model, runQuery(model, refs, {_id: objId}).then(function(docs){
+    return docs && docs[0];
+  }), req, res, next);
 };
 
 // /model/path/count
@@ -203,8 +222,14 @@ function formatdata(data, obj) {
   return data.toString().slice(0, exports.MAX_FIELD_LEN).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 }
 
-function find(model, refs) {
-  var query = model.find({}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
+function addRef(path, ref) {
+  var refmodel = models[ref];
+  var titlefields = refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields
+  return titlefields && {path:path, titlefields:titlefields}
+}
+
+function runQuery(model, refs, query) {
+  var query = model.find(query || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
     //how to convert the object to the title? in formatdata()?
     query.populate(ref.path, '_id ' + ref.titlefields);
@@ -252,7 +277,7 @@ module.exports.table = function(req, res, next) {
     colgroups:headers[0],
     formatdata: formatdata,
     modelName: modelName,
-    objs: find(model, refs)
+    objs: runQuery(model, refs)
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
     result.hiddenColumns = findEmptyColumns(footer, result.objs);
@@ -272,9 +297,9 @@ module.exports.table = function(req, res, next) {
         return memo+addToHeader(key, path+'.'+key, schema[key], level+1)
       }, 0);
     } else if (schema.ref){
-      var refmodel = models[schema.ref];
-      if (refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields) {
-        refs.push({path: path, titlefields: refmodel.schema.ui.titlefields});
+      var ref = addRef(path, schema.ref);
+      if (ref) {
+        refs.push(ref);
       }
     }
     var cell = {name:name, colspan:colspan, nested:nested, path:path};
@@ -320,5 +345,47 @@ module.exports.adminMethods = {
         // don't return the whole object with the file contents
         return { _id: fileObj.id, tags: fileObj.tags};
     });
+  },
+
+  modelAutocomplete: function(json, respond, promisesSofar, rpcSession) {
+      var model = models[json.model];
+      if (!model) {
+        return null;
+      }
+      var fields = '_id';
+      if (model.schema.ui && model.schema.ui.titlefields) {
+        fields += ' ' + model.schema.ui.titlefields;
+      }
+      return model.find({}).select(fields).exec().then(function(docs) {
+        return docs && docs.map(function(doc) {return {value: doc._id, text: doc.title || doc._id}});
+      });
+  },
+
+/*
+  deleteObject: async function(json, respond, promisesSofar, rpcSession) {
+    var obj = await models.findById(json._id);
+    var deleted = new models.deleted();
+    deleted.set({
+      _id: obj._id,
+      object: obj,
+      by: rpcSession.httpRequest.user.id
+    });
+    await deleted.save();
+    await obj.remove();
+    return { _id: deleted._id };
+  },
+
+  undoDelete: async function(json) {
+    var doc = await models.deleted.findById(json._id);
+    var model = doc && getModelFromId(doc.obj._id);
+    if (!model) {
+      return new jsonrpc.JsonRpcError(-32001, 'Unable to restore object');
+    }
+    var restored = new model();
+    restored.set(doc.obj);
+    await restored.save();
+    await doc.remove();
+    return { _id: doc.obj._id };
   }
+*/
 };

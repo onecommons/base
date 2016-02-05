@@ -85,7 +85,7 @@ module.exports = function(app, passport) {
 
     addToArray:       ['admin/addToArray/:model/:objpath/:count', utils.requirePermission('admin'), crud.addToArray],
 
-    adminMethods:     { post: jsonrpc.router.bind(crud.adminMethods)},
+    adminMethods:     { post: [utils.requirePermission('admin'), jsonrpc.router.bind(crud.adminMethods)]},
 
     logclienterror:   logClientError,
   };
