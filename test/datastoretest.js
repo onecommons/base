@@ -78,7 +78,9 @@ describe('datastore', function(){
         nested: {
           foo: String
         }
-        },{strict: false}) //'throw'
+      },{strict: false, //'throw'
+        toJSON: {getters:false}
+      })
     );
 
     it('should connect',  function(done){

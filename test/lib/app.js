@@ -11,7 +11,8 @@ createModel('DbTest1',
     __t: String,
      _id: String,
     prop1: []
-  },{strict: false}), //'throw'
+  },{strict: false, //'throw'
+    toJSON: {getters:false}}),
   null, {'any': 'user'}
 );
 
@@ -100,7 +101,8 @@ if (require.main === module) {
   var app = createApp();
   app.addBrowserTests();
   app.start(function() {
-    return mongoose.connection.db.dropCollection('DbTest1');
+    mongoose.connection.db.dropCollection('DbTest1');
+    return true;
   }, function(server){
       log.info('test app listening on %s:%d',server.address().address,server.address().port);
   });
