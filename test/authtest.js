@@ -264,10 +264,11 @@ describe('Session timeouts', function() {
     },
     routes: {
       setSessionValue: function(req,res) { req.session.test = "set";
-      //console.dir(req.session); console.log('rc', req.cookies);
+        //console.dir(req.session); console.log('setSessionValue', req.cookies);
         res.status(200).send("ok");
       },
-      getSessionValue: function(req, res)  {//console.dir(req.session); console.log('rc', req.cookies);
+      getSessionValue: function(req, res)  {
+        //console.dir(req.session); console.log('getSessionValue', req.cookies);
         res.status(200).send(String(req.session.test));
       }
     }
@@ -294,8 +295,7 @@ describe('Session timeouts', function() {
       sessioncookie = res.headers['set-cookie'][0];
       return agent1.get('/getSessionValue').expect('set');
     }).then(function(res) {
-      if (res.headers['set-cookie'])
-        assert(sessioncookie == res.headers['set-cookie'][0], "session id should not have changed");
+      assert(sessioncookie == res.headers['set-cookie'][0], "session id should not have changed");
       return delay(300,res);
     }).then(function(res){ //session should have timed out by now
       return agent1.get('/getSessionValue').expect('set-cookie', /connect\.sid/).expect('undefined').expect(200);
