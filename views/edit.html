@@ -123,7 +123,13 @@ if (test.value === 'Hello World') {
 <script type="text/javascript">
 $(document).ready(function () {
   $(document).on('submit', '.dbform', function() {
-    var data = $(this).dbData(false, true).get(0);
+    try {
+      var data = $(this).dbData(false, true).get(0);
+    } catch (err) {
+      setAlert('alert-danger', "Error saving objecdt: bad input");
+      console.log("Error saving objecdt: bad input", err);
+      return false;
+    }
     var keys = [];
     for (var key in data) {
       if (data.hasOwnProperty(key)) {

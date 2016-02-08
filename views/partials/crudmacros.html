@@ -40,7 +40,7 @@
     {% else %}
       {% if schemafield.options.ref && schemafield.options.ref !== 'File' %}
         {{ df.select(path, null, {class: 'object', 'data-model': schemafield.options.ref,
-          objectLabelKey: 'title', objectValueKey: '_id', setBindType:true, forceValue:true}) }}
+          objectLabelKey: 'title', objectValueKey: '_id', setBindType:false, forceValue:true}) }}
       {% else %}
        {{ df.input(path, {class:'form-control', type: getInputType(schemafield), defaultValue: getDefaultValue(schemafield), guessInputType: true}) }}
       {% endif %}
