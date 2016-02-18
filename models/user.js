@@ -78,7 +78,7 @@ userSchema.methods.disable = function() {
 
 // create the model for users and expose it to our app
 module.exports = createSchema('User', userSchema, accountSchema, {
-    'write:displayName|write:avatar':
+    'write:displayName|write:avatar|write:fullName':
       {'': 'admin',
        'id': 'user'
       }
