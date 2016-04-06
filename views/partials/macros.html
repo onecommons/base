@@ -83,7 +83,7 @@ window.addEventListener('error', function(e) {
     if (typeof e.colno !== 'undefined') {
        query += '&colno='+e.colno;
     }
-    if (typeof e.error !== 'undefined') {
+    if (e.error) {
       query += '&stack=' + encodeURIComponent(e.error.stack);
     }
   (new Image()).src = '{{routes.logclienterror}}?'+query;
