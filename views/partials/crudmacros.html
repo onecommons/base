@@ -8,8 +8,8 @@
   <div class='row'>
   <div class="form-group{% if required == "required" %} required{% endif %}">
   	<label class="col-sm-3 control-label" for="{{ path }}">
-      {% if isDbId(val) %}
-        <a href='/admin/edit/{{val}}' target=_blank>{{ loop.key }}</a>
+      {% if isDbId(val) || isDbId(val._id) %}
+        <a href='/admin/edit/{{val || val._id}}' target=_blank>{{ loop.key }}</a>
       {% else %}{{ loop.key }}{% endif %}
   </label>
   	<div class="col-sm-6">

@@ -39,6 +39,9 @@ legend.withborder {
 .crudtitle {
   font-weight: bold;
 }
+.restoreobj {
+  display: none;
+}
 </style>
 {% endblock %}
 
@@ -77,6 +80,8 @@ legend.withborder {
 <span class='crudtitle'>Create New {{model}}</span>
 {%else%}
 <span>Editing {{model}}</span>&nbsp;<a class='btn btn-default' href='/admin/create/{{model}}' target='_blank'>Create New {{model}}</a>
+&nbsp;<a data-objid='{{obj._id}}' class='btn btn-default deleteobj' href='#' target='_blank'>Delete</a>
+&nbsp;<a data-objid='{{obj._id}}' class='btn btn-default restoreobj' href='#' target='_blank'>Undo Deletion</a>
 {%endif%}
 </div>
 
@@ -236,6 +241,26 @@ $(document).ready(function () {
       });
     }
   });
+
+$(document).on('click', '.deleteobj', function() {
+  $(this).dbExecute('/adminMethods#deleteObject', {_id: $(this).data('objid')}, function (result, err) {
+    if (result && result._id && !err) {
+      $(this).hide();
+      $('.restoreobj').show();
+    }
+  });
+  return false;
+});
+
+$(document).on('click', '.restoreobj', function() {
+  $(this).dbExecute('/adminMethods#restoreObject', {_id: $(this).data('objid')}, function (result, err) {
+    if (result && result._id && !err) {
+      $(this).hide();
+      $('.deleteobj').show();
+    }
+  });
+  return false;
+});
 
  var msg = '{{query.msg}}';
  if (msg) {

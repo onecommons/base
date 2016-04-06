@@ -61,14 +61,13 @@ function getHelperFuncs(creating) {
 }
 
 function render(creating, model, obj, req, res, next) {
-  utils.resolvePromises({
+  var result = {
     obj: obj,
     paths: getPaths(model.schema, '_id'),
     model: model.modelName
-  }).then(function(result) {
-    _.extend(result, getHelperFuncs(creating));
-    res.render('edit.html', result);
-  }).catch(next); //pass err to next
+  };
+  _.extend(result, getHelperFuncs(creating));
+  res.render('edit.html', result);
 }
 
 function addRefs(schema, refs) {
@@ -96,10 +95,14 @@ module.exports.edit = function(req, res, next) {
   var model = getModelFromId(objId);
   var refs = [];
   addRefs(model.schema, refs);
-
-  render(false, model, runQuery(model, refs, {_id: objId}).then(function(docs){
-    return docs && docs[0];
-  }), req, res, next);
+  runQuery(model, refs, {_id: objId}).then(function(docs){
+    var obj = docs && docs[0];
+    if (obj) {
+      render(false, model, obj, req, res, next);
+    } else {
+      next(); // not found
+    }
+  });
 };
 
 // /model/path/count
@@ -244,6 +247,10 @@ function runQuery(model, refs, query) {
 //   //.populate('userid local.email').exec()
 // }
 
+//xxx when pageLength and hiddenColumns change update session, restore from session
+//http://datatables.net/extensions/colvis/options statechange
+// or http://datatables.net/reference/event/column-visibility
+
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports.table = function(req, res, next) {
   var modelName = req.params.model;
@@ -361,10 +368,12 @@ module.exports.adminMethods = {
       });
   },
 
-/*
   deleteObject: async function(json, respond, promisesSofar, rpcSession) {
     var obj = await models.findById(json._id);
-    var deleted = new models.deleted();
+    if (!obj) {
+      return new jsonrpc.JsonRpcError(-32001, 'Unable to find object to delete');
+    }
+    var deleted = new models.Deleted();
     deleted.set({
       _id: obj._id,
       object: obj,
@@ -375,17 +384,17 @@ module.exports.adminMethods = {
     return { _id: deleted._id };
   },
 
-  undoDelete: async function(json) {
-    var doc = await models.deleted.findById(json._id);
-    var model = doc && getModelFromId(doc.obj._id);
+  restoreObject: async function(json) {
+    var doc = await models.Deleted.findById(json._id);
+    var model = doc && getModelFromId(doc.object._id);
     if (!model) {
       return new jsonrpc.JsonRpcError(-32001, 'Unable to restore object');
     }
     var restored = new model();
-    restored.set(doc.obj);
+    restored.set(doc.object);
     await restored.save();
     await doc.remove();
-    return { _id: doc.obj._id };
+    return { _id: restored._id };
   }
-*/
+
 };

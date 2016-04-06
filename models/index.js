@@ -17,6 +17,7 @@ require("./account"),
 require('./disabledaccount'),
 require('./user'),
 require('./file'),
+require('./deleted'),
 ].forEach(_.partial(utils.exportModel, module.exports));
 
 function _extractTypeFromId(id) {

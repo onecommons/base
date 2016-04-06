@@ -16,9 +16,11 @@
     )
   }
 
+  var dbdataSuccessMessage = "Success!";
+  var dbdataErrorMessage = "An error has occurred.";
   $(document).bind('dbdata', function(event, response) {
       var alertClass =  response.hasErrors() ? 'alert-danger' : 'alert-success';
-      var message = response.hasErrors() ? "An error has occurred." : "Saved!";
+      var message = response.hasErrors() ?  dbdataErrorMessage : dbdataSuccessMessage;
       setAlert(alertClass, message, "{{containerSelector}}");
   });
 
