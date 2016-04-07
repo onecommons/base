@@ -76,7 +76,9 @@ legend.withborder {
 </div><!-- /.modal -->
 
 <div>
-{%if creating %}
+{%if deleteId %}
+<span class='crudtitle'>Restore Deleted {{model}}</span>
+{%elseif creating %}
 <span class='crudtitle'>Create New {{model}}</span>
 {%else%}
 <span>Editing {{model}}</span>&nbsp;<a class='btn btn-default' href='/admin/create/{{model}}' target='_blank'>Create New {{model}}</a>
@@ -153,11 +155,16 @@ $(document).ready(function () {
         });
       }
     });
+    $(this).dbBegin()
     $(this).{%if creating %}dbCreate{%else%}dbUpdate{%endif%}(data, function (result, err) {
         if (result && result._id && !err) {
-          window.location = '/admin/edit/' + result._id  + '?msg={%if creating %}Created{%else%}Saved{%endif%}!';
+          window.location = '/admin/edit/' + result._id  + '?msg={%if deleteId %}Restored{%elseif creating %}Created{%else%}Saved{%endif%}!';
         }
     });
+    {%if deleteId %}
+    $(this).dbDestroy({_id:"{{deleteId}}"});
+    {% endif %}
+    $(this).dbCommit();
     return false;
   });
 

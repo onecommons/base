@@ -60,13 +60,13 @@ function getHelperFuncs(creating) {
   };
 }
 
-function render(creating, model, obj, req, res, next) {
+function render(vars, model, obj, req, res, next) {
   var result = {
     obj: obj,
     paths: getPaths(model.schema, '_id'),
     model: model.modelName
   };
-  _.extend(result, getHelperFuncs(creating));
+  _.extend(result, vars, getHelperFuncs(vars.creating));
   res.render('edit.html', result);
 }
 
@@ -86,23 +86,58 @@ function addRefs(schema, refs) {
 
 module.exports.create = function(req, res, next) {
   var model = models[req.params.model];
+  if (!model) {
+    return next(); // not found
+  }
   var newObj = new model();
-  render(true, model, newObj, req, res, next);
+  render({creating:true}, model, newObj, req, res, next);
 };
+
+async function editDeleted(objId, req, res, next) {
+  try {
+    var obj = await models.Deleted.findById(objId).exec();
+    if (!obj) {
+      return next(); // not found
+    }
+    var deletedModel = getModelFromId(obj.deletedId);
+    var refs = [];
+    addRefs(deletedModel.schema, refs);
+    // fetch it again with refs populated
+    obj = (await runQuery(models.Deleted, refs, {_id: objId}, 'object.'))[0];
+    var restored = new deletedModel();
+    restored.set(obj.object);
+    render({deleteId: objId, creating: true}, deletedModel, restored, req, res, next);
+  } catch (err) {
+    next(err);
+  }
+}
 
 module.exports.edit = function(req, res, next) {
   var objId = req.params.id;
+  if (!objId) {
+    return next(); //not found
+  }
   var model = getModelFromId(objId);
+  if (!model) {
+    return next(); // not found
+  }
+  if (model.modelName === 'Deleted') {
+    return editDeleted(objId, req, res, next);
+  }
   var refs = [];
   addRefs(model.schema, refs);
   runQuery(model, refs, {_id: objId}).then(function(docs){
-    var obj = docs && docs[0];
-    if (obj) {
-      render(false, model, obj, req, res, next);
-    } else {
-      next(); // not found
+    try {
+      var obj = docs && docs[0];
+      if (obj) {
+        render({}, model, obj, req, res, next);
+      } else {
+        next(); // not found
+      }
+    } catch (err) {
+      next(err);
     }
-  });
+  }, next);
 };
 
 // /model/path/count
@@ -228,14 +263,14 @@ function formatdata(data, obj) {
 function addRef(path, ref) {
   var refmodel = models[ref];
   var titlefields = refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields
-  return titlefields && {path:path, titlefields:titlefields}
+  return titlefields && {path: path, titlefields: titlefields, model: refmodel}
 }
 
-function runQuery(model, refs, query) {
+function runQuery(model, refs, query, refPathPrefix) {
   var query = model.find(query || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
     //how to convert the object to the title? in formatdata()?
-    query.populate(ref.path, '_id ' + ref.titlefields);
+    query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
   });
   return query.exec();
 }
@@ -375,7 +410,7 @@ module.exports.adminMethods = {
     }
     var deleted = new models.Deleted();
     deleted.set({
-      _id: obj._id,
+      deletedId: obj._id,
       object: obj,
       by: rpcSession.httpRequest.user.id
     });
@@ -385,8 +420,8 @@ module.exports.adminMethods = {
   },
 
   restoreObject: async function(json) {
-    var doc = await models.Deleted.findById(json._id);
-    var model = doc && getModelFromId(doc.object._id);
+    var doc = await models.Deleted.findOne({deletedId: json._id});
+    var model = doc && getModelFromId(doc.deletedId);
     if (!model) {
       return new jsonrpc.JsonRpcError(-32001, 'Unable to restore object');
     }
@@ -394,7 +429,7 @@ module.exports.adminMethods = {
     restored.set(doc.object);
     await restored.save();
     await doc.remove();
-    return { _id: restored._id };
+    return { _id: doc._id };
   }
 
 };
