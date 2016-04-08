@@ -93,9 +93,9 @@ module.exports.create = function(req, res, next) {
   render({creating:true}, model, newObj, req, res, next);
 };
 
-async function editDeleted(objId, req, res, next) {
-  try {
-    var obj = await models.Deleted.findById(objId).exec();
+//XXX revert to async version
+function editDeleted(objId, req, res, next) {
+  models.Deleted.findById(objId).then(function(obj) {
     if (!obj) {
       return next(); // not found
     }
@@ -103,13 +103,13 @@ async function editDeleted(objId, req, res, next) {
     var refs = [];
     addRefs(deletedModel.schema, refs);
     // fetch it again with refs populated
-    obj = (await runQuery(models.Deleted, refs, {_id: objId}, 'object.'))[0];
-    var restored = new deletedModel();
-    restored.set(obj.object);
-    render({deleteId: objId, creating: true}, deletedModel, restored, req, res, next);
-  } catch (err) {
-    next(err);
-  }
+    return runQuery(models.Deleted, refs, {_id: objId}, 'object.').then(function(docs) {
+      obj = docs && docs[0];
+      var restored = new deletedModel();
+      restored.set(obj.object);
+      render({deleteId: objId, creating: true}, deletedModel, restored, req, res, next);
+    });
+  }, next);
 }
 
 module.exports.edit = function(req, res, next) {
@@ -403,33 +403,37 @@ module.exports.adminMethods = {
       });
   },
 
-  deleteObject: async function(json, respond, promisesSofar, rpcSession) {
-    var obj = await models.findById(json._id);
-    if (!obj) {
-      return new jsonrpc.JsonRpcError(-32001, 'Unable to find object to delete');
-    }
-    var deleted = new models.Deleted();
-    deleted.set({
-      deletedId: obj._id,
-      object: obj,
-      by: rpcSession.httpRequest.user.id
+ //XXX revert to async version
+  deleteObject: function(json, respond, promisesSofar, rpcSession) {
+    return models.findById(json._id).then(function(obj) {
+      if (!obj) {
+        return new jsonrpc.JsonRpcError(-32001, 'Unable to find object to delete');
+      }
+      var deleted = new models.Deleted();
+      deleted.set({
+        deletedId: obj._id,
+        object: obj,
+        by: rpcSession.httpRequest.user.id
+      });
+      return deleted.save().then(function(doc) {
+        obj.remove();
+        return { _id: deleted._id };
+      });
     });
-    await deleted.save();
-    await obj.remove();
-    return { _id: deleted._id };
   },
 
-  restoreObject: async function(json) {
-    var doc = await models.Deleted.findOne({deletedId: json._id});
-    var model = doc && getModelFromId(doc.deletedId);
-    if (!model) {
-      return new jsonrpc.JsonRpcError(-32001, 'Unable to restore object');
-    }
-    var restored = new model();
-    restored.set(doc.object);
-    await restored.save();
-    await doc.remove();
-    return { _id: doc._id };
+  //XXX revert to async version
+  restoreObject: function(json) {
+    return models.Deleted.findOne({deletedId: json._id}).then(function(doc) {
+      var model = doc && getModelFromId(doc.deletedId);
+      if (!model) {
+        return new jsonrpc.JsonRpcError(-32001, 'Unable to restore object');
+      }
+      var restored = new model();
+      restored.set(doc.object);
+      restored.save();
+      doc.remove();
+      return { _id: doc._id };
+    });
   }
-
 };
