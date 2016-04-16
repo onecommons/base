@@ -91,13 +91,15 @@ ul.ColVis_collection {
 <script src="//cdn.datatables.net/colvis/1.1.1/js/dataTables.colVis.min.js"></script>
 <script src="//cdn.datatables.net/buttons/1.1.0/js/dataTables.buttons.min.js"></script>
 <script src="//cdn.datatables.net/buttons/1.1.0/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="/js/data.js"></script>
 <script>
   $(document).ready(function () {
     var tableSelector = '#crud';
+    var hiddenColumns = {{hiddenColumns|json}};
     var table = $(tableSelector).DataTable({
       responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
-      order: [[ 0, "desc" ]], //sorting by id desc implies most recently created go first 
+      order: [[ 0, "desc" ]], //sorting by id desc implies most recently created go first
       buttons: [ 'copy', 'csv',
       {
                   text: 'Create {{modelName}}',
@@ -106,14 +108,38 @@ ul.ColVis_collection {
                   }
               }
       ],
+      pageLength: {{pageLength}},
       colVis: {
         label: function (index, title, th ) {
           return $(th).data('path');
+        },
+        stateChange: function ( iColumn, bVisible ) {
+          var changed = false;
+          var index = hiddenColumns.indexOf(iColumn);
+          if (index > -1) {
+            if (bVisible) {
+              // delete
+              hiddenColumns.splice(index, 1);
+              changed = true;
+            }
+          } else if (!bVisible) {
+            // add
+            hiddenColumns.push(iColumn);
+            changed = true;
+          }
+          if (changed) {
+            $(document).dbExecute('/adminMethods#updateCrudSettings', {model:'{{modelName}}',
+              setting: 'hiddenColumns',
+              value:   hiddenColumns
+            }, function() {
+              return false;
+            });
+          }
         }
       },
       columnDefs: [
         {
-            "targets": {{hiddenColumns|json}},
+            "targets": hiddenColumns,
             "visible": false
         },
         {
@@ -139,7 +165,19 @@ ul.ColVis_collection {
     $(tableSelector).on( 'draw.dt', function () {
       enableTooltips();
     });
+    $(tableSelector).on( 'length.dt', function ( e, settings, len ) {
+      $(document).dbExecute('/adminMethods#updateCrudSettings', {
+        model:'{{modelName}}',
+        setting: 'pageLength',
+        value: len
+      }, function() {
+        return false;
+      });
+    });
   });
+  $(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
+      jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');
+   });
 </script>
 
 {% endblock %}

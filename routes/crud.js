@@ -282,10 +282,6 @@ function runQuery(model, refs, query, refPathPrefix) {
 //   //.populate('userid local.email').exec()
 // }
 
-//xxx when pageLength and hiddenColumns change update session, restore from session
-//http://datatables.net/extensions/colvis/options statechange
-// or http://datatables.net/reference/event/column-visibility
-
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports.table = function(req, res, next) {
   var modelName = req.params.model;
@@ -296,6 +292,8 @@ module.exports.table = function(req, res, next) {
     });
     return;
   }
+  var settings = (req.session.crudSettings && req.session.crudSettings[modelName]) || {};
+
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
   var modelName = req.params.model;
@@ -319,10 +317,11 @@ module.exports.table = function(req, res, next) {
     colgroups:headers[0],
     formatdata: formatdata,
     modelName: modelName,
+    pageLength: settings.pageLength || 10,
     objs: runQuery(model, refs)
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
-    result.hiddenColumns = findEmptyColumns(footer, result.objs);
+    result.hiddenColumns = settings.hiddenColumns || findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next
 
@@ -401,6 +400,17 @@ module.exports.adminMethods = {
       return model.find({}).select(fields).exec().then(function(docs) {
         return docs && docs.map(function(doc) {return {value: doc._id, text: doc.title || doc._id}});
       });
+  },
+
+  updateCrudSettings: function(json, respond, promisesSofar, rpcSession) {
+    if (!rpcSession.httpRequest.session.crudSettings) {
+      rpcSession.httpRequest.session.crudSettings = {};
+    }
+    if (!rpcSession.httpRequest.session.crudSettings[json.model]) {
+      rpcSession.httpRequest.session.crudSettings[json.model] = {};
+    }
+    rpcSession.httpRequest.session.crudSettings[json.model][json.setting] = json.value;
+    return true;
   },
 
  //XXX revert to async version
