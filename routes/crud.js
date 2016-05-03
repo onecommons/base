@@ -21,16 +21,34 @@ function getHelperFuncs(creating) {
     formatdata: formatdata,
     getPaths: getPaths,
     creating: creating,
-    getInputType: function(schemafield) {
+    getInputAttributes: function(schemafield, attributes) {
       if (schemafield.options) {
-        if (schemafield.options.ui && schemafield.options.ui.inputtype) {
-          return schemafield.options.ui.inputtype;
+        if (schemafield.options.ui)  {
+          var defaults = schemafield.options.ui.inputtype
+                  ? {type: schemafield.options.ui.inputtype}
+                  : schemafield.options.ui.inputAttributes;
+          if (defaults) {
+            _.defaults(attributes, defaults);
+            if (attributes.type) {
+              return attributes;
+            }
+          }
         }
-        if (schemafield.options.type === Date) {
-          return 'datetime-local';
+        switch (schemafield.options.type) {
+          case Date:
+            attributes.type = 'datetime-local';
+            break;
+          case Boolean:
+            attributes.type = 'checkbox';
+            break;
+          case Number:
+            attributes.type = 'number';
+            break;
+          default:
+            attributes.type = 'text';
         }
       }
-      return 'text';
+      return attributes;
     },
     readonlyField: function(schemafield, name) {
       if (schemafield.instance === 'Buffer')
