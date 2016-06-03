@@ -87,6 +87,8 @@ module.exports = function(app, passport) {
 
     adminMethods:     { post: [utils.requirePermission('admin'), jsonrpc.router.bind(crud.adminMethods)]},
 
+    edit:             ['admin/playground', utils.requirePermission('admin'), utils.renderer('api-playground.html')],
+
     logclienterror:   logClientError,
   };
 }

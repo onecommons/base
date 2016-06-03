@@ -1,0 +1,73 @@
+{% extends 'layouts/layout-admin.html' %}
+
+{% block head %}
+{% parent %}
+<style>
+#data {
+  height: 20em;
+  word-wrap: break-word;
+}
+#error {
+  height: 10em;
+   word-wrap: break-word;
+}
+
+</style>
+{% endblock %}
+
+{% block admincontent %}
+<h2>API Playground</h2>
+
+<form class='api-form'>
+  <div class='form-group'>
+    <label>URL <input name=url></label>
+  </div>
+  <div class='form-group'>
+    <label>Request <textarea name=request></textarea></label>
+  </div>
+  <div class='form-group'>
+    <button class="btn btn-primary" type=submit>Go!</button>
+  </div>
+</form>
+<div class="panel panel-info">
+  <div class="panel-heading">Results</div>
+  <div class="panel-body">
+    <pre id=data></pre>
+  </div>
+</div>
+
+<div class="panel panel-danger">
+  <div class="panel-heading">Errors</div>
+  <div class="panel-body">
+    <pre id=error></pre>
+  </div>
+</div>
+{% endblock %}
+
+{% block jsfooter %}
+<script type="text/javascript" src="/js/data.js"></script>
+<script>
+{% if _csrf %}
+$(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
+    jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');
+ });
+{% endif %}
+$(document).ready(function() {
+  $('.api-form').submit(function() {
+    var $this = $(this);
+    var request = null;
+    try {
+      request = JSON.parse(this.elements.request.value);
+    } catch (e) {
+      console.error(e);
+      alert("Request is invalid JSON (see console)");
+      return false;
+    }
+    $this.dbExecute(this.elements.url.value, request, function(data, err) {
+      $('#data').text(JSON.stringify(data, null, 2));
+      $('#error').text(JSON.stringify(error, null, 2));
+    });
+    return false;
+  });
+});
+</script>
