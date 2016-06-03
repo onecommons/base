@@ -82,7 +82,9 @@ legend.withborder {
 <span class='crudtitle'>Create New {{model}}</span>
 {%else%}
 <span>Editing {{model}}</span>&nbsp;<a class='btn btn-default' href='/admin/create/{{model}}' target='_blank'>Create New {{model}}</a>
+{%if !noDelete %}
 &nbsp;<a data-objid='{{obj._id}}' class='btn btn-default deleteobj' href='#' target='_blank'>Delete</a>
+{%endif%}
 &nbsp;<a data-objid='{{obj._id}}' class='btn btn-default restoreobj' href='#' target='_blank'>Undo Deletion</a>
 {%endif%}
 </div>

@@ -82,7 +82,8 @@ function render(vars, model, obj, req, res, next) {
   var result = {
     obj: obj,
     paths: getPaths(model.schema, '_id'),
-    model: model.modelName
+    model: model.modelName,
+    noDelete: model.schema.ui && model.schema.ui.noDelete
   };
   _.extend(result, vars, getHelperFuncs(vars.creating));
   res.render('edit.html', result);
@@ -138,6 +139,10 @@ module.exports.edit = function(req, res, next) {
   var model = getModelFromId(objId);
   if (!model) {
     return next(); // not found
+  }
+  if (model.schema.ui && model.schema.ui.noModify) {
+    res.statusCode = 403;
+    return next(new Error("Permission Denied"));
   }
   if (model.modelName === 'Deleted') {
     return editDeleted(objId, req, res, next);
