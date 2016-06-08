@@ -19,7 +19,7 @@
         <td><a href='{{routes.file(file)}}'>{{ file.name }}</a></td>
         <td>{{ file.mimetype }}</td>
         <td>{{ file.size }}</td>
-        <td>{{ file.creationDate|date('Y-m-d H:i') }}</td>
+        <td>{{ file.creationDate|date('Y-m-d H:i', tzOffset) }}</td>
         <td>{{ file.owner }}</td>
         <td>{% for tag in file.tags %}<span class="btn btn-primary btn-sm">{{tag}}</span>{%endfor%}</td>
       </tr>
