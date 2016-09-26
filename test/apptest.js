@@ -19,7 +19,7 @@ describe('app', function() {
   before(function(){
     base.createApp(__dirname, {
       //customize config dir so for config tests below
-      configdir: path.join(__dirname, 'fixtures'),
+      configdir: [path.join(__dirname, 'fixtures')],
       routes: {
         index: function(req, res) {
           assert(req.app);
