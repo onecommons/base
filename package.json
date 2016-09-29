@@ -36,7 +36,7 @@
     "promise": "*",
     "request": "^2.65.0",
     "swig": "1.4.2",
-    "underscore": "~1.6.0",
+    "underscore": "~1.8.3",
     "validator": "^3.36.0"
   },
   "devDependencies": {
