@@ -103,6 +103,71 @@ describe("utils", function() {
   })
 });
 
+describe("truncate", function() {
+  var truncate = require('../lib/truncate')({
+    MAXKEYS:   2,
+    MAXARRAY:  3,
+    MAXSTRING: 13,
+  });
+  var morethan10 = "more than 10 characters";
+  var lessthan10 = "< 10";
+
+  it("strings", function() {
+    assert(truncate(morethan10), "more than ...");
+    assert(truncate(lessthan10) === lessthan10);
+  });
+
+  it("objects", function() {
+    var smallObj = {a:1, b:null};
+    assert.deepEqual(truncate({a:null, b:2, c:3}), {a:null, '...':2 });
+    assert.deepEqual(truncate({a:1, b:[1, morethan10]}), { a: 1, b: [ 1, 'more than ...' ] });
+    assert.strictEqual(truncate(smallObj), smallObj);
+    var deep = {
+      a: {
+        b: {
+          c: 1
+        }
+      }
+    };
+    assert.strictEqual(truncate(deep), deep);
+
+    var tooDeep = {
+      a: {
+        b: {
+          c: {
+            d: 1
+          }
+        }
+      }
+    };
+    assert.deepEqual(truncate(tooDeep), { a: { b: { c: '...' } } });
+
+    var recursive = {a:1, b:2, c:3};
+    recursive.a = recursive;
+    var truncated = { a: '...', '...':2 };
+    assert.deepEqual(truncate(recursive), truncated);
+  });
+
+  it("arrays", function() {;
+    var smallArray = [1, null, 3];
+    assert.deepEqual(truncate([null, 2, 3, 4]), [ null, 2, '...' ]);
+    assert.deepEqual(truncate([1, morethan10]), [ 1, 'more than ...' ]);
+    assert.strictEqual(truncate(smallArray), smallArray);
+
+    var deep = [ [[1]] ];
+    assert.strictEqual(truncate(deep), deep);
+
+    var tooDeep = [ [[ [1] ]] ];
+    assert.deepEqual(truncate(tooDeep), [ [ [ '...' ] ] ]);
+
+    var recursive = [1, 2, 3];
+    recursive[0] = recursive;
+    var truncated = [ '...', 2, 3 ];
+    assert.deepEqual(truncate(recursive), truncated);
+  });
+
+});
+
 describe("logs", function() {
   var log = require('../lib/log');
 
@@ -132,4 +197,5 @@ describe("logs", function() {
     //restore original method
     log.logger.output = outputFunc;
   });
+
 });
