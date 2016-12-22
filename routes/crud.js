@@ -315,14 +315,14 @@ module.exports.table = function(req, res, next) {
     });
     return;
   }
+  var model = models[modelName];
+  if (!model) {
+    return next(); // not found
+  }
   var settings = (req.session.crudSettings && req.session.crudSettings[modelName]) || {};
 
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
-  var modelName = req.params.model;
-  var model = models[modelName];
-  //XXX if (!model) { unknown}
-  //console.dir(model.schema.paths.roles);
 
   var refs = [];
   Object.keys(model.schema.tree).forEach(function(name) {
@@ -333,7 +333,7 @@ module.exports.table = function(req, res, next) {
   });
   setRowspans(headers);
   addToFooter(model.schema.tree, '');
-
+  var query = req.query.query && JSON.parse(req.query.query);
   utils.resolvePromises({
     headers:headers,
     footer:footer,
@@ -341,7 +341,7 @@ module.exports.table = function(req, res, next) {
     formatdata: formatdata,
     modelName: modelName,
     pageLength: settings.pageLength || 10,
-    objs: runQuery(model, refs)
+    objs: runQuery(model, refs, query),
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
     result.hiddenColumns = settings.hiddenColumns || findEmptyColumns(footer, result.objs);
