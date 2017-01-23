@@ -289,8 +289,8 @@ function addRef(path, ref) {
   return titlefields && {path: path, titlefields: titlefields, model: refmodel}
 }
 
-function runQuery(model, refs, query, refPathPrefix) {
-  var query = model.find(query || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
+function runQuery(model, refs, match, refPathPrefix) {
+  var query = model.find(match || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
     //how to convert the object to the title? in formatdata()?
     query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
@@ -333,7 +333,15 @@ module.exports.table = function(req, res, next) {
   });
   setRowspans(headers);
   addToFooter(model.schema.tree, '');
-  var query = req.query.query && JSON.parse(req.query.query);
+  var query = req.query.query && JSON.parse(req.query.query, function(key, value) {
+    if (value === "$currentDate") {
+      return new Date();
+    } else if (value && value.$date){
+      return new Date(value.$date);
+    } else {
+      return value;
+    }
+  });
   utils.resolvePromises({
     headers:headers,
     footer:footer,
