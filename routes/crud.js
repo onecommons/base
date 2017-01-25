@@ -305,6 +305,19 @@ function runQuery(model, refs, match, refPathPrefix) {
 //   //.populate('userid local.email').exec()
 // }
 
+function findColumnsIndexes(columns, fieldsToShow) {
+  if (typeof fieldsToShow === 'string') {
+    fieldsToShow = fieldsToShow.split(',');
+  }
+  var emptyIndexes = [];
+  for (var i = 0; i < columns.length; i++) {
+    if (fieldsToShow.indexOf(columns[i].path) === -1) {
+      emptyIndexes.push(i);
+    }
+  }
+  return emptyIndexes;
+}
+
 //XXX unit test with schema with double nested properties and periods in the names
 module.exports.table = function(req, res, next) {
   var modelName = req.params.model;
@@ -352,7 +365,8 @@ module.exports.table = function(req, res, next) {
     objs: runQuery(model, refs, query),
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
-    result.hiddenColumns = settings.hiddenColumns || findEmptyColumns(footer, result.objs);
+    result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
+                          || settings.hiddenColumns || findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next
 
