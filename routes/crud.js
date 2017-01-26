@@ -85,20 +85,29 @@ function render(vars, model, obj, req, res, next) {
     model: model.modelName,
     noDelete: model.schema.ui && model.schema.ui.noDelete
   };
+  if (vars.foreignKeys) {
+    vars.getOptionsForForeignKey = function(path, val) {
+      //e.g. 'products[0].sku' => 'sku'
+      var key = path.split('.').slice(-1)[0];
+      return [{value: val, label: vars.foreignKeys[key][val]}];
+    }
+  }
   _.extend(result, vars, getHelperFuncs(vars.creating));
   res.render('edit.html', result);
 }
 
-function addRefs(schema, refs) {
+function addRefs(schema, refs, foreignKeys) {
   Object.keys(schema.paths).forEach(function(path) {
     var def = schema.paths[path];
     if (def.schema) {
-      addRefs(def.schema, refs);
+      addRefs(def.schema, refs, foreignKeys);
     } else if (def.options.ref){
       var ref = addRef(path, def.options.ref);
       if (ref) {
         refs.push(ref);
       }
+    } else if (def.options.ui && def.options.ui.foreignKey) {
+      foreignKeys[path] = getForeignKeys(def.options.ui.foreignKey.ref, def.options.ui.foreignKey.autocomplete);
     }
   });
 }
@@ -120,13 +129,17 @@ function editDeleted(objId, req, res, next) {
     }
     var deletedModel = getModelFromId(obj.deletedId);
     var refs = [];
-    addRefs(deletedModel.schema, refs);
+    var foreignKeys = {};
+    addRefs(deletedModel.schema, refs, foreignKeys);
     // fetch it again with refs populated
     return runQuery(models.Deleted, refs, {_id: objId}, 'object.').then(function(docs) {
       obj = docs && docs[0];
       var restored = new deletedModel();
       restored.set(obj.object);
-      render({deleteId: objId, creating: true}, deletedModel, restored, req, res, next);
+      utils.resolvePromises(foreignKeys).then(function(foreignKeys) {
+        render({deleteId: objId, creating: true, foreignKeys:foreignKeys},
+                deletedModel, restored, req, res, next);
+      }, next);
     });
   }, next);
 }
@@ -148,12 +161,15 @@ module.exports.edit = function(req, res, next) {
     return editDeleted(objId, req, res, next);
   }
   var refs = [];
-  addRefs(model.schema, refs);
+  var foreignKeys = {};
+  addRefs(model.schema, refs, foreignKeys);
   runQuery(model, refs, {_id: objId}).then(function(docs){
     try {
       var obj = docs && docs[0];
       if (obj) {
-        render({}, model, obj, req, res, next);
+        utils.resolvePromises(foreignKeys).then(function(foreignKeys) {
+          render({foreignKeys:foreignKeys}, model, obj, req, res, next);
+        }, next);
       } else {
         next(); // not found
       }
@@ -292,7 +308,7 @@ function addRef(path, ref) {
 function runQuery(model, refs, match, refPathPrefix) {
   var query = model.find(match || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
-    //how to convert the object to the title? in formatdata()?
+    // load the titlefields so the "title" virtual field works
     query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
   });
   return query.exec();
@@ -338,6 +354,7 @@ module.exports.table = function(req, res, next) {
   var footer = [{name:'id', path:'id'}];
 
   var refs = [];
+  var foreignKeys = {};
   Object.keys(model.schema.tree).forEach(function(name) {
     if (name == 'id' || name == '_id')
       return;
@@ -363,6 +380,8 @@ module.exports.table = function(req, res, next) {
     modelName: modelName,
     pageLength: settings.pageLength || 10,
     objs: runQuery(model, refs, query),
+    // XXX table needs formatdata to render foreignKeys
+    // foreignKeys: utils.resolvePromises(foreignKeys)
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
     result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
@@ -387,6 +406,8 @@ module.exports.table = function(req, res, next) {
       if (ref) {
         refs.push(ref);
       }
+    } else if (schema.ui && schema.ui.foreignKey) {
+      // foreignKeys[path] = getForeignKeys(schema.ui.foreignKey.ref, schema.ui.foreignKey.autocomplete);
     }
     var cell = {name:name, colspan:colspan, nested:nested, path:path};
     //console.log('name', name, 'nested', nested, 'colspan', colspan);
@@ -411,7 +432,19 @@ module.exports.table = function(req, res, next) {
         footer.push({name:name, path: path+name})
     });
   }
+}
 
+function getForeignKeys(modelName, staticMethodName) {
+  var model = models[modelName];
+  if (!model) {
+    return null;
+  }
+  var staticMethod = model[staticMethodName];
+  if (!staticMethod) {
+    return null;
+  }
+  // should returns Array<{value, text}> or Promise<Array<{value, text}>>
+  return staticMethod();
 }
 
 module.exports.adminMethods = {
@@ -444,6 +477,21 @@ module.exports.adminMethods = {
       }
       return model.find({}).select(fields).exec().then(function(docs) {
         return docs && docs.map(function(doc) {return {value: doc._id, text: doc.title || doc._id}});
+      });
+  },
+
+  customAutocomplete: function(json, respond, promisesSofar, rpcSession) {
+      var model = models[json.model];
+      if (!model) {
+        return null;
+      }
+      var staticMethod = model[json.autocomplete];
+      if (!staticMethod) {
+        return null;
+      }
+      // should returns Array<{value, text}> or Promise<Array<{value, text}>>
+      return Promise.resolve(staticMethod()).then(function(obj) {
+        return Object.keys(obj).map(function(key) {return {value:key, text: obj[key]} });
       });
   },
 

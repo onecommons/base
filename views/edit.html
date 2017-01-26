@@ -130,6 +130,54 @@ if (test.value === 'Hello World') {
 }
 </script>
 <script type="text/javascript">
+
+function onNewContent() {
+  $('.dbform select.allow-create').selectize({
+    plugins: ['remove_button'],
+    create: function(input) {
+        return {
+            value: input,
+            text: input
+        }
+    },
+  });
+
+  $('.dbform select.enumerate-only').selectize({
+    plugins: ['remove_button'],
+    create: false,
+  });
+
+  $('.dbform select.object').selectize({
+  // only one choice
+    sortField: 'text',
+    create: false,
+    preload: 'focus',
+    load: function(query, callback) {
+      var $input = this.$input;
+      $input.dbExecute('/adminMethods#modelAutocomplete', {model: $input.data('model')}, function(response) {
+        callback(response);
+        return false;
+      });
+    }
+  });
+
+  $('.dbform select.custom').selectize({
+  // only one choice
+    sortField: 'text',
+    create: false,
+    preload: 'focus',
+    load: function(query, callback) {
+      var $input = this.$input;
+      var This = this;
+      $input.dbExecute('/adminMethods#customAutocomplete',
+          {model: $input.data('model'), autocomplete: $input.data('autocomplete')}, function(response) {
+        callback(response);
+        return false;
+      });
+    }
+  });
+}
+
 $(document).ready(function () {
   $(document).on('submit', '.dbform', function() {
     try {
@@ -179,6 +227,9 @@ $(document).ready(function () {
       if ( status == "error" ) {
         return;
       }
+
+      onNewContent();
+
       //scroll to the new content
       $('body').animate({
           scrollTop: $(this).offset().top
@@ -216,60 +267,34 @@ $(document).ready(function () {
   $(document).on('change', '.imagechooser', function(e) {
       handleImage(e, $(this).find('canvas').get(0))
   });
+
   $('#upload-file').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget) // Button that triggered the modal
     var recipient = button.prev('input').get(0).name;
     $(this).find('form').data('ref', 'input[name=\'' + recipient + '\']')
   });
 
-  $('.dbform select.allow-create').selectize({
-    plugins: ['remove_button'],
-    create: function(input) {
-        return {
-            value: input,
-            text: input
-        }
-    },
+  onNewContent();
+
+  $(document).on('click', '.deleteobj', function() {
+    $(this).dbExecute('/adminMethods#deleteObject', {_id: $(this).data('objid')}, function (result, err) {
+      if (result && result._id && !err) {
+        $(this).hide();
+        $('.restoreobj').show();
+      }
+    });
+    return false;
   });
 
-  $('.dbform select.enumerate-only').selectize({
-    plugins: ['remove_button'],
-    create: false,
+  $(document).on('click', '.restoreobj', function() {
+    $(this).dbExecute('/adminMethods#restoreObject', {_id: $(this).data('objid')}, function (result, err) {
+      if (result && result._id && !err) {
+        $(this).hide();
+        $('.deleteobj').show();
+      }
+    });
+    return false;
   });
-
-  $('.dbform select.object').selectize({
-  // only one choice
-    sortField: 'text',
-    create: false,
-    preload: 'focus',
-    load: function(query, callback) {
-      var $input = this.$input;
-      $input.dbExecute('/adminMethods#modelAutocomplete', {model: $input.data('model')}, function(response) {
-        callback(response);
-        return false;
-      });
-    }
-  });
-
-$(document).on('click', '.deleteobj', function() {
-  $(this).dbExecute('/adminMethods#deleteObject', {_id: $(this).data('objid')}, function (result, err) {
-    if (result && result._id && !err) {
-      $(this).hide();
-      $('.restoreobj').show();
-    }
-  });
-  return false;
-});
-
-$(document).on('click', '.restoreobj', function() {
-  $(this).dbExecute('/adminMethods#restoreObject', {_id: $(this).data('objid')}, function (result, err) {
-    if (result && result._id && !err) {
-      $(this).hide();
-      $('.deleteobj').show();
-    }
-  });
-  return false;
-});
 
  var msg = '{{query.msg}}';
  if (msg) {

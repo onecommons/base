@@ -4,6 +4,8 @@
   {% set val = df.getVal(path) %}
   {% if loop.key == '_id' || loop.key == '__v' %}
     {{df.hidden(path)}}
+  {% elseif creating && schemafield.options.ui && schemafield.options.ui.defaultToSessionUser %}
+    {{ df.hidden(path, {defaultValue: user._id}) }}
   {% elseif includeField(schemafield, path) %}
   <div class='row'>
   <div class="form-group{% if required == "required" %} required{% endif %}">
@@ -41,6 +43,11 @@
       {% if schemafield.options.ref && schemafield.options.ref !== 'File' %}
         {{ df.select(path, null, {class: 'object', 'data-model': schemafield.options.ref,
           objectLabelKey: 'title', objectValueKey: '_id', setBindType:false, forceValue:true}) }}
+      {% elseif schemafield.options.ui && schemafield.options.ui.foreignKey %}
+        {{ df.select(path, getOptionsForForeignKey(path, val),
+           {class: 'custom', 'data-model': schemafield.options.ui.foreignKey.ref,
+          'data-autocomplete': schemafield.options.ui.foreignKey.autocomplete,
+           setBindType:false, forceValue:true}) }}
       {% else %}
        {{ df.input(path, getInputAttributes(schemafield, {class:'form-control', defaultValue: getDefaultValue(schemafield), guessInputType: true})) }}
       {% endif %}
