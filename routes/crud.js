@@ -308,14 +308,14 @@ function addRef(path, ref) {
   return titlefields && {path: path, titlefields: titlefields, model: refmodel}
 }
 
-function runQuery(model, refs, match, unwind, refPathPrefix) {
+function runQuery(model, refs, match, unwind, refPathPrefix, sort) {
   var query;
   if (unwind) {
     query = model.aggregate({$match: (match || {})}).unwind(unwind);
   } else {
     query = model.find(match || {});
   }
-  query.sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
+  query.sort(sort || {_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
     // load the titlefields so the "title" virtual field works
     query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
@@ -389,7 +389,7 @@ module.exports.table = function(req, res, next) {
     formatdata: formatdata,
     modelName: modelName,
     pageLength: settings.pageLength || 10,
-    objs: runQuery(model, refs, query, unwind),
+    objs: runQuery(model, refs, query, unwind, '', req.query.sort),
     // XXX table needs formatdata to render foreignKeys
     // foreignKeys: utils.resolvePromises(foreignKeys)
   }).then(function(result) {

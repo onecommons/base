@@ -103,7 +103,6 @@ ul.ColVis_collection {
     var table = $(tableSelector).DataTable({
       responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
-      order: [[ 0, "desc" ]], //sorting by id desc implies most recently created go first
       buttons: [ 'copy', 'csv',
       {
                   text: 'Create {{modelName}}',
