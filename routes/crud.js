@@ -29,10 +29,13 @@ function getHelperFuncs(creating) {
                   : schemafield.options.ui.inputAttributes;
           if (defaults) {
             _.defaults(attributes, defaults);
-            if (attributes.type) {
-              return attributes;
-            }
           }
+        }
+        if (schemafield.options.required) {
+          attributes.required = "required";
+        }
+        if (attributes.type) {
+          return attributes;
         }
         switch (schemafield.options.type) {
           case Date:

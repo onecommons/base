@@ -8,11 +8,11 @@
     {{ df.hidden(path, {defaultValue: user._id}) }}
   {% elseif includeField(schemafield, path) %}
   <div class='row'>
-  <div class="form-group{% if required == "required" %} required{% endif %}">
+  <div class="form-group{% if schemafield.options.required %} required{% endif %}">
   	<label class="col-sm-3 control-label" for="{{ path }}">
       {% if isDbId(val) || isDbId(val._id) %}
         <a href='/admin/edit/{{val._id || val}}' target=_blank>{{ loop.key }}</a>
-      {% else %}{{ loop.key }}{% endif %}
+      {% else %}{{ loop.key }}{% endif %}{% if schemafield.options.required %}*{% endif %}
   </label>
   	<div class="col-sm-6">
     {% if readonlyField(schemafield, path) %}
