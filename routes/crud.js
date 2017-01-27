@@ -135,7 +135,7 @@ function editDeleted(objId, req, res, next) {
     var foreignKeys = {};
     addRefs(deletedModel.schema, refs, foreignKeys);
     // fetch it again with refs populated
-    return runQuery(models.Deleted, refs, {_id: objId}, 'object.').then(function(docs) {
+    return runQuery(models.Deleted, refs, {_id: objId}, null, 'object.').then(function(docs) {
       obj = docs && docs[0];
       var restored = new deletedModel();
       restored.set(obj.object);
@@ -308,8 +308,14 @@ function addRef(path, ref) {
   return titlefields && {path: path, titlefields: titlefields, model: refmodel}
 }
 
-function runQuery(model, refs, match, refPathPrefix) {
-  var query = model.find(match || {}).sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
+function runQuery(model, refs, match, unwind, refPathPrefix) {
+  var query;
+  if (unwind) {
+    query = model.aggregate({$match: (match || {})}).unwind(unwind);
+  } else {
+    query = model.find(match || {});
+  }
+  query.sort({_id: 'desc'}).limit(exports.QUERYLIMIT);
   refs && refs.forEach(function(ref) {
     // load the titlefields so the "title" virtual field works
     query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
@@ -352,6 +358,7 @@ module.exports.table = function(req, res, next) {
     return next(); // not found
   }
   var settings = (req.session.crudSettings && req.session.crudSettings[modelName]) || {};
+  var unwind = req.query.unwind;
 
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
@@ -362,10 +369,10 @@ module.exports.table = function(req, res, next) {
     if (name == 'id' || name == '_id')
       return;
     var schema = model.schema.tree[name];
-    addToHeader(name, name, schema, 0);
+    addToHeader(name, name, schema, 0, unwind);
   });
   setRowspans(headers);
-  addToFooter(model.schema.tree, '');
+  addToFooter(model.schema.tree, '', unwind);
   var query = req.query.query && JSON.parse(req.query.query, function(key, value) {
     if (value === "$currentDate") {
       return new Date();
@@ -382,21 +389,27 @@ module.exports.table = function(req, res, next) {
     formatdata: formatdata,
     modelName: modelName,
     pageLength: settings.pageLength || 10,
-    objs: runQuery(model, refs, query),
+    objs: runQuery(model, refs, query, unwind),
     // XXX table needs formatdata to render foreignKeys
     // foreignKeys: utils.resolvePromises(foreignKeys)
   }).then(function(result) {
     // console.dir(result.objs[0].schema);
+    if (unwind) {
+      result.objs = result.objs.map(function(obj) {
+        return new model(obj);
+      });
+    }
     result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
-                          || settings.hiddenColumns || findEmptyColumns(footer, result.objs);
+                          || settings.hiddenColumns
+                          || findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next
 
-  function addToHeader(name, path, schema, level) {
+  function addToHeader(name, path, schema, level, unwind) {
     if (name.slice(0,2) == '__')
       return 0;
     var colspan = 1;
-    var nested = model.schema.nested[path];
+    var nested = !!model.schema.nested[path];
     //console.log(path, 'nested', nested);
     //console.dir(model.schema.paths[path]);
     if (nested) {
@@ -404,6 +417,12 @@ module.exports.table = function(req, res, next) {
       colspan = Object.keys(schema).reduce(function(memo, key){
         return memo+addToHeader(key, path+'.'+key, schema[key], level+1)
       }, 0);
+    } else if (path === unwind){
+      //schema is a DocumentArray
+      colspan = Object.keys(schema[0].tree).reduce(function(memo, key){
+        return memo+addToHeader(key, path+'.0.'+key, schema[0].tree[key], level+1)
+      }, 0);
+      nested = true;
     } else if (schema.ref){
       var ref = addRef(path, schema.ref);
       if (ref) {
@@ -423,16 +442,19 @@ module.exports.table = function(req, res, next) {
   }
 
   //only include leaves
-  function addToFooter(schema, path) {
+  function addToFooter(schema, path, unwind) {
     Object.keys(schema).forEach(function(name) {
       if (name.slice(0,2) == '__')
         return;
       if (!path && (name == 'id' || name == '_id'))
         return;
-      if (model.schema.nested[path+name])
-        addToFooter(schema[name], path+name+'.')
-      else
+      if (model.schema.nested[path+name]) {
+        addToFooter(schema[name], path+name+'.', '')
+      } else if (name === unwind) {
+        addToFooter(schema[name][0].tree, path+name+'.0.')
+      } else {
         footer.push({name:name, path: path+name})
+      }
     });
   }
 }
