@@ -61,24 +61,7 @@ ul.ColVis_collection {
     <colgroup span={{cell.colspan}}>
   {% endfor %}
 
-    <tbody>
-    {%for obj in objs %}
-      <tr id="{{obj._id}}">
-      {%for cell in footer %}
-        <td data-toggle="tooltip" data-container="body">{{formatdata(obj.get(cell.path), obj)}}</td>
-      {% endfor %}
-      </tr>
-    {% endfor %}
-    </tbody>
-{#
-    <tfoot>
-      <tr>
-        {%for cell in footer %}
-        <th>{{cell.name}}</th>
-        {% endfor %}
-      </tr>
-    </tfoot>
-#}
+  <tbody></tbody>
 </table>
 <form action='.'>
   Query: <input name=query value='{{query.query}}' size=40></input>
@@ -101,16 +84,17 @@ ul.ColVis_collection {
     var tableSelector = '#crud';
     var hiddenColumns = {{hiddenColumns|json}};
     var table = $(tableSelector).DataTable({
+      data: data,
+      deferRender: true,
       responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
       buttons: [ 'copy', 'csv',
       {
-                  text: 'Create {{modelName}}',
-                  action: function ( e, dt, node, config ) {
-                      window.open('/admin/create/{{modelName}}', '_blank');
-                  }
-              }
-      ],
+        text: 'Create {{modelName}}',
+        action: function ( e, dt, node, config ) {
+                window.open('/admin/create/{{modelName}}', '_blank');
+            }
+      }],
       pageLength: {{pageLength}},
       colVis: {
         label: function (index, title, th ) {
@@ -155,6 +139,7 @@ ul.ColVis_collection {
     new $.fn.dataTable.FixedHeader( table );
 
     function enableTooltips() {
+      $('#crud tbody td').attr('data-toggle', "tooltip").attr('data-container', "body");
       $('[data-toggle="tooltip"]').tooltip({
         placement: 'auto right',
         delay: 500,
@@ -181,6 +166,7 @@ ul.ColVis_collection {
   $(document).bind("ajaxSend", function(evt, jqXhr, ajaxSettings){
       jqXhr.setRequestHeader('x-csrf-token', '{{_csrf}}');
    });
+   var data = {% autoescape false %}{{data|json}}{% endautoescape %};
 </script>
 
 {% endblock %}

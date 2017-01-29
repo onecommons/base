@@ -399,6 +399,9 @@ module.exports.table = function(req, res, next) {
         return new model(obj);
       });
     }
+    result.data = result.objs.map(function(obj) {
+      return footer.map(function(cell) { return formatdata(obj.get(cell.path), obj)})
+    });
     result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
                           || settings.hiddenColumns
                           || findEmptyColumns(footer, result.objs);
