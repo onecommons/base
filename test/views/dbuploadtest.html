@@ -78,6 +78,7 @@
    }); //describe
    </script>
 
+<div class='filetests'>
    <form id=f1>
      <input type=hidden name=__t value='DbTest1'>
      <input type=hidden name=prop1 value=string>
@@ -97,14 +98,28 @@
   <form id=f4>
     <input type=file name=testfile data-dbmethod='fail'>
   </form>
+</div>
 
-  <form id=f5 class='filefree'>
+  <form id=f5>
     <input type=hidden name=__t value='DbTest1'>
     <input type=text data-always class='type[json]' name=badvalue value='{]'>
   </form>
 
-  <button type=submit onclick="runTests()">Run tests<button>
+  <div>
+    <p>
+    TODO: add tests for these cases:
+    when changedOnly and field is part of an array:
+     and update, if any field that's part of an array has changed,
+      then all of those fields should be included, regardless of whether they have changed.
+     and add and remove, only update object with changed fields.
+    when changedOnly and not an array:
+      if radio or checked: check defaultChecked
+      if select: check defaultSelected
+      else: check defaultValue
+    </p>
+  </div>
 
+  <button type=submit onclick="runTests()">Run tests<button>
 
   <script>
   $(document).ready(function() {

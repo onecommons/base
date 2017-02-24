@@ -455,6 +455,61 @@ txn.commit();
         }
         return this;
      }
+     /* XXX we don't need this, right?
+     // treats additions and removals from array separately from updates to properties and items
+    ,dbSave: function(callback) {
+      var data = this.dbData(false, true).get(0);
+      var actions = {
+        remove: {},
+        add: {}
+      };
+      var keys = [];
+      for (var key in data) {
+        if (data.hasOwnProperty(key)) {
+          keys.push(key);
+        }
+      }
+      $.each(keys, function(index, key) {
+         var val = data[key];
+         if ($.isArray(val)) {
+          data[key] = Binder.Util.filter(val, function(item) {
+            // exclude items with __action property
+            var keep = !item || !item.__action;
+            if (item && item.__action && actions[item.__action]) {
+              var arr = actions[item.__action][key];
+              if (!arr) {
+                arr = [];
+                actions[item.__action][key] = arr;
+              }
+              delete item.__action;
+              arr.push(item);
+             }
+            return keep;
+          });
+        }
+      });
+      var removes = actions.remove;
+      var adds = actions.add;
+      this.dbBegin();
+      this.dbUpdate(data);
+      for (var prop in removes) {
+        if (removes.hasOwnProperty(prop)) {
+          removes[_IDkey] = data[_IDkey];
+          this.dbRemove(removes);
+          break;
+        }
+      }
+      for (var prop in adds) {
+        if (adds.hasOwnProperty(prop)) {
+          adds[_IDkey] = data[_IDkey];
+          this.dbAdd(adds);
+          break;
+        }
+      }
+      this.dbCommit(callback);
+      return this;
+    }
+    */
     ,dbRenderToString: function(model, templatename) {
       if (model === undefined)
         model = this.data('_model');
@@ -474,12 +529,17 @@ txn.commit();
      cmd [data] [callback] or cmd data [options] or cmd callback
      */
     ,dbExecute: function(cmd, a1, a2) {
+      if (typeof cmd !== 'string') {
+        a1 = cmd;
+        a2 = a1;
+        cmd = this.getAttribute('data-dbmethod');
+      }
       if (jQuery.isFunction(a1)) { //callback only
         konsole.assert(a2 === undefined);
         a2 = a1;
         a1 = null;
       }
-      konsole.assert(typeof cmd == 'string', "first argument of dbExecute should be a string")
+      konsole.assert(typeof cmd === 'string', "first argument of dbExecute should be a string")
       var split = cmd.split('#');
       if (split.length > 1) {
         url = split[0];
@@ -965,7 +1025,8 @@ Binder.FormBinder.prototype = {
     }
     return new Binder.PropertyAccessor( obj );
   },
-  serialize: function( obj ) { //set obj with form values
+  //set the obj with form's current values
+  serialize: function( obj ) {
     var accessor = this._getAccessor( obj );
     var seen = {};
     for( var i = 0; i < this.form.elements.length; i++) {
@@ -973,6 +1034,25 @@ Binder.FormBinder.prototype = {
     }
     return accessor.target;
   },
+  /* XXX refactor serializeField for readability
+  _serializeValueField( element, accessor, seen) {
+  },
+  _serializeArrayField( element, accessor, seen) {
+    //don't apply
+  },
+  serializeField: function( element, obj, seen) {
+    if (!element.name || (element.className && element.className.match(/excludefield/)))
+        return; //skip unnamed fields
+    var accessor = this._getAccessor( obj );
+    var isArray = accessor.isIndexed( element.name );
+    if (isArray) {
+      return this._serializeArrayField( element, accessor, seen);
+    } else {
+      return this._serializeValueField( element, accessor, seen);
+    }
+  },
+  */
+  //read value out of form field and set the property's value
   serializeField: function( element, obj, seen) {
     if (!element.name || (element.className && element.className.match(/excludefield/)))
         return; //skip unnamed fields
@@ -985,7 +1065,12 @@ Binder.FormBinder.prototype = {
       //if it is an array, start with an empty array
       //and push the value of each checked element
       var isArray = accessor.isIndexed( element.name );
-      if (seen && !seen[element.name]) {
+      if (this.changedOnly && (!seen || !isArray)) {
+        if ((element.checked && element.defaultChecked) || (!element.checked && !element.defaultChecked)) {
+          return; //unchanged
+        }
+      }
+      if (!this.changedOnly && seen && !seen[element.name]) {
         seen[element.name] = true;
         accessor.set( element.name, isArray ? [] : this._getEmpty(element));
       }
@@ -994,10 +1079,9 @@ Binder.FormBinder.prototype = {
       } else {
         value = element.checked;
       }
-      // XXX if (this.changedOnly) ...defaultChecked...
       if (element.checked) {
         accessor.set( element.name, value ); //will value push if property isIndexed()
-      } else if (!seen) {
+      } else if (this.changedOnly || !seen) {
         // stateless call and not checked: remove this value from obj's array
         var values = accessor.get( element.name );
         if (isArray) {
@@ -1008,13 +1092,25 @@ Binder.FormBinder.prototype = {
         }
       }
     } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
+      if (this.changedOnly) {
+        var changed = false;
+        for( var j = 0; j < element.options.length; j++ ) {
+          var option = element.options[j];
+          changed = (option.selected && !option.defaultSelected) || (!option.selected && option.defaultSelected);
+          if (changed) {
+            break;
+          }
+        }
+        if (!changed) {
+          return;
+        }
+      }
       accessor.set( element.name, accessor.isIndexed( element.name ) ? [] : undefined );
       for( var j = 0; j < element.options.length; j++ ) {
         var option = element.options[j];
         //if option specifies a type use that, otherwise use the select element
         var typeElement = option.className && option.className.match( this.type_regexp ) ? option : element;
         var v = this._parse( element.name, option.value, typeElement );
-        // XXX if (this.changedOnly) ...option.defaultSelected...
         if( option.selected ) {
           accessor.set( element.name, v );
         }
@@ -1039,6 +1135,8 @@ Binder.FormBinder.prototype = {
     }
     return accessor.target;
   },
+
+  //update the form with the object
   deserialize: function( obj ) { //set form html
     var accessor = this._getAccessor( obj );
     for( var i = 0; i < this.form.elements.length; i++) {
@@ -1046,6 +1144,8 @@ Binder.FormBinder.prototype = {
     }
     return accessor.target;
   },
+
+  //update the form field with the property value
   deserializeField: function( element, obj ) {
     var accessor = this._getAccessor( obj );
     var value = accessor.get( element.name || '');

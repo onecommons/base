@@ -3,10 +3,10 @@ Note: you can run these test in a real browser interactively
 by running `NODE_ENV=test node test/lib/app.js `
 (note that logging is effectively disabled in test/config/app.js)
 */
-
+var path = require('path');
+//global.MONGOOSE_DRIVER_PATH = path.resolve(path.join(__dirname, 'lib/mongoose-debug-driver/'));
 var mongoose = require('mongoose');
 var fs   = require('fs');
-var path = require('path');
 var assert = require('chai').assert;
 var express = require('express');
 var util = require('util');
@@ -90,7 +90,8 @@ describe('zombietest', function() {
       res.status(200).send( '"OK"');
     });
     app.start(function() {
-        //note: may or may not exits, if it doesn't err will be set
+        //note: may or may not exists, if it doesn't err will be set
+        // XXX sometimes this throws a mongo error "ns not found" -- check is collection exists first?
         return mongoose.connection.db.dropCollection('DbTest1');
     }, function(server){
         console.log('test app started'); done();
@@ -116,6 +117,27 @@ describe('zombietest', function() {
   it("run binder tests", function(done) {
     runTest('/tests/binder_tests.html', done);
   });
+
+/*
+// this test doesn't work because zombie propagates the browser exception into
+// the test code and doesn't seem to generate the image ping
+// probably because the exception unwinds the browser before the Image is instantiated
+
+  it("should log unhandled client-side errors", async function() {
+    var browser = new Browser({ debug: false, silent: true, waitFor: 500});
+    browser.on("console", function(level, message) {
+      console.log('from zombie browser console:', level, message);
+    });
+    var url = app.getInternalUrl();
+    assert(url);
+
+    await browser.visit(url+ '/clienterrorloggingtest');
+    if (browser.errors.length) {
+      console.log("found browser errors:");
+      console.dir(browser.errors);
+    }
+  });
+*/
 
 if (Browser.VERSION.charAt(0) > "3") {
 
@@ -149,7 +171,7 @@ if (Browser.VERSION.charAt(0) > "3") {
       await browser.visit(url);
       const filepath = `${__dirname}/fixtures/sometext.txt`;
       //attach files to all the file input controls
-      var fields = browser.queryAll('form:not(.filefree)')
+      var fields = browser.queryAll('.filetests form')
       for (let field of fields) {
         var selector = '#'+field.id + " input[type=file]";
         browser.attach(selector, filepath);
