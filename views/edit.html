@@ -132,7 +132,7 @@ if (test.value === 'Hello World') {
 <script type="text/javascript">
 
 function onNewContent() {
-  $('.dbform select.allow-create').selectize({
+  $('.dbform select.allow-create').attr('data-always', 'always').selectize({
     plugins: ['remove_button'],
     create: function(input) {
         return {
@@ -142,12 +142,12 @@ function onNewContent() {
     },
   });
 
-  $('.dbform select.enumerate-only').selectize({
+  $('.dbform select.enumerate-only').attr('data-always', 'always').selectize({
     plugins: ['remove_button'],
     create: false,
   });
 
-  $('.dbform select.object').selectize({
+  $('.dbform select.object').attr('data-always', 'always').selectize({
   // only one choice
     sortField: 'text',
     create: false,
@@ -161,7 +161,7 @@ function onNewContent() {
     }
   });
 
-  $('.dbform select.custom').selectize({
+  $('.dbform select.custom').attr('data-always', 'always').selectize({
   // only one choice
     create: false,
     preload: 'focus',

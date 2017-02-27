@@ -1065,12 +1065,13 @@ Binder.FormBinder.prototype = {
       //if it is an array, start with an empty array
       //and push the value of each checked element
       var isArray = accessor.isIndexed( element.name );
-      if (this.changedOnly && (!seen || !isArray)) {
+      var changedOnly = this.changedOnly && !element.hasAttribute('data-always');
+      if (changedOnly && (!seen || !isArray)) {
         if ((element.checked && element.defaultChecked) || (!element.checked && !element.defaultChecked)) {
           return; //unchanged
         }
       }
-      if (!this.changedOnly && seen && !seen[element.name]) {
+      if (!changedOnly && seen && !seen[element.name]) {
         seen[element.name] = true;
         accessor.set( element.name, isArray ? [] : this._getEmpty(element));
       }
@@ -1081,7 +1082,7 @@ Binder.FormBinder.prototype = {
       }
       if (element.checked) {
         accessor.set( element.name, value ); //will value push if property isIndexed()
-      } else if (this.changedOnly || !seen) {
+      } else if (changedOnly || !seen) {
         // stateless call and not checked: remove this value from obj's array
         var values = accessor.get( element.name );
         if (isArray) {
@@ -1092,7 +1093,7 @@ Binder.FormBinder.prototype = {
         }
       }
     } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
-      if (this.changedOnly) {
+      if (this.changedOnly && !element.hasAttribute('data-always')) {
         var changed = false;
         for( var j = 0; j < element.options.length; j++ ) {
           var option = element.options[j];
