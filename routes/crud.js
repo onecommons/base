@@ -316,7 +316,8 @@ function runQuery(model, refs, match, unwind, refPathPrefix, sort) {
     query = model.find(match || {});
   }
   query.sort(sort || {_id: 'desc'}).limit(exports.QUERYLIMIT);
-  refs && refs.forEach(function(ref) {
+  // populate doesn't work with aggregate
+  !unwind && refs && refs.forEach(function(ref) {
     // load the titlefields so the "title" virtual field works
     query.populate((refPathPrefix||'') + ref.path, '_id ' + ref.titlefields, ref.model);
   });
