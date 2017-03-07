@@ -526,7 +526,7 @@ txn.commit();
     }
 
      /*
-     cmd [data] [callback] or cmd data [options] or cmd callback
+     [cmd] [data] [callback or options]
      */
     ,dbExecute: function(cmd, a1, a2) {
       if (typeof cmd !== 'string') {
@@ -536,10 +536,10 @@ txn.commit();
       }
       if (jQuery.isFunction(a1)) { //callback only
         konsole.assert(a2 === undefined);
-        a2 = a1;
+        a2 = {callback: callback};
         a1 = null;
       }
-      konsole.assert(typeof cmd === 'string', "first argument of dbExecute should be a string")
+      konsole.assert(typeof cmd === 'string', "first argument of dbExecute should be a string");
       var split = cmd.split('#');
       if (split.length > 1) {
         url = split[0];
@@ -552,7 +552,9 @@ txn.commit();
         }
         a2.url = url;
       }
-
+      if (typeof a2.changedOnly === 'undefined') {
+        a2.changedOnly = false;
+      }
       return this._executeTxn(cmd, a1,a2);
     }
    })
