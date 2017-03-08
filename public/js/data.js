@@ -536,7 +536,7 @@ txn.commit();
       }
       if (jQuery.isFunction(a1)) { //callback only
         konsole.assert(a2 === undefined);
-        a2 = {callback: callback};
+        a2 = {callback: a1};
         a1 = null;
       }
       konsole.assert(typeof cmd === 'string', "first argument of dbExecute should be a string");
@@ -545,8 +545,7 @@ txn.commit();
         url = split[0];
         cmd = split[1];
         if (jQuery.isFunction(a2)) {
-          var callback = a2;
-          a2 = {callback: callback};
+          a2 = {callback: a2};
         } else if (!a2) {
           a2 = {};
         }
