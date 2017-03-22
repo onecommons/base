@@ -542,7 +542,7 @@ module.exports.adminMethods = {
         return null;
       }
       // should returns Array<{value, text}> or Promise<Array<{value, text}>>
-      return Promise.resolve(staticMethod()).then(function(obj) {
+      return Promise.resolve(staticMethod.call(model)).then(function(obj) {
         return Object.keys(obj).map(function(key) {return {value:key, text: obj[key]} });
       });
   },
