@@ -17,7 +17,7 @@
   	<div class="col-sm-6">
     {% if readonlyField(schemafield, path) %}
        <p class="form-control-static">{{formatdata(val, obj)}}</p>
-    {% elseif schemafield.schema %}
+    {% elseif schemafield.schema && schemafield.constructor.schemaName == 'DocumentArray' %}
        <div><button class="button addbutton btn btn-default">
   <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
        </div>
@@ -33,7 +33,7 @@
        <div class=appended data-crudpath='{{path}}' data-crudarraylength='{{(val && val.length) || 0}}' ></div>
     {% elseif schemafield.options.enum %}
        {{ df.select(path, schemafield.options.enum, {setBindType:true, forceValue:true}) }}
-    {% elseif schemafield.caster %}
+    {% elseif !schemafield.schema && schemafield.caster %}
       {%if schemafield.caster.enumValues.length %}
         {{ df.select(path, schemafield.caster.enumValues, {class: 'enumerate-only', setBindType:true, forceValue:true}) }}
       {% else %}

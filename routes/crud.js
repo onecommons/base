@@ -238,6 +238,9 @@ function findEmptyColumns(columns, objs, offset) {
   var emptyIndexes = [];
   for (var i = 0; i < columns.length; i++) {
     if (objs.every(function(obj) {
+      if (columns[i].path.slice(-2) === '.*') {
+        return false;
+      }
       var val = obj.get(columns[i].path);
       return !val || val.length === 0;
     })) {
@@ -401,7 +404,9 @@ module.exports.table = function(req, res, next) {
       });
     }
     result.data = result.objs.map(function(obj) {
-      return footer.map(function(cell) { return formatdata(obj.get(cell.path), obj)})
+      return footer.map(function(cell) {
+        var path = cell.path.slice(-2) === '.*' ? cell.path.slice(0, -2) : cell.path;
+        return formatdata(obj.get(path), obj)})
     });
     result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
                           || settings.hiddenColumns
@@ -416,17 +421,27 @@ module.exports.table = function(req, res, next) {
     var nested = !!model.schema.nested[path];
     //console.log(path, 'nested', nested);
     //console.dir(model.schema.paths[path]);
+    function subHeader(schema, concat) {
+      colspan = Object.keys(schema.tree).reduce(function(memo, key){
+        return memo+addToHeader(key, path+concat+key, schema.tree[key], level+1)
+      }, 0);
+      if (typeof schema.options.strict === 'boolean' && !schema.options.strict) {
+        colspan += 1;
+        // add special column for mixed objects
+        headers[level+1].push({name: name+concat+'*', colspan: 1, nested:false, path: name+concat+'*'})
+      }
+      nested = true;
+    }
     if (nested) {
       //count the leaves of this branch
       colspan = Object.keys(schema).reduce(function(memo, key){
         return memo+addToHeader(key, path+'.'+key, schema[key], level+1)
       }, 0);
+    } else if (schema.tree){ //single subdoc
+      subHeader(schema, '.');
     } else if (path === unwind){
       //schema is a DocumentArray
-      colspan = Object.keys(schema[0].tree).reduce(function(memo, key){
-        return memo+addToHeader(key, path+'.0.'+key, schema[0].tree[key], level+1)
-      }, 0);
-      nested = true;
+      subHeader(schema[0], '.0.');
     } else if (schema.ref){
       var ref = addRef(path, schema.ref);
       if (ref) {
@@ -454,8 +469,16 @@ module.exports.table = function(req, res, next) {
         return;
       if (model.schema.nested[path+name]) {
         addToFooter(schema[name], path+name+'.', '')
+      } else if (schema[name] && schema[name].tree) {
+        addToFooter(schema[name].tree, path+name+'.');
+        if (typeof schema[name].options.strict === 'boolean' && !schema[name].options.strict) {
+          footer.push({name:name, path: path+name+'.*'});
+        }
       } else if (name === unwind) {
         addToFooter(schema[name][0].tree, path+name+'.0.')
+        if (typeof schema[name][0].options.strict === 'boolean' && !schema[name][0].options.strict) {
+          footer.push({name:name, path: path+name+'.0.*'});
+        }
       } else {
         footer.push({name:name, path: path+name})
       }
