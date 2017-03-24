@@ -496,7 +496,7 @@ function getForeignKeys(modelName, staticMethodName) {
     return null;
   }
   // should returns Array<{value, text}> or Promise<Array<{value, text}>>
-  return staticMethod();
+  return staticMethod.call(model);
 }
 
 module.exports.adminMethods = {
