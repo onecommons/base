@@ -99,13 +99,14 @@ function render(vars, model, obj, req, res, next) {
   res.render('edit.html', result);
 }
 
-function addRefs(schema, refs, foreignKeys) {
+function addRefs(schema, refs, foreignKeys, prefix) {
+  prefix = prefix || '';
   Object.keys(schema.paths).forEach(function(path) {
     var def = schema.paths[path];
     if (def.schema) {
-      addRefs(def.schema, refs, foreignKeys);
+      addRefs(def.schema, refs, foreignKeys, prefix + path + '.');
     } else if (def.options.ref){
-      var ref = addRef(path, def.options.ref);
+      var ref = addRef(prefix + path, def.options.ref);
       if (ref) {
         refs.push(ref);
       }
@@ -307,7 +308,7 @@ function formatdata(data, obj) {
 
 function addRef(path, ref) {
   var refmodel = models[ref];
-  var titlefields = refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields
+  var titlefields = refmodel && refmodel.schema.ui && refmodel.schema.ui.titlefields;
   return titlefields && {path: path, titlefields: titlefields, model: refmodel}
 }
 
