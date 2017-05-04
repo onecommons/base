@@ -365,6 +365,8 @@ module.exports.table = function(req, res, next) {
   var settings = (req.session.crudSettings && req.session.crudSettings[modelName]) || {};
   var unwind = req.query.unwind;
 
+  var fieldsFilter = req.query.fields && req.query.fields.split(',');
+
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
 
@@ -409,14 +411,21 @@ module.exports.table = function(req, res, next) {
         var path = cell.path.slice(-2) === '.*' ? cell.path.slice(0, -2) : cell.path;
         return formatdata(obj.get(path), obj)})
     });
-    result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, req.query.fields))
+    result.hiddenColumns = (req.query.fields && findColumnsIndexes(footer, fieldsFilter))
                           || settings.hiddenColumns
                           || findEmptyColumns(footer, result.objs);
     res.render('crud.html', result);
   }).catch(next); //pass err to next
 
-  function addToHeader(name, path, schema, level, unwind) {
+  function skipField(name) {
     if (name.slice(0,2) == '__')
+      return true;
+    if (fieldsFilter && fieldsFilter.indexOf(name) == -1)
+      return true;
+  }
+
+  function addToHeader(name, path, schema, level, unwind) {
+    if (skipField(name))
       return 0;
     var colspan = 1;
     var nested = !!model.schema.nested[path];
@@ -464,8 +473,9 @@ module.exports.table = function(req, res, next) {
   //only include leaves
   function addToFooter(schema, path, unwind) {
     Object.keys(schema).forEach(function(name) {
-      if (name.slice(0,2) == '__')
+      if (skipField(name)) {
         return;
+      }
       if (!path && (name == 'id' || name == '_id'))
         return;
       if (model.schema.nested[path+name]) {
