@@ -417,8 +417,9 @@ module.exports.table = function(req, res, next) {
   }).catch(next); //pass err to next
 
   function skipField(path) {
-    if (fieldsFilter && fieldsFilter.indexOf(path) == -1)
+    if (fieldsFilter && fieldsFilter.indexOf(path) == -1) {
       return true;
+    }
   }
 
   function addToHeader(name, path, schema, level, unwind) {

@@ -88,8 +88,13 @@ ul.ColVis_collection {
       deferRender: true,
       responsive: false, // broken when using column visibility control
       dom: 'BC<"clear">lfrtip',
-      buttons: [ 'copy', 'csv',
-      {
+      buttons: [{
+        extend: 'copy',
+        exportOptions: { columns: ':visible' },
+      }, {
+        extend: 'csv',
+        exportOptions: { columns: ':visible' },
+      }, {
         text: 'Create {{modelName}}',
         action: function ( e, dt, node, config ) {
                 window.open('/admin/create/{{modelName}}', '_blank');
