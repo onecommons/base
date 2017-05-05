@@ -366,7 +366,6 @@ module.exports.table = function(req, res, next) {
   var unwind = req.query.unwind;
 
   var fieldsFilter = req.query.fields && req.query.fields.split(',');
-
   var headers =[[{name:'id', colspan:1, nested:false, path:'id'}]];
   var footer = [{name:'id', path:'id'}];
 
@@ -417,16 +416,15 @@ module.exports.table = function(req, res, next) {
     res.render('crud.html', result);
   }).catch(next); //pass err to next
 
-  function skipField(name) {
-    if (name.slice(0,2) == '__')
-      return true;
-    if (fieldsFilter && fieldsFilter.indexOf(name) == -1)
+  function skipField(path) {
+    if (fieldsFilter && fieldsFilter.indexOf(path) == -1)
       return true;
   }
 
   function addToHeader(name, path, schema, level, unwind) {
-    if (skipField(name))
+    if (name.slice(0,2) == '__') {
       return 0;
+    }
     var colspan = 1;
     var nested = !!model.schema.nested[path];
     //console.log(path, 'nested', nested);
@@ -441,24 +439,38 @@ module.exports.table = function(req, res, next) {
         headers[level+1].push({name: name+concat+'*', colspan: 1, nested:false, path: name+concat+'*'})
       }
       nested = true;
+      return colspan;
     }
+
     if (nested) {
       //count the leaves of this branch
       colspan = Object.keys(schema).reduce(function(memo, key){
         return memo+addToHeader(key, path+'.'+key, schema[key], level+1)
       }, 0);
+      if (!colspan) {
+        return 0;
+      }
     } else if (schema.tree){ //single subdoc
-      subHeader(schema, '.');
+      if (!subHeader(schema, '.')) {
+        return 0;
+      }
     } else if (path === unwind){
       //schema is a DocumentArray
-      subHeader(schema[0], '.0.');
-    } else if (schema.ref){
-      var ref = addRef(path, schema.ref);
-      if (ref) {
-        refs.push(ref);
+      if (!subHeader(schema[0], '.0.')) {
+        return 0;
       }
-    } else if (schema.ui && schema.ui.foreignKey) {
-      // foreignKeys[path] = getForeignKeys(schema.ui.foreignKey.ref, schema.ui.foreignKey.autocomplete);
+    } else {
+      if (skipField(path)) {
+        return 0;
+      }
+      if (schema.ref){
+        var ref = addRef(path, schema.ref);
+        if (ref) {
+          refs.push(ref);
+        }
+      } else if (schema.ui && schema.ui.foreignKey) {
+        // foreignKeys[path] = getForeignKeys(schema.ui.foreignKey.ref, schema.ui.foreignKey.autocomplete);
+      }
     }
     var cell = {name:name, colspan:colspan, nested:nested, path:path};
     //console.log('name', name, 'nested', nested, 'colspan', colspan);
@@ -473,9 +485,8 @@ module.exports.table = function(req, res, next) {
   //only include leaves
   function addToFooter(schema, path, unwind) {
     Object.keys(schema).forEach(function(name) {
-      if (skipField(name)) {
-        return;
-      }
+      if (name.slice(0,2) == '__')
+        return true;
       if (!path && (name == 'id' || name == '_id'))
         return;
       if (model.schema.nested[path+name]) {
@@ -491,6 +502,9 @@ module.exports.table = function(req, res, next) {
           footer.push({name:name, path: path+name+'.0.*'});
         }
       } else {
+        if (skipField(path+name)) {
+          return;
+        }
         footer.push({name:name, path: path+name})
       }
     });
