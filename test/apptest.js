@@ -73,7 +73,7 @@ describe('app', function() {
       app.loadConfig.paths[0].should.equal(path.resolve(path.join(__dirname, 'fixtures')));
       config.defaultonly.should.equal(true);
       config.derivedonly.should.equal(true);
-      config.inboth.should.equal("default"); //shouldn't load the derived local config
+      config.inboth.should.equal("local"); //shouldn't load the derived local config
       config.derivedlocal.should.equal("derived-local");
     });
 
@@ -81,7 +81,7 @@ describe('app', function() {
 
   describe('email', function() {
     var template = {
-      subject: "subject",
+      subject: "subject {{test}}",
       templatePath: "email.html",
       templateVars: {test: 'var'}
     };
@@ -90,7 +90,7 @@ describe('app', function() {
       app.email.sendMessage('to@foo.com', template.subject,
         template.templatePath, template.templateVars).then(function(response) {
           try {
-            response.response.toString().should.match(/Subject: subject/);
+            response.response.toString().should.match(/Subject: subject var/);
             response.response.toString().should.match(/\r\ntest var\n/);
             response.envelope.to[0].should.equal('to@foo.com');
             response.envelope.from.should.equal('help@onecommons.org');
@@ -107,7 +107,7 @@ describe('app', function() {
         local: {email: "to@foo.com"}
       }).then(function(response) {
           try {
-            response.response.toString().should.match(/Subject: subject/);
+            response.response.toString().should.match(/Subject: subject var/);
             response.response.toString().should.match(/\r\ntest var\n/);
             response.envelope.to[0].should.equal('to@foo.com');
             response.envelope.from.should.equal('help@onecommons.org');
@@ -118,6 +118,29 @@ describe('app', function() {
           done();
         }, done);
     });
+
+    it('should save an rendered email', function(done) {
+      var sendOn = new Date();
+      models.Email.saveEmail(app, template, {
+        local: {email: "to@foo.com"}
+      }, {}, sendOn).then(function(email) {
+        try {
+          assert(email && email._id);
+          email.subject.should.equal("subject var");
+          email.html.should.equal("test var\n");
+          email.to.should.equal('to@foo.com');
+          email.from.should.equal('help@onecommons.org');
+          email.status.should.equal('pending');
+          email.sendNow(app).then(function(email) {
+            email.status.should.equal('sent');
+            done();
+          }, done);
+        } catch (err) {
+          done(err);
+        }
+      }, done);
+    });
+
   });
 
   describe('views', function() {
