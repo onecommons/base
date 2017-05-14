@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --compilers js:babel/register -R tap"
+    "test": "PORT=3333 NODE_ENV=test ./node_modules/.bin/mocha --compilers js:babel/register -R tap"
   },
   "dependencies": {
     "babel": "^5.8.21",
