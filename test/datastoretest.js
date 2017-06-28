@@ -369,10 +369,10 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
       ds.create({
          prop1 : []
       }, function(err, doc) {
-        assert(!err)
-        assert(doc[0]._id, JSON.stringify(doc));
-        lastid = doc[0]._id;
-        assert(Array.isArray(doc[0].prop1));
+        assert(!err);
+        assert(doc._id, JSON.stringify(doc));
+        lastid = doc._id;
+        assert(Array.isArray(doc.prop1));
         done();
       });
     });
@@ -383,8 +383,9 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
               _id: lastid,
               prop2: 'bad'
       }, function(err, doc) {
-        assert(err && err.code == 11000); //duplicate key error
-        assert(!doc);
+        assert(err && err.code == 11000, err); //duplicate key error
+        // XXX newer versions of mongo return BulkWriteResult
+        //assert(!doc, doc);
         done();
       });
     });
@@ -393,7 +394,7 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
       assert(ds);
       ds.create('{"_id": "@1","prop": "test"}', function(err, doc) {
         assert(!err, JSON.stringify(err));
-        assert.deepEqual(doc, [{"_id":"@1","prop":"test"}]);
+        assert.deepEqual(doc, {"_id":"@1","prop":"test"}, doc);
         done();
       });
     });
@@ -406,7 +407,8 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
       ds.add(obj, function(err, doc) {
         assert(!err, JSON.stringify(err));
         //console.log(JSON.stringify(doc));
-        assert(doc == 1); //1 object inserted
+        //XXX newer versions of mongo don't return the updated object
+        // assert(doc == 1, doc); //1 object inserted
         //XXX query and test for property value
         done();
       });
@@ -434,7 +436,7 @@ describe('.mongoose access allowed', makeTests("Test1a", {roles:['admin']}));
         .send(
           [{"jsonrpc":"2.0","method":"create","params":{"_id":"@2","prop1":"adds a value to prop1"},"id":5968226976111071},{"jsonrpc":"2.0","method":"transaction_info","params":{"comment":"created $new05968226976111071"},"id": 49884485029342773}]
           )
-        .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":[{"_id":"@2","prop1":"adds a value to prop1"}]},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]', done);
+        .expect('[{"jsonrpc":"2.0","id":5968226976111071,"result":{"_id":"@2","prop1":"adds a value to prop1"}},{"jsonrpc":"2.0","id":49884485029342776,"result":{}}]', done);
       });
 
     });
