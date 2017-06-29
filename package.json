@@ -1,11 +1,22 @@
 {
   "name": "obase",
-  "description": "onecommons base",
+  "description": "an easily extendable base for building webapp with express, mongo and passport",
   "version": "0.0.3",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onecommons/base.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Adam Souzis",
+    "email": "adam@onecommons.org"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "PORT=3333 NODE_ENV=test ./node_modules/.bin/mocha --compilers js:babel/register -R tap"
+  },
+  "bugs": {
+    "url": "https://github.com/onecommons/base/issues"
   },
   "dependencies": {
     "babel": "^5.8.21",

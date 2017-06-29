@@ -1,3 +1,8 @@
+#local config files
+*.local.*
+
+scratch
+
 *.bak
 .DS_Store
 public/css/app.css
