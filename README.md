@@ -1,7 +1,7 @@
-onecommons base
+OneCommons Base
 ===============
 
-Building blocks for building an app using express, mongo and passport
+An easily extendable base for building webapp with express, mongo and passport.
 
 ## To Install
 
