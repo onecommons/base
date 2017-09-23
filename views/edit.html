@@ -82,6 +82,7 @@ legend.withborder {
 <span class='crudtitle'>Create New {{model}}</span>
 {%else%}
 <span>Editing {{model}}</span>&nbsp;<a class='btn btn-default' href='/admin/create/{{model}}' target='_blank'>Create New {{model}}</a>
+&nbsp;<a class='btn btn-default' href='/admin/edit/{{obj._id}}?cloning=1' target='_blank'>Clone this {{model}}</a>
 {%if !noDelete %}
 &nbsp;<a data-objid='{{obj._id}}' class='btn btn-default deleteobj' href='#' target='_blank'>Delete</a>
 {%endif%}
@@ -180,10 +181,10 @@ function onNewContent() {
 $(document).ready(function () {
   $(document).on('submit', '.dbform', function() {
     try {
-      var data = $(this).dbData(false, true).get(0);
+      var data = $(this).dbData(false, {{!cloning}}).get(0);
     } catch (err) {
-      setAlert('alert-danger', "Error saving objecdt: bad input");
-      console.log("Error saving objecdt: bad input", err);
+      setAlert('alert-danger', "Error saving object: bad input");
+      console.log("Error saving object: bad input", err);
       return false;
     }
     var keys = [];

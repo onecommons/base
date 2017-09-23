@@ -157,7 +157,7 @@ module.exports.edit = function(req, res, next) {
   if (!model) {
     return next(); // not found
   }
-  if (model.schema.ui && model.schema.ui.noModify) {
+  if (model.schema.ui && model.schema.ui.noModify && !req.query.cloning) {
     res.statusCode = 403;
     return next(new Error("Permission Denied"));
   }
@@ -172,7 +172,14 @@ module.exports.edit = function(req, res, next) {
       var obj = docs && docs[0];
       if (obj) {
         utils.resolvePromises(foreignKeys).then(function(foreignKeys) {
-          render({foreignKeys:foreignKeys}, model, obj, req, res, next);
+          var vars = {foreignKeys: foreignKeys};
+          if (req.query.cloning) {
+            obj._id = model.generateId();
+            //copy all the unique fields
+            vars.creating = true;
+            vars.cloning = true;
+          }
+          render(vars, model, obj, req, res, next);
         }, next);
       } else {
         next(); // not found
@@ -583,6 +590,38 @@ module.exports.adminMethods = {
     rpcSession.httpRequest.session.crudSettings[json.model][json.setting] = json.value;
     return true;
   },
+
+/*
+this doesn't work because getIndexes isn't working plus it doesn't handle embedded arrays
+  cloneObject: function(json, respond, promisesSofar, rpcSession) {
+    return models.findById(json._id).then(function(obj) {
+      if (!obj) {
+        return new jsonrpc.JsonRpcError(-32001, 'Unable to find object to clone');
+      }
+      var model = getModelFromId(obj._id);
+      if (!model) {
+        return new jsonrpc.JsonRpcError(-32001, 'Unable to find model for object');
+      }
+      var clone = new model();
+      model.collection.getIndexes(function(indexes) {
+        if (!indexes) {
+          return;
+        }
+        indexes.forEach((index) => {
+          if (index.options.unique) {
+            // XXX what if key is not a string?
+            Object.keys(index.key).forEach( k => obj.set(k, obj.get(k) + '1'));
+          };
+        });
+      });
+      delete obj._id;
+      clone.set(obj);
+      return clone.save().then(function(doc) {
+        return { _id: clone._id };
+      });
+    });
+  },
+*/
 
  //XXX revert to async version
   deleteObject: function(json, respond, promisesSofar, rpcSession) {

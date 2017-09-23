@@ -3,7 +3,7 @@
   {% set path = prefix + loop.key %}
   {% set val = df.getVal(path) %}
   {% if loop.key == '_id' || loop.key == '__v' %}
-    {{df.hidden(path)}}
+    {%if !cloning %}{{df.hidden(path)}}{%endif%}
   {% elseif creating && schemafield.options.ui && schemafield.options.ui.defaultToSessionUser %}
     {{ df.hidden(path, {defaultValue: user._id}) }}
   {% elseif includeField(schemafield, path) %}
@@ -16,7 +16,7 @@
   </label>
   	<div class="col-sm-6">
     {% if readonlyField(schemafield, path) %}
-       <p class="form-control-static">{{formatdata(val, obj)}}</p>
+       <p class="form-control-static">{% if schemafield.options.unique && cloning %}{{formatdata(getDefaultValue(schemafield), obj)}}{%else%}{{formatdata(val, obj)}}{%endif%}</p>
     {% elseif schemafield.schema && schemafield.constructor.schemaName == 'DocumentArray' %}
        <div><button class="button addbutton btn btn-default">
   <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
@@ -49,7 +49,11 @@
           'data-autocomplete': schemafield.options.ui.foreignKey.autocomplete,
            setBindType:false, forceValue:true}) }}
       {% else %}
-       {{ df.input(path, getInputAttributes(schemafield, {class:'form-control', defaultValue: getDefaultValue(schemafield), guessInputType: true})) }}
+        {% set options = {class:'form-control', defaultValue: getDefaultValue(schemafield), guessInputType: true} %}
+      {% if schemafield.options.unique && cloning %}
+        {% set options.value = getDefaultValue(schemafield) %}
+      {% endif %}
+       {{ df.input(path, getInputAttributes(schemafield, options)) }}
       {% endif %}
        {% if schemafield.options.ref === 'File' %}
        <button type="button" class="btn btn-two" data-toggle="modal" data-target="#upload-file">Upload File</button></br>
