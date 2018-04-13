@@ -386,7 +386,8 @@ module.exports.table = function(req, res, next) {
   });
   setRowspans(headers);
   addToFooter(model.schema.tree, '', unwind);
-  var query = req.query.query && JSON.parse(req.query.query, function(key, value) {
+  var query = req.query.query || req.body.query;
+  query = query && JSON.parse(query, function(key, value) {
     if (value === "$currentDate") {
       return new Date();
     } else if (value && value.$date){
