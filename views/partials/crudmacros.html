@@ -18,9 +18,6 @@
     {% if readonlyField(schemafield, path) %}
        <p class="form-control-static">{% if schemafield.options.unique && cloning %}{{formatdata(getDefaultValue(schemafield), obj)}}{%else%}{{formatdata(val, obj)}}{%endif%}</p>
     {% elseif schemafield.schema && schemafield.constructor.schemaName == 'DocumentArray' %}
-       <div><button class="button addbutton btn btn-default">
-  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
-       </div>
        {% for val in val %}
           <div class="item well well-lg">
             <button class="button removebutton btn btn-default"
@@ -31,6 +28,9 @@
           </div>
        {% endfor %}
        <div class=appended data-crudpath='{{path}}' data-crudarraylength='{{(val && val.length) || 0}}' ></div>
+       <div><button class="button addbutton btn btn-default">
+  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
+       </div>
     {% elseif schemafield.options.enum %}
        {{ df.select(path, schemafield.options.enum, {setBindType:true, forceValue:true}) }}
     {% elseif !schemafield.schema && schemafield.caster %}
