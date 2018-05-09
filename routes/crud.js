@@ -131,6 +131,8 @@ function editDeleted(objId, req, res, next) {
     if (!obj) {
       return next(); // not found
     }
+    obj.setPrinciple(req.user);
+    obj.ensure('view');
     var deletedModel = getModelFromId(obj.deletedId);
     var refs = [];
     var foreignKeys = {};
@@ -140,6 +142,8 @@ function editDeleted(objId, req, res, next) {
       obj = docs && docs[0];
       var restored = new deletedModel();
       restored.set(obj.object);
+      restored.setPrinciple(req.user);
+      restored.ensure('view');
       utils.resolvePromises(foreignKeys).then(function(foreignKeys) {
         render({deleteId: objId, creating: true, foreignKeys:foreignKeys},
                 deletedModel, restored, req, res, next);
@@ -171,6 +175,8 @@ module.exports.edit = function(req, res, next) {
     try {
       var obj = docs && docs[0];
       if (obj) {
+        obj.setPrinciple(req.user);
+        obj.ensure('view');
         utils.resolvePromises(foreignKeys).then(function(foreignKeys) {
           var vars = {foreignKeys: foreignKeys};
           if (req.query.cloning) {
@@ -359,11 +365,17 @@ function findColumnsIndexes(columns, fieldsToShow) {
 module.exports.table = function(req, res, next) {
   var modelName = req.params.model;
   if (!modelName) {
+    if (!utils.checkPermission("admin", req)) {
+      return utils.requirePermission("admin", req, res, next);
+    }
     var modelNames = Object.getOwnPropertyNames(models.models);
     res.render('crudhome.html', {
       modelNames: modelNames
     });
     return;
+  }
+  if (res.locals.currentNamedRoute) {
+    res.locals.currentNamedRoute.label = modelName;
   }
   var model = models[modelName];
   if (!model) {
@@ -413,6 +425,10 @@ module.exports.table = function(req, res, next) {
         return new model(obj);
       });
     }
+    result.objs.forEach(function(doc) {
+      doc.setPrinciple(req.user);
+      doc.ensure('view');
+    });
     result.data = result.objs.map(function(obj) {
       return footer.map(function(cell) {
         var path = cell.path.slice(-2) === '.*' ? cell.path.slice(0, -2) : cell.path;
