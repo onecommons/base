@@ -185,6 +185,7 @@ module.exports.edit = function(req, res, next) {
             vars.creating = true;
             vars.cloning = true;
           }
+          vars.methods =  model.schema.ui && model.schema.ui.methods || [];
           render(vars, model, obj, req, res, next);
         }, next);
       } else {
@@ -375,7 +376,9 @@ module.exports.table = function(req, res, next) {
     return;
   }
   if (res.locals.currentNamedRoute) {
-    res.locals.currentNamedRoute.label = modelName;
+    if (!res.locals.currentNamedRoute.query || res.locals.currentNamedRoute.query != req.query) {
+      res.locals.currentNamedRoute.label = modelName;
+    }
   }
   var model = models[modelName];
   if (!model) {
@@ -671,6 +674,15 @@ this doesn't work because getIndexes isn't working plus it doesn't handle embedd
       restored.save();
       doc.remove();
       return { _id: doc._id };
+    });
+  },
+
+  invokeMethod: function(json) {
+    return models.findById(json._id).then(function(obj) {
+      if (!obj) {
+        return new jsonrpc.JsonRpcError(-32001, 'Unable to find object to delete');
+      }
+      return obj[json.method]();
     });
   }
 };

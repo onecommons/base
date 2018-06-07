@@ -88,6 +88,9 @@ legend.withborder {
 {%endif%}
 &nbsp;<a data-objid='{{obj._id}}' class='btn btn-default restoreobj' href='#' target='_blank'>Undo Deletion</a>
 {%endif%}
+{% for method in methods %}
+&nbsp;<a data-objid='{{obj._id}}' data-method='{{method.method}}' class='btn btn-default invokeMethod' href='#' target='_blank'>{{method.label}}</a>
+{%endfor%}
 </div>
 
 <div class="crud">
@@ -293,6 +296,16 @@ $(document).ready(function () {
         $('.deleteobj').show();
       }
     });
+    return false;
+  });
+
+  $(document).on('click', '.invokeMethod', function() {
+    $(this).dbExecute('/adminMethods#invokeMethod',
+      { _id: $(this).data('objid'),
+        method: $(this).data('method'),
+      },
+      function (result, err) {}
+    );
     return false;
   });
 

@@ -49,7 +49,10 @@ var userSchema = mongoose.Schema({
 
 });
 
-userSchema.ui = { titlefields: 'local.email' };
+userSchema.ui = {
+  titlefields: 'local.email',
+  methods: [{method: "disable", label: "Disable User"}]
+};
 
 // methods ======================
 // generating a hash

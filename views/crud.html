@@ -63,8 +63,11 @@ ul.ColVis_collection {
 
   <tbody></tbody>
 </table>
-<form action='.'> {# method=POST #}
-  {% if _csrf %}<input type=hidden name='_csrf' value="{{_csrf}}">{%endif%}
+{#
+<form action='.' method=POST>
+{% if _csrf %}<input type=hidden name='_csrf' value="{{_csrf}}">{%endif%}
+#}
+<form action='.'>
   Query: <input name=query value='{{query.query}}' size=40></input>
   <input type=submit></input>
 </form>
