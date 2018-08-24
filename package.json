@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "test": "PORT=3333 NODE_ENV=test ./node_modules/.bin/mocha --compilers js:babel/register -R tap"
+    "test": "PORT=3333 NODE_ENV=test ./node_modules/.bin/mocha --require babel-core/register -R tap"
   },
   "bugs": {
     "url": "https://github.com/onecommons/base/issues"
@@ -50,6 +50,7 @@
     "validator": "^3.36.0"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
     "chai": "^1.9.1",
     "chai-as-promised": "^4.1.1",
     "cheerio": "^0.22.0",
