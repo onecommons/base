@@ -1,7 +1,7 @@
 {
   "name": "obase",
   "description": "an easily extendable base for building webapp with express, mongo and passport",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "repository": {
     "type": "git",
     "url": "https://github.com/onecommons/base.git"
