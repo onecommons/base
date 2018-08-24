@@ -31,7 +31,7 @@
     "express-session": "^1.15.6",
     "kerberos": "0.0.17",
     "less-middleware": "^3.0.1",
-    "lodash.defaultsdeep": "^3.10.0",
+    "lodash.mergewith": "^4.6.1",
     "mandrill-api": "^1.0.45",
     "moment": "^2.9.0",
     "moment-timezone": "^0.5.4",

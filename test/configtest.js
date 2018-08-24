@@ -44,6 +44,32 @@ describe("config", function() {
     assert.strictEqual(config.templates.signup.subject, "Welcome to {{appname}}!");
   });
 
+  it("should honor _mergeStrategy", function() {
+    var loadConfig = configloader({
+      configtest: {
+        nested: {
+          _mergeStrategy: 'replace',
+          c: true
+        }
+      }
+    });
+    assert(process.env.NODE_ENV==='test'); // NODE_ENV=test will always be defined
+    var config = loadConfig("configtest");
+    assert.deepEqual(config.nested, {_mergeStrategy: 'replace', c: true});
+  });
+
+  it("should should replace, not merge, arrays", function() {
+    var loadConfig = configloader({
+      configtest: {
+        array: ['a', 'b']
+      }
+    });
+    assert(process.env.NODE_ENV==='test'); //NODE_ENV=test will always be defined
+    var config = loadConfig("configtest");
+    //test deep merge
+    assert.deepEqual(config.array, ['a', 'b']);
+  });
+
   it("should merge with environment variables", function() {
     var loadConfig = configloader(); //use default paths
     assert(process.env.NODE_ENV==='test'); //NODE_ENV=test will always be defined
@@ -65,6 +91,7 @@ describe("config", function() {
     // CONFIGTEST_N3.A is ignored, CONFIGTEST_N3 is unchanged:
     assert.deepEqual(config.N3, 1);
     assert(!config.overrideonly);
+    // XXX cleanup: delete vars from env
   });
 
 });
