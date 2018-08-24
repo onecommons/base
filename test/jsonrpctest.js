@@ -252,18 +252,11 @@ describe('jsonrpc', function(){
       );
       var req = request(app).post('/')
       .field('jsonrpc', json)
-
-      var part = req.part()
-        .set('Content-Disposition', 'form-data; name="dummy"; filename="dummy.txt"')
-        .set('Content-Type', 'text/plain');
-      part.write('some dummy data');
-      part.end();
-
-     req.expect(
-        '[{"jsonrpc":"2.0","id":1,"result":{"name":"dummy.txt","contents":"some dummy data"}}]'
-        , done);
-
-      }); //it
+      .attach('dummy', Buffer.from('some dummy data'), 'dummy.txt')
+      .expect(
+         '[{"jsonrpc":"2.0","id":1,"result":{"name":"dummy.txt","contents":"some dummy data"}}]'
+      , done)
+    }); //it
 
   });
 
